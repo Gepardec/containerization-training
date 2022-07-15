@@ -1,0 +1,183 @@
+<section>
+    <section class="no_bg">
+        <h2>Docker System Commands</h2>
+        <aside class="notes">
+            <ul>
+                <li>So far, we've encountered commands to interact with individual images and containers; in practice however, a Docker workflow will generate a lot of containers and images. In this module, we'll introduce some tools for managing your entire collection of images and containers on a node.</li>
+            </ul>
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>Learning Objectives</h2>
+        
+        <p>By the end of this module, learners will be able to</p>
+        <ul>
+            <li>Execute clean-up commands</li>
+            <li>Locate Docker system information</li>
+        </ul>
+    </section>
+
+    <section class="no_bg">   
+        <h2>Clean-up Commands</h2>
+      
+        <ul>
+            <li>
+                <code>docker system df</code><br>
+                <pre>
+TYPE           TOTAL    ACTIVE   SIZE        RECLAIMABLE
+Images         39       2        9.01 GB     7.269 GB (80%)
+Containers     2        2        69.36 MB    0 B (0%)
+Local Volumes  0        0        0 B         0 B</pre>
+            </li>
+            <li><code>docker system prune</code></li>
+        </ul>
+        <div>
+            <p>more limited...</p>
+            <ul>
+                <li><code>docker image prune [--filter "foo=bar"]</code></li>
+                <li><code>docker container prune [--filter "foo=bar"]</code></li>
+                <li><code>docker volume prune [--filter "foo=bar"]</code></li>
+                <li><code>docker network prune [--filter "foo=bar"]</code></li>
+            </ul>
+        </div>
+        <div class="topcorner"><img src="images/cleanup.png" alt="Cleanup the System"></div>
+
+        <aside class="notes">
+            <ul>
+                <li>under heavy use the docker host might consume a load of resources or disk space. To find out with type of elements occupy how much space we can use the <code>docker system df</code> command. It tells us exactly how much space images, container and volumes currently occupy and how much of it is claimable.</li>
+                <li>to claim back unused space from the Docker host we can use the command <code>docker system prune</code>. It will try to remove dangling images, stopped containers and unused volumes and networks in one go.</li>
+                <li>we also have the more specialized <code>prune</code> commands that only remove unused items of the given type</li>
+                <li>Prune commands can also be filtered by label in all cases, before a timestamp via 'until' for everything but volumes, and also by 'dangling' for images, for even more restricted pruning.</li>
+            </ul>
+
+            <p>image credit <a href="http://www.wiki.sc4devotion.com/src/modules/fundamentals/system-commands/images/4/41/Wiki_clean.png">http://www.wiki.sc4devotion.com/src/modules/fundamentals/system-commands/images/4/41/Wiki_clean.png</a></p>
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>Inspect the System</h2>
+        <div><code>docker system info</code></div>
+        <pre>
+Containers: 2
+ Running: 2
+ Paused: 0
+ Stopped: 0
+Images: 105
+Server Version: 17.03.0-ee
+Storage Driver: overlay2
+ Backing Filesystem: extfs
+ Supports d_type: true
+ Native Overlay Diff: true
+Logging Driver: json-file
+Cgroup Driver: cgroupfs
+Plugins:
+ Volume: local
+ Network: bridge host ipvlan macvlan null overlay
+Swarm: active
+ NodeID: ybmqksh6fm627armruq0e8id1
+ Is Manager: true
+ ClusterID: 2rbf1dv6t5ntro2fxbry6ikr3
+ Managers: 1
+ Nodes: 1
+ Orchestration:
+  Task History Retention Limit: 5
+ Raft:
+  Snapshot Interval: 10000
+  Number of Old Snapshots to Retain: 0
+  Heartbeat Tick: 1
+  ...</pre>
+
+        <div class="topcorner"><img src="images/spyglass.png" alt="Inspect System"></div>
+
+        <aside class="notes">
+            <ul>
+                <li>We can use the <code>docker system info</code> command to get very detailed information about the current Docker host. This information includes but is not limited to images, containers, swarm mode, networks and volumes.</li>
+                <li>
+                    When looking at the output, can you identify:
+                    <ul>
+                        <li>how many images are on your machine?</li>
+                        <li>What version of containerd are you running?</li>
+                        <li>Whether Docker is running in swarm mode?</li>
+                    </ul>
+                </li>
+                <li>Image from <a href="https://s3-us-west-2.amazonaws.com/nnsrc/modules/fundamentals/system-commands/images/spiglass.png">https://s3-us-west-2.amazonaws.com/nnsrc/modules/fundamentals/system-commands/images/spiglass.png</a></li>
+            </ul>
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>System Events</h2>
+
+        <p>
+            <span>Start observing with ...</span><br>
+            <code>docker system events</code>
+        </p>
+        <p>Generate events with ...<br>
+            <code style="font-size: 0.8em;">docker container run --rm alpine echo 'Hello World!'</code>
+        </p>
+        <pre>
+2017-01-25T16:57:48.553596179-06:00 container create 30eb630790d44052f26c1081...
+2017-01-25T16:57:48.556718161-06:00 container attach 30eb630790d44052f26c1081...
+2017-01-25T16:57:48.698190608-06:00 network connect de1b2b40f522e69318847ada3...
+2017-01-25T16:57:49.062631155-06:00 container start 30eb630790d44052f26c1081d...
+2017-01-25T16:57:49.164526268-06:00 container die 30eb630790d44052f26c1081dbf...
+2017-01-25T16:57:49.613422740-06:00 network disconnect de1b2b40f522e69318847a...
+2017-01-25T16:57:49.815845051-06:00 container destroy 30eb630790d44052f26c108...</pre>
+
+        <div class="topcorner" style="max-width: 35%"><img src="images/monitoring.png" alt="System Events"></div>
+        <aside class="notes">
+            <ul>
+                <li>`docker system info` gave us some mostly-static metadata about our docker platform; if we want to watch things live, we can take advantage of Docker's event reporting via <code>docker system events</code>.</li>
+                <li>please note that the output generated by the <code>docker system events</code> command can also be filtered and custom formatted by using according command arguments <code>--filter</code> and <code>format</code></li>
+                <li>Image from <a href="http://www.bing.com/images/search?view=detailV2&ccid=xHDtNSak&id=F6B851CB5DF9FCB90FD4C4FBF86073617E979328&q=monitoring&simid=608004200364248188&selectedIndex=0&qft=+filterui%3alicense-L1+filterui%3aimagesize-medium&ajaxhist=0">http://www.bing.com/src/modules/fundamentals/system-commands/images/search?view=detailV2&ccid=xHDtNSak&id=F6B851CB5DF9FCB90FD4C4FBF86073617E979328&q=monitoring&simid=608004200364248188&selectedIndex=0&qft=+filterui%3alicense-L1+filterui%3aimagesize-medium&ajaxhist=0</a></li>
+            </ul>            
+        </aside>
+    </section>
+
+    <section  data-background="#00a2a1" class="green_bg">
+        <h2><img src="images/icon_task.png" class="moby_icon" alt="icon"> Exercise: System Commands</h2>
+        <p>Work through</p>
+        
+        <ul>
+            <li class='exercise' script='cleaning-up-docker-resources.md'>Cleaning up Docker Resources</li>
+            <li class='exercise' script='inspection-commands.md'>Inspection Commands</li>
+        </ul>
+
+        <p>in the Exercises book.<p>
+        <h2 class="timer"></h2>
+
+    </section> 
+
+    <section class="no_bg">
+        <h2>Discussion</h2>
+
+        <ul>
+            <li>What is the origin of dangling image layers?</li>
+            <li>What are some potential pitfalls to automating system cleanup with prune commands, and how to avoid them?</li>
+            <li>Questions?</li>
+        </ul>
+
+        <aside class='notes'>
+            <ul>
+                <li>When a layer is no longer part of any tagged image, typically happens when a name and tag is reused after changing a Dockerfile.</li>
+                <li>Deleting containers without grabbing their logs first, deleting volumes that have valuable info just because they weren't currently attached to anything. Avoid by using label-based filters when pruning.</li>
+            </ul>
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>Further Reading</h2>
+
+        <ul>
+            <li>System commands reference: <a href="http://dockr.ly/2eMR53i">http://dockr.ly/2eMR53i</a></li>
+        </ul>
+
+        <aside class='notes'>
+            <ul>
+                <li>additional resources about system commands</li>
+            </ul>
+            
+        </aside>
+    </section>
+</section>

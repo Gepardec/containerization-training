@@ -1,0 +1,19 @@
+<section class="no_bg">
+    <h2>Containerization Fundamentals Conclusion: Any App, Anywhere.</h2>
+
+    <ul>
+        <li>Containers are isolated processes</li>
+        <li>Images provide filesystem for containers</li>
+        <li>Volumes persist data</li>
+    </ul>
+
+    <aside class='notes'>
+        <ul>
+            <li>the key takehome from basic containerization is an understanding of how it lets docker deliver on its promise to enable you to run any app, anywhere.</li>
+            <li>the layered filesystems defined by Dockerfiles which in turn define images contain all the execution context a process needs to run; features of the linux kernel like kernel namespacing and control groups allow that environment to be created as a container on any host linux system, securely and without regard to whatever else is running on that machine. These tools provide the standardization and encapsulation we predicted would be of benefit in the introduction at the start of the day.</li>
+            <li>One slightly subtler point is that in none of this did we ever impose any restrictions on how many containers could be running on a given machine, or any necessary connections between the images that underlie them. This ability to mix and match frees us from correlations between processes; run your postgres database from ubuntu, your node.js web app from debian and your FORTRAN data wrangling from centos if you want - all on the same machine. Containerization's implicit win is the ability to always use the right tool for the job.</li>
+        </ul>
+    </aside>
+
+</section>
+

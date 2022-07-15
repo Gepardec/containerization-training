@@ -1,0 +1,273 @@
+<section>
+    <section class="no_bg">
+        <h2>Containerization Basics</h2>
+    </section>
+
+    <section class="no_bg">
+        <h2>Discussion: Running Containers</h2>
+
+        <p>What assurances would you need to run a process on an arbitrary host? Consider</p>
+        <ul>
+            <li>Hostile environments</li>
+            <li>Required resources</li>
+        </ul>
+
+        <aside class='notes'>
+            <ul>
+                <li>Guide the class to thinking about the need for process isolation (via kernel namespaces etc), filesystem provisioning (via Docker images), and resource consumption limitations (via cgroups)</li>
+                <li>Hint questions if the class is stuck:</li>
+                <li>Do you trust the other processes running on this host? Should they trust you? (leads to need for process isolation)</li>
+                <li>Will your process' dependencies be available on this host? Are you sure? (leads to need for docker images)</li>
+                <li>How much resources can you reasonably consume on this host? (leads to need for cgroup limitations)</li>
+            </ul>
+        </aside>
+
+    </section>
+
+    <section class="no_bg">
+        <h2>Learning Objectives</h2>
+
+        <p>By the end of this module, learners will be able to</p>
+        <ul>
+            <li>Describe what a container is in terms of processes and isolation tools</li>
+            <li>Use the key commands for interacting with Docker containers</li>
+        </ul>
+    </section>
+
+    <section class="no_bg">
+        <h2>Containers are Processes</h2>
+
+        <p><span class='keyword'>Containers</span> are processes sandboxed by</p>
+        <ul>
+            <li>Kernel namespaces</li>
+            <li>Control Groups</li>
+            <li>Root privilege management &amp; syscall restrictions (Linux)</li>
+            <li>VM isolation (Windows)</li>
+        </ul>
+
+        <aside class='notes'>
+            <ul>
+                <li>Fundamentally, containers are just processes living on the host, isolated primarily by kernel namespaces, and control groups for resource isolation.</li>
+                <li>Linux containers can also be subject to restrictions on what root privileges and system calls they are allowed to make, by application of a linux security module.</li>
+                <li>On the Windows side, containers enhance their isolation by running in ultra-light-weight VMs.</li>
+            </ul>
+        </aside>
+    </section>
+
+    <!--
+        <section class="no_bg">
+        <h2>Architecture in Linux</h2>
+        <div class="col-6">
+            <img src="images/architecture-linux.png" title="Linux Architecture" class="transparent">
+        </div>
+    -->
+    <!--
+            <div class="col-6">
+                <p>Architecture in Windows</p>
+                <img src="images/architecture-windows.png" title="Windows Architecture" class="transparent">
+            </div>
+    --> 
+    <!--
+        </div>   <aside class="notes">
+            <ul>
+                <li>On a high level the architectures of Linux and Windows are not really that much different. Both rely on fundamental kernel features for creating containers like kernel namespaces and control groups.</li>
+                <li>On the Linux side, a container runtime such as containerd uses these kernel features to create and run containers.</li>
+                <li>On the Windows side, Microsoft has introduced the Compute Service to abstract the low level details of the capabilities like control groups, namespaces and layer capabilities and not make them (yet) public so that the Windows team can quickly iterate on those features without breaking any external contracts. In this regard Compute Service is the public interface the Docker platform communicates with.</li>
+                <li>As said, this is a public API and thus not only Docker is using it but there exists multiple bindings, e.g. for C# and for Go (which is used by Docker).</li>
+                <li>C#: https://github.com/Microsoft/dotnet-computervirtualization</li>
+                <li>Go: https://github.com/Microsoft/hcsshim</li>
+            </ul>
+        </aside>
+    </section>
+    --> 
+
+    <section class="no_bg">
+        <h2>Linux Kernel Namespaces</h2>
+
+        <ul>
+            <li><b>DEFAULT</b>
+                <ul>
+                    <li>Process IDs</li>
+                    <li>Network stacks</li>
+                    <li>Inter-process communications</li>
+                    <li>Mount points</li>
+                    <li>Hostnames</li>
+                </ul>
+            </li><br>
+            <li><b>OPTIONAL</b>
+                <ul>
+                    <li>User IDs</li>
+                </ul>
+            </li>
+        </ul>
+
+        <aside class="notes">
+            <ul>
+                <li>The baseline tool for creating containers is the kernel namespace. Kernel namespaces create distinct representations of things like PID trees, user spectra, network stacks and mount points; processes live in exactly one namespace, and are only able to interact with the broader system via the representation encapsulated therein.</li>
+                <li>By analogy: an un-namespaced system is like when airplanes used to have just one TV in the cabin everyone would look up at to watch the in-flight movie. Everyone shared the device, and everyone saw the same thing.</li>
+                <li>Introducing namespaces is like putting seatback TVs in front of every passenger. Now everyone has their own private devices and sees their own thing, which is hidden from their neighbors.</li>
+                <li>In the same way, a namespaced process has all their own resources - their own iptables rules and eth0 device, their own mount points, their own PID tree - and processes in other namespaces aren't allowed to touch or even see these resources.</li>
+            </ul>
+        </aside>
+
+    </section>
+
+    <section class="no_bg">
+        <h2>Linux PID Kernel Namespace</h2>
+
+        <img src='images/pid-tree.png' style='width:70%'></img>
+
+        <aside class="notes">
+            <ul>
+                <li>For example, PID namespaces make the first process in the namespace appear as the root of a process tree to all other processes in that namespace, which will be its children.</li>
+                <li>Meanwhile, processes in the parent namespace see these processes with PID numbers like any other process in the parent PID namespace.</li>
+                <li>In this way, processes in the child namespace aren't able to find information about processes in the parent namespace, but the child namespace remains transparent from the perspective of the parent namespace.</li>
+                <li>Stopping the PID 1 of a child namespace and stopping the container are the exact same thing.</li>
+                <li>Isolating host system resources, rather than creating a whole new virtual machine, is where the high performace of containers comes from. Think of it like building a little wall around a patch of sand in a sandbox; the area marked off can itself be thought of as a new sandbox, but no new sand has been acquired.</li>
+            </ul>
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>Optional Linux Isolation Features</h2>
+
+        <ul>
+            <li>Control groups: limit memory &amp; CPU</li>
+            <li>Root privilege management: whitelist root powers</li>
+            <li>System call management: whitelist available system calls</li>
+            <li>Linux Security Modules: mandatory filesystem access control</li>
+        </ul>
+
+        <aside class='notes'>
+            <li>In addition to the default kernel namespaces, a number of other linux technologies can be imposed on your containers to restrict their privileges.</li>
+            <li>All production deployments should take advantage of control groups, to limit how much memory and CPU a container can consume.</li>
+            <li>Root privileges and system calls are governed by whitelist, which can be configured per-container</li>
+            <li>Linux security modules allow the creation of access control rules for filesystem paths and objects within the container.</li>
+        </aside>
+
+    </section>    
+
+    <!--
+    <section class="no_bg">
+        <h2>Windows: Host Kernel Containers</h2>
+        <img src="images/windows-containers.png" style='width:70%' title="Windows Containers" class="transparent">
+        <aside class="notes">
+            <ul>
+                <li>Windows Containers can share the same Windows Kernel of the underlying Windows OS (either Windows Server 2016 or Windows 10).</li>
+                <li>A fundamental difference between Linux and Windows containers is the infrastructure they require to make low-level calls to the kernel. In Linux, a container will have a single application process, which can simply issue system calls. But in Windows, a small collection of system processes are required alongside the application process to provide the same functionality; just as these system processes run in uncontainerized user mode, they must also be available inside a windows container.</li>
+                <li>The implementation details of Windows containers are fundamentally different than those of linux containers, but they mimic the functionality and isolation provided by kernel namespaces and control groups.</li>
+                <li>Microsoft has done and continues to do a lot of tremendous work to minimize this overhead, particularly with Nanoserver.</li>
+            </ul>
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>Windows: Hyper-V Containers</h2>
+        <img src="images/hyper-v-containers.png" style='width:70%' title="Hyper-V Containers" class="transparent">
+        <aside class="notes">
+            <ul>
+                <li>Windows containers alone don't have a set of isolation tools analogous to root privilege management or linux security modules.</li>
+                <li>This has led to Hyper-V Containers. Hyper-v containers are Windows Containers that are wrapped inside a very special and slim VM. This means that from a developers or DevOps perspective nothing changes. These containers are built the exact same way as normal Windows containers and it is merely a switch in the `docker container run` command which determines in which mode the container should run.</li>
+                <li>Hyper-V Containers provide all the security and isolation to a single container that we are used to when using VMs to isolate our applications. Yet due to special optimizations Hyper-V containers are much leaner and faster than traditional VMs and thus can be packed much more densely on a server.</li>
+                <li>Hyper-V containers have one workload and deliver added isolation for multi-tenant or hostile environments</li>
+                <li>The isolation provided by hyper-v containers provides a Windows alternative to the added isolation provided by linux security modules and root privilege management on the Linux side.</li>
+            </ul>
+        </aside>
+    </section>
+    -->
+    
+    <section data-background="#340B65" class="green_bg">
+        <h2><img src="images/icon_task.png" class="moby_icon" alt="icon">Instructor Demo: Process Isolation</h2>
+        
+        <p>See the demo</p> 
+        
+        <ul>
+            <li class='demo' script='process-isolation-demo.md'>Process Isolation</li>
+        </ul>
+
+        <p>In the Exercises book.</p>
+        
+    </section> 
+
+    <section data-background="#00a2a1" class="green_bg">
+        <h2><img src="images/icon_task.png" class="moby_icon" alt="icon"> Exercise: Container Basics</h2>
+        <p>Work through</p> 
+        <ul>
+            <li class='exercise' script='running-and-inspecting-containers.md'>Running and Inspecting a Container</li>
+            <li class='exercise' script='interactive-containers.md'>Interactive Containers</li>
+            <li class='exercise' script='detached-containers-and-logging.md'>Detached Containers and Logging</li>
+            <li class='exercise' script='starting-stopping-inspecting-and-deleting-containers.md'>Starting, Stopping, Inspecting and Deleting Containers</li>
+        </ul>
+
+        <p>In the Exercises book.</p>
+
+        <h2 class="timer"></h2>
+        
+    </section>
+
+    <section class="no_bg">
+        <h2>Container Lifecycle</h2>
+
+        <img src='images/container-lifecycle.png' style='width:70%'></img>
+
+        <aside class="notes">
+            <ul>
+                <li>The rectangles display the state of the container and the arrow labels show the Docker command used to change the container state.</li>
+                <li>The container lifecycle always begins in the CREATED state. A container in this state has a private filesystem set up on disk (more on this in the next chapter) and metadata defined regarding what process it is to encapsulate and how, but it not yet running. When the process in question begins running, the container transitions to the UP state.</li>
+                <li>If a containerized process exits, the container transitions to the EXITED state. It can normally be restarted with a start command.</li>
+                <li>Finally, Docker containers can enter a PAUSED state of suspension imposed by control group freezing. This suspension technique (unlike using SIGSTOP and SIGCONT) can't be caught by the process, ensuring that pausing a container doesn't disrupt the process it containerizes.</li>
+            </ul>
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>Container Logs</h2>
+
+        <ul>
+            <li>STDOUT and STDERR for a containerized process</li>
+            <li><code>docker container logs &lt;container name&gt;</code></li>
+        </ul>
+
+        <aside class='notes'>
+            <ul>
+                <li>STDOUT and STDERR of whatever process is PID 1 in a container are logged by Docker, and available via `docker container logs`</li>
+            </ul>
+            
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>Container Basics Takeaways</h2>
+        <ul>
+            <li>Single process constrained by kernel namespaces, control groups and other technologies</li>
+            <li>Private &amp; ephemeral filesystem and data</li>
+        </ul>
+        <aside class="notes">
+            <ul>
+                <li>The key conceptual take-aways for container basics are the first two points; the container's main process, which it labels PID 1, will stop the container when it itself stops; and writing to the container's file system writes only to that container, not the underlying image; soon we'll learn more about these underlying images, and how to manipulate them.</li>
+                <li>Everything else we learned in this unit is basic creation, deletion and investigation syntax.</li>
+            </ul>
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>Further Reading</h2>
+
+        <ul>
+            <li>List of container commands: <a href="http://dockr.ly/2iLBV2I">http://dockr.ly/2iLBV2I</a></li>
+            <li>Getting started with containers: <a href="http://dockr.ly/2gmxKWB">http://dockr.ly/2gmxKWB</a></li>
+            <li>Start containers automatically: <a href="http://dockr.ly/2xB8sMl">http://dockr.ly/2xB8sMl</a></li>
+            <li>Limit a container's resources: <a href="http://dockr.ly/2wqN5Nn">http://dockr.ly/2wqN5Nn</a></li>
+            <li>Keep containers alive during daemon downtime: <a href="http://dockr.ly/2emLwb5">http://dockr.ly/2emLwb5</a></li>
+            <li>Isolate containers with a user namespace: <a href="http://dockr.ly/2gmyKdf">http://dockr.ly/2gmyKdf</a></li>
+            <li>Intro to Windows Containers: <a href="https://dockr.ly/2CTYhYb">https://dockr.ly/2CTYhYb</a></li>
+        </ul>
+
+        <aside class='notes'>
+            <ul>
+                <li>additional resources about containers</li>
+            </ul>
+            
+        </aside>
+    </section>
+</section>

@@ -1,0 +1,199 @@
+<section>
+    <section class="no_bg">
+        <h2>Docker Volumes</h2>
+    </section>
+
+    <section class="no_bg">
+        <h2>Discussion: Managing Data</h2>
+
+        <p>If a container generates a lot of data, where should it be stored? What if you need to provision data to a container?</p>
+
+        <aside class='notes'>
+            <ul>
+                <li>Guide the class to thinking about the fact that so far, containers and images don't provide a practical way to manage data that lives longer than the lifetime of a container.</li>
+                <li>Hint questions if the class is stuck:</li>
+                <li>Should you write a lot of data to the container layer? That's currently the only place we've learned about in this workshop where you can write data to at container run time. Why wouldn't you want to do this?</li>
+                <li>Should you provision data to a container by including that data in the underlying image? Again, this is the only option we've seen so far. Why wouldn't you want to do this?</li>
+            </ul>
+        </aside>
+
+    </section>
+
+    <section class="no_bg">
+        <h2>Learning Objectives</h2>
+
+        <p>By the end of this module, learners will be able to</p>
+        <ul>
+            <li>Define a volume and identify its primary use cases</li>
+            <li>Describe the advantages and potential security risks of mounting volumes and host directories into containers</li>
+        </ul>
+    </section>
+
+    <section class="no_bg">
+        <h2>Volume Usecases</h2>
+
+        <p>Volumes provide a R/W path <span class='keyword'>separate from the layered filesystem</span>.</p>
+
+        <ul>
+            <li><span class='keyword'>Mount</span> data at container startup</li>
+            <li><span class='keyword'>Persist</span> data when a container is deleted</li>
+            <li><span class='keyword'>Share</span> data between containers</li>
+            <li><span class='keyword'>Speed up</span> I/O by circumventing the union filesystem</li>
+        </ul>
+
+        <aside class="notes">
+            <ul>
+                <li>Volumes primarily provide a way to handle data that has a longer lifecycle than an individual container, by providing a writable location separate from the container's union filesystem.</li>
+                <li>For example, if a container needs access to a large body of files, those files can be mounted into a running container as a volume, avoiding the need to create a (potentially huge) image with that data baked in.</li>
+                <li>If a container is creating or collecting data as it runs, it should be stored in a volume, since that volume will survive the deletion of the container.</li>
+                <li>Furthermore, volumes can be a more performant choice for write heavy workloads for the same reason. Rather than searching the layers of the union filesystem and performing a copy on write operation when writing a file, I/O in a volume simply reads and writes the relevant file, without the added overhead.</li>
+            </ul>
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>Basic Volumes</h2>
+
+        <ul>
+            <li><span class='keyword'>Named</span>: managed by Docker; filesystem independent; user-specified identifier</li>
+            <li><span class='keyword'>Anonymous</span>: managed by Docker; filesystem independent; randomly-generated identifier</li>
+            <li><span class='keyword'>Host mounted</span>: mount a specific path on the host; DIY management</li>
+        </ul>
+
+        <aside class='notes'>
+            <ul>
+                <li>There are two high-level methods for mounting volumes into containers: named volumes, and host mounts.</li>
+                <li>In the named volume case, Docker will create and manage a directory on your host for your volume, using the 'docker volume' CLI commands.</li>
+                <li>Host mounts specify a particular path on the host to mount into a container. This is useful if there's something host specific you want to provide to the container, but requires you to manage the host's filesystem directly and depends on the path in question actually being meaningful on that host, potentially affecting portability.</li>
+            </ul>
+        </aside>
+
+    </section>
+
+    <section data-background="#340B65" class="green_bg">
+        <h2><img src="images/icon_task.png" class="moby_icon" alt="icon"> Instructor Demo: Volumes</h2>
+
+        <p>See the demo</p> 
+        
+        <ul>
+            <li class='demo' script='basic-volume-usage-demo.md'>Basic Volume Usage</li>
+        </ul>
+
+        <p>In the Exercises book.</p>
+    </section> 
+
+    <section class="no_bg">
+        <h2>Volumes in dockerfiles</h2>
+        <ul>
+            <li>VOLUME instruction creates a mount point</li>
+            <li>Can specify arguments in a JSON array or string</li>
+            <li>Cannot map volumes to host directories</li>
+            <li>Volumes are initialized when the container is executed</li>
+        </ul>
+        <br>
+        <br>
+        <div class="row">
+            <div class="col-6">
+                <pre><code data-trim data-noescape>FROM nginx:latest
+...
+# string example
+VOLUME /myvolume
+
+# string example with multiple volumes
+VOLUME /www/website1 /www/website2
+
+# JSON example
+VOLUME ["myvol1", "myvol2"]
+...</code></pre>
+            </div>
+            <!--
+            <div class="col-6">
+                Windows containers:<br>
+                <div class="pre">FROM microsoft/iis:nanoserver
+...
+# string examples
+VOLUME c:\\data
+VOLUME c:\\data2 c:\\data3
+
+# JSON examples
+VOLUME ["c:\\\\data4", "c:\\\\data5"]
+VOLUME ["c:/data6", "c:/data7"]
+...</div>
+            </div>
+        -->
+        </div>
+        <aside class="notes">
+            <ul>
+                <li>VOLUME is another Dockerfile instruction available to designate a directory inside a container as a volume to be persisted on the host.</li>
+                <li>Note that this syntax does not allow for the specification of a host path, since that would break our all-important portability; there's no guarantee that path will exist on any arbitrary machine in a meaningful way.</li>
+                <li>Docker automatically creates a volume (directory) on the host for each volume that is declared in the Dockerfile. The name of such a host volume is a sha256. The data that is then stored inside those volumes inside the container is mapped/persisted to the host FS.</li>
+            </ul>
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>Volumes and Security</h2>
+
+        <ul>
+            <li>Point of ingress to the host and other containers</li>
+            <li>Don't mount things unnecessarily</li>
+            <li>Use the <code>:ro</code> flag</li>
+            <li>Linux: in-memory <code>tmpfs</code> mounts available</li>
+        </ul>
+
+        <aside class='notes'>
+            <ul>
+                <li>Volumes are the first thing we've seen so far that pierce the isolation we carefully crafted between containers, the host, and other containers. A malicious actor can inject files from one container to another, and to the host, if care is not taken.</li>
+                <li>Mount volumes and directories only as needed, and use the :ro flag when a container is only a passive consumer of data. Better yet, ask if there's a way to separate out reader and writer containers, to keep write access to volumes as tightly restricted as possible.</li>
+                <li>Also for those running linux hosts, it's also possible to mount purely in-memory volumes to a container; anything written here will never be written to disk, and will be released when the container is deleted. This is a good option for persisting sensitive data while a container is running.</li>
+            </ul>
+        </aside>
+
+    </section>
+
+
+    <section data-background="#00a2a1" class="green_bg">
+        <h2><img src="images/icon_task.png" class="moby_icon" alt="icon"> Exercise: Volumes Usecase</h2>
+
+        <p>Work through</p> 
+        <ul>
+            <li class='exercise' script='database-volumes.md'>Database Volumes</li>
+        </ul>
+
+        <p>In the Exercises book.</p>
+        <h2 class="timer"></h2>
+
+    </section> 
+
+    <section class="no_bg">
+        <h2>Docker Volume Takeaways</h2>
+        <ul>
+            <li>Volumes persist data beyond the container lifecycle</li>
+            <li>Volumes bypass the copy on write system (better for write-heavy containers)</li>
+        </ul>
+        <aside class="notes">
+            <ul>
+                <li>The most important take home message for volumes, is that this is where persistent data should go - not in containers, which come and go rapidly.</li>
+                <li>Also, volumes are separate from the union file system; changes to volumes do not precipitate changes to images, and vice versa.</li>
+            </ul>
+        </aside>
+    </section>
+
+    <section class="no_bg">
+        <h2>Further Reading</h2>
+
+        <ul>
+            <li>How to use volumes: <a href="http://dockr.ly/2vRZBDG">http://dockr.ly/2vRZBDG</a></li>
+            <li>Troubleshoot volume errors: <a href="http://dockr.ly/2vyjvbP">http://dockr.ly/2vyjvbP</a></li>
+            <li>Docker volume reference: <a href="http://dockr.ly/2ewrlew">http://dockr.ly/2ewrlew</a></li>
+        </ul>
+
+        <aside class='notes'>
+            <ul>
+                <li>additional resources about volumes</li>
+            </ul>
+            
+        </aside>
+    </section>
+
+</section>

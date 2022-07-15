@@ -1,0 +1,10 @@
+docs/
+.gitignore
+.gitattributes
+.dockerignore
+.github/
+.nojekyll
+LICENSE
+Dockerfile
+*.sh
+*.md
