@@ -62,9 +62,6 @@
             // Full list of configuration options available at:
             // https://github.com/hakimel/reveal.js#configuration
             Reveal.initialize({
-                disableLayout: false,
-                width: '100%',
-                height: '95%',
 				hash: true,
                 center: true,
 				// Learn about plugins: https://revealjs.com/plugins/
@@ -74,5 +71,42 @@
 
         </script>
 
+        <script>
+            // Set the date we're counting down to
+            
+            function addMinutes(date, minutes) {
+            return new Date(date.getTime() + minutes*60000);
+            }
+
+            var countDownDate = addMinutes( new Date(), 22);
+            
+            // Update the count down every 1 second
+            var x = setInterval(function() {
+            
+            // Get today's date and time
+            var now = new Date().getTime();
+                
+            // Find the distance between now and the count down date
+            var distance = countDownDate - now;
+                
+            // Time calculations for days, hours, minutes and seconds
+            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+
+            var el = document.getElementsByClassName("timer");
+            for (var i = 0, ilen = el.length; i < ilen; i++) {
+                el[i].innerHTML = minutes + "m " + seconds + "s ";
+                // If the count down is over, write some text 
+                if (distance < 0) {
+                clearInterval(x);
+                el[i].innerHTML = "Time is up!";
+                }
+            }
+            
+            }, 1000);
+        </script>
     </body>
 </html>

@@ -1,0 +1,76 @@
+<section>
+  <section class="no_bg">
+      <h2>Wrap Up Docker-Compose - Sonarqube</h2>
+  </section>
+  <section class="no_bg">
+      <h2>Sonarqube</h2>
+      <img src='images/sonarqube.png' style='height: 400px' class="transparent"></img>
+  </section>
+  <section data-background="#00a2a1" class="green_bg">
+      <h2>Exercise Instructions</h2>
+      <ul>
+          <li>Setup a Sonarqube server that listens on port 9000</li>
+          <li>Connect it to a persistent database<br>i.e. if you ‚docker rm –f‘ your Sonarqube container and run a new one, no data is lost</li>
+          <li>Use postgresql and persist it‘s data on the host filesystem using volumes</li>
+          <li>Verify e.g. by creating a user via Sonarqube UI, remove the container and run a new one – is the user still present?</li>
+          <li>Check that Sonarqube is really using your postgresql database
+          </li>
+          <li><b>Hint</b>: use docker-compose</li>
+      </ul>
+      <br>
+      <br>
+      <h2 class="timer"></h2>
+      <aside class="notes">
+          Check that Sonarqube is really using your postgresql database: 
+              <ul>
+                  <li>login to postgres container</li>
+                  <li>psql sonar sonar</li>
+                  <li>\l - list all existing databases</li>
+                  <li>\dt - list all tables of databases</li>
+                  <li><b>Hint</b>: Postgresql tips at http://www.unixwitch.de/de/sysadmin/tools/postgres</li>
+              </ul>
+      </aside>
+  </section>
+  
+  <section class="no_bg">
+      <h2>Solution</h2>
+      <pre><code data-trim data-noescape>version: "2"
+services:
+  sonarqube:
+    image: sonarqube
+    ports:
+      - "9000:9000"
+    networks:
+      - sonarnet
+    environment:
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://db:5432/sonar
+    volumes:
+      - sonarqube_conf:/opt/sonarqube/conf
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_bundled-plugins:/opt/sonarqube/lib/bundled-plugins
+
+  db:
+    image: postgres
+    networks:
+      - sonarnet
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+    volumes:
+      - postgresql:/var/lib/postgresql
+      - postgresql_data:/var/lib/postgresql/datanetworks:
+    sonarnet:
+      driver: bridge
+
+volumes:
+  sonarqube_conf:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_bundled-plugins:
+  postgresql:
+  postgresql_data:
+</code></pre>
+
+  </section>
+</section>
