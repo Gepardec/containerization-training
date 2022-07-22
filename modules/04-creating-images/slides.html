@@ -54,7 +54,7 @@
                 </ul>
             </div>
             <div class='col-6' style='text-align:right'>
-                <img src='images/lfs-1.png'></img>
+                <img src='images/image-layered-fs.svg' height="95%" width="auto"/>
             </div>            
         </div>
 
@@ -71,7 +71,7 @@
     <section class="no_bg">
         <h2>Sharing Layers</h2>
 
-        <img src='images/lfs-2.png'></img>
+        <img src='images/image-shared-layers.svg' height="95%" width="auto"/>
 
         <aside class="notes">
             <p>benefits of layering: (see if students can guess):</p>
@@ -86,7 +86,7 @@
     <section class="no_bg">
         <h2>The Writable Container Layer</h2>
 
-        <img src='images/lfs-3.png'></img>
+        <img src='images/image-container-layer.svg' height="95%" width="auto"/>
 
         <aside class="notes">
             <ul>
@@ -100,7 +100,7 @@
     <section class="no_bg">
         <h2>Images: Copy on Write</h2>
 
-        <img src='images/copy-on-write.png' style='width:80%'></img>
+        <img src='images/image-copy-on-write.svg' height="95%" width="auto"/>
 
         <aside class='notes'>
             <ul>
@@ -113,7 +113,7 @@
     <section class="no_bg">
         <h2>Linux Containers: Union FS</h2>
 
-        <img src='images/linux-ufs.png' style='width:70%'></img>
+        <img src='images/image-union-fs.svg' height="95%" width="auto"/>
 
         <aside class='notes'>
             <ul>
@@ -245,7 +245,7 @@
         <h2>Build Cache</h2>
         <div class='row'> 
             <div class='col-4'>
-                <img src='images/building-images.png' style='width:70%'></img>
+                <img src='images/image-build-cache.svg' height="95%" width="auto"/>
             </div>
             <div class='col-8'>
                 <ul>
@@ -697,7 +697,7 @@ cat image.tar | docker image import - myflatimage:1.0</pre>
     <section class="no_bg">
         <h2>Best Practice: Patching &amp; Updates</h2>
 
-        <img src="images/patching.png" title="Patching and Updates" class="transparent" style='width:60%'>
+        <img src="images/image-good-bad-layering.svg" height="95%" width="auto"/>
         <aside class="notes">
             <ul>
                 <li>When revving an image, don't just apply patches on top of old images. If it's your base layer that's been revved, the vendor will likely release a new image corresponding to the new software version; update your Dockerfile and rebuild your image with the new base layer.</li>
