@@ -1,0 +1,90 @@
+<html>
+<head>
+    <title>interactive-image-creation.md</title>
+    <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <link href="../../app.css" rel="stylesheet" >
+</head>
+<body>
+    <nav class="navbar navbar-default">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img class="logo" src="https://www.gepardec.com/files/gepardec_logo_dark_background.svg" alt="Gepardec" title="Gepardec"/ style="width:auto !important; height:"></a> 
+        <h1 class="navbar-title">Exercises</h1>
+        
+        </div>
+    </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="content">
+            <h1 id="interactive-image-creation">Interactive Image Creation</h1>
+<p>By the end of this exercise, you should be able to:</p>
+<ul>
+<li>Capture a container&#39;s filesystem state as a new docker image</li>
+<li>Read and understand the output of <code>docker container diff</code></li>
+</ul>
+<h2 id="modifying-a-container">Modifying a Container</h2>
+<ol>
+<li><p>Start a bash terminal in a CentOS container:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container run -it centos:7 bash
+</code></pre>
+</li>
+<li><p>Install a couple pieces of software in this container - there&#39;s nothing special about <code>wget</code>, any changes to the filesystem will do. Afterwards, exit the container:</p>
+<pre><code class="lang-bash">[root@dfe86ed42be9 /]# yum install -y which wget
+[root@dfe86ed42be9 /]# exit
+</code></pre>
+</li>
+<li><p>Finally, try <code>docker container diff</code> to see what&#39;s changed about a container relative to its image; you&#39;ll need to get the container ID via <code>docker container ls -a</code> first:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container ls -a
+[centos@node-0 ~]$ docker container diff &lt;container ID&gt;
+
+C /root
+A /root/.bash_history
+C /usr
+C /usr/bin
+A /usr/bin/gsoelim
+...
+</code></pre>
+<p>Those <code>C</code>s at the beginning of each line stand for files <code>C</code>hanged, and <code>A</code> for <code>A</code>dded; lines that start with <code>D</code> indicate <code>D</code>eletions.</p>
+</li>
+</ol>
+<h2 id="capturing-container-state-as-an-image">Capturing Container State as an Image</h2>
+<ol>
+<li><p>Installing <code>which</code> and <code>wget</code> in the last step wrote information to the container&#39;s read/write layer; now let&#39;s save that read/write layer as a new read-only image layer in order to create a new image that reflects our additions, via the <code>docker container commit</code>:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container commit &lt;container ID&gt; myapp:1.0
+</code></pre>
+</li>
+<li><p>Check that you can see your new image by listing all your images:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker image ls
+
+REPOSITORY  TAG   IMAGE ID       CREATED         SIZE
+myapp       1.0   34f97e0b087b   8 seconds ago   300MB
+centos      7     5182e96772bf   44 hours ago    200MB
+</code></pre>
+</li>
+<li><p>Create a container running bash using your new image, and check that which and wget are installed:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container run -it myapp:1.0 bash
+[root@2ecb80c76853 /]# which wget
+</code></pre>
+<p>The <code>which</code> commands should show the path to the specified executable, indicating they have been installed in the image. Exit your container when done by typing <code>exit</code>.</p>
+</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this exercise, you saw how to inspect the contents of a container&#39;s read / write layer with <code>docker container diff</code>, and commit those changes to a new image layer with <code>docker container commit</code>. Committing a container as an image in this fashion can be useful when developing an environment inside a container, when you want to capture that environment for reproduction elsewhere.</p>
+
+        </div>        
+    </div>
+    <div class="row">
+        <ul class="mt-article-pagination" style="display:block;">
+        </ul>
+    </div>
+</div>
+    <div class="footer"></div>
+</body>

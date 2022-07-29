@@ -1,0 +1,168 @@
+<html>
+<head>
+    <title>introduction-to-container-networking.md</title>
+    <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <link href="../../app.css" rel="stylesheet" >
+</head>
+<body>
+    <nav class="navbar navbar-default">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img class="logo" src="https://www.gepardec.com/files/gepardec_logo_dark_background.svg" alt="Gepardec" title="Gepardec"/ style="width:auto !important; height:"></a> 
+        <h1 class="navbar-title">Exercises</h1>
+        
+        </div>
+    </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="content">
+            <h1 id="introduction-to-container-networking">Introduction to Container Networking</h1>
+<p>By the end of this exercise, you should be able to:</p>
+<ul>
+<li>Create docker bridge networks and attach containers to them</li>
+<li>Design networks of containers that can successfully resolve each other via DNS and reach each other across a Docker software defined network.</li>
+</ul>
+<h2 id="inspecting-the-default-bridge">Inspecting the Default Bridge</h2>
+<ol>
+<li><p>In the dropdown menu at the top of the Strigo webpage, click into <code>node-1</code>. See what networks are present on your host:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker network ls
+</code></pre>
+<p>You should have entries for <code>host</code>, <code>none</code>, and <code>bridge</code>.</p>
+</li>
+<li><p>Find some metadata about the default <code>bridge</code> network:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker network inspect bridge
+</code></pre>
+<p>Note especially the private subnet assigned by Docker&#39;s IPAM driver to this network. The first IP in this range is used as the network&#39;s gateway, and the rest will be assigned to containers as they join the network.</p>
+</li>
+<li><p>See similar info from common networking tools:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ ip addr
+</code></pre>
+<p>Note the <code>bridge</code> network&#39;s gateway corresponds to the IP of the <code>docker0</code> device in this list. <code>docker0</code> is the linux bridge itself, while <code>bridge</code> is the name of the default Docker network that uses that bridge.</p>
+</li>
+<li><p>Use <code>brctl</code> to see connections to the <code>docker0</code> bridge:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ brctl show docker0
+
+bridge name bridge id       STP enabled interfaces
+docker0     8000.02427f12c30b   no
+</code></pre>
+<p>At the moment, there are no connections to <code>docker0</code>.</p>
+</li>
+</ol>
+<h2 id="connecting-containers-to-docker0">Connecting Containers to <code>docker0</code></h2>
+<ol>
+<li><p>Start a container and reexamine the network; the container is listed as connected to the network, with an IP assigned to it from the bridge network&#39;s subnet:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker container run --name u1 -dt centos:7
+[centos@node-1 ~]$ docker network inspect bridge
+
+...
+    &quot;Containers&quot;: {
+        &quot;11da9b7db065f971f78aebf14b706b0b85f07ec10dbf6f0773b1603f48697961&quot;: {
+            &quot;Name&quot;: &quot;u1&quot;,
+            &quot;EndpointID&quot;: &quot;670c495...&quot;,
+            &quot;MacAddress&quot;: &quot;02:42:ac:11:00:02&quot;,
+            &quot;IPv4Address&quot;: &quot;172.17.0.2/16&quot;,
+            &quot;IPv6Address&quot;: &quot;&quot;
+        }
+    },
+...
+</code></pre>
+</li>
+<li><p>Inspect the network interfaces with <code>ip</code> and <code>brctl</code> again, now that you have a container running:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ ip addr
+
+...
+5: veth6f244c3@if4: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue 
+    master docker0 state UP 
+    link/ether aa:71:82:6c:f3:88 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet6 fe80::a871:82ff:fe6c:f388/64 scope link 
+       valid_lft forever preferred_lft forever
+
+[centos@node-1 ~]$ brctl show docker0
+bridge name bridge id       STP enabled interfaces
+docker0     8000.02427f12c30b   no      veth6f244c3
+</code></pre>
+<p><code>ip addr</code> indicates a veth endpoint has been created and plugged into the <code>docker0</code> bridge, as indicated by <code>master docker0</code>, and that it is connected to device index 4 in this case (indicated by the <code>@if4</code> suffix to the veth device name above). Similarly, <code>brctl</code> now shows this veth connection on <code>docker0</code> (notice that the ID for the veth connection matches in both utilities).</p>
+</li>
+<li><p>Launch a bash shell in your container, and look for the <code>eth0</code> device therein:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker container exec -it u1 bash
+[root@11da9b7db065 /]# yum install -y iproute
+[root@11da9b7db065 /]# ip addr
+
+...
+4: eth0@if5: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue 
+    state UP group default 
+    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.17.0.2/16 scope global eth0
+       valid_lft forever preferred_lft forever
+</code></pre>
+<p>We see that the <code>eth0</code> device in this namespace is in fact the device that the veth connection in the host namespace indicated it was attached to, and vice versa - <code>eth0@if5</code> indicates it is plugged into networking interface number 5, which we saw above was the other end of the veth connection. Docker has created a veth connection with one end in the host&#39;s <code>docker0</code> bridge, and the other providing the <code>eth0</code> device in the container.</p>
+</li>
+</ol>
+<h2 id="defining-additional-bridge-networks">Defining Additional Bridge Networks</h2>
+<p>In the last step, we investigated the default bridge network; now let&#39;s try making our own. User defined bridge networks work exactly the same as the default one, but provide DNS lookup by container name, and are firewalled from other networks by default.</p>
+<ol>
+<li><p>Create a bridge network by using the <code>bridge</code> driver with <code>docker network create</code>:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker network create --driver bridge my_bridge
+</code></pre>
+</li>
+<li><p>Launch a container connected to your new network via the <code>--network</code> flag:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker container run --name=u2 --network=my_bridge -dt centos:7
+</code></pre>
+</li>
+<li><p>Use the <code>inspect</code> command to investigate the network settings of this container:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker container inspect u2
+</code></pre>
+<p><code>my_bridge</code> should be listed under the <code>Networks</code> key.</p>
+</li>
+<li><p>Launch another container, this time interactively:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker container run --name=u3 --network=my_bridge -it centos:7
+</code></pre>
+</li>
+<li><p>From inside container <code>u3</code>, ping <code>u2</code> by name: <code>ping u2</code>. The ping succeeds, since Docker is able to resolve container names when they are attached to a custom network.</p>
+</li>
+<li><p>Try starting a container on the default network, and pinging <code>u1</code> by name:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker container run centos:7 ping u1
+
+ping: u1: Name or service not known
+</code></pre>
+<p>The ping fails; even though the containers are both attached to the <code>bridge</code> network, Docker does not provide name lookup on this default network. Try the same command again, but using <code>u1</code>&#39;s IP instead of name, and you should be successful.</p>
+</li>
+<li><p>Finally, try pinging <code>u1</code> by IP, this time from container <code>u2</code>:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker container exec u2 ping &lt;u1 IP&gt;
+</code></pre>
+<p>The ping fails, since the containers reside on different networks; all Docker networks are firewalled from each other by default.</p>
+</li>
+<li><p>Clean up your containers and networks:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker container rm -f $(docker container ls -aq)
+[centos@node-1 ~]$ docker network rm my_bridge
+</code></pre>
+</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this exercise, you explored the fundamentals of container networking. The key take away is that <em>containers on separate networks are firewalled from each other by default</em>. This should be leveraged as much as possible to harden your applications; if two containers don&#39;t need to talk to each other, put them on separate networks.</p>
+<p>You also explored a number of API objects:</p>
+<ul>
+<li><code>docker network ls</code> lists all networks on the host</li>
+<li><code>docker network inspect &lt;network name&gt;</code> gives more detailed info about the named network</li>
+<li><code>docker network create --driver &lt;driver&gt; &lt;network name&gt;</code> creates a new network using the specified driver; so far, we&#39;ve only seen the <code>bridge</code> driver, for creating a linux bridge based network.</li>
+<li><code>docker network connect &lt;network name&gt; &lt;container name or id&gt;</code> connects the specified container to the specified network after the container is running; the <code>--network</code> flag in <code>docker container run</code> achieves the same result at container launch.</li>
+<li><code>docker container inspect &lt;container name or id&gt;</code> yields, among other things, information about the networks the specified container is connected to.</li>
+</ul>
+
+        </div>        
+    </div>
+    <div class="row">
+        <ul class="mt-article-pagination" style="display:block;">
+        </ul>
+    </div>
+</div>
+    <div class="footer"></div>
+</body>

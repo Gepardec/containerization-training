@@ -1,0 +1,244 @@
+<html>
+<head>
+    <title>multi-stage-builds.md</title>
+    <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <link href="../../app.css" rel="stylesheet" >
+</head>
+<body>
+    <nav class="navbar navbar-default">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img class="logo" src="https://www.gepardec.com/files/gepardec_logo_dark_background.svg" alt="Gepardec" title="Gepardec"/ style="width:auto !important; height:"></a> 
+        <h1 class="navbar-title">Exercises</h1>
+        
+        </div>
+    </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="content">
+            <h1 id="multi-stage-builds">Multi-Stage Builds</h1>
+<p>By the end of this exercise, you should be able to:</p>
+<ul>
+<li>Write a Dockerfile that describes multiple images, which can copy files from one image to the next.</li>
+<li>Enable BuildKit for faster build times</li>
+</ul>
+<h2 id="defining-a-multi-stage-build">Defining a multi-stage build</h2>
+<ol>
+<li><p>Make a new folder named &#39;multi&#39; to do this exercise in, and <code>cd</code> into it.</p>
+</li>
+<li><p>Add a file <code>hello.c</code> to the <code>multi</code> folder containing <strong>Hello World</strong> in C:</p>
+<pre><code class="lang-c">#include &lt;stdio.h&gt;
+
+int main (void)
+{
+    printf (&quot;Hello, world!\n&quot;);
+    return 0;
+}
+</code></pre>
+</li>
+<li><p>Try compiling and running this right on the host OS:</p>
+<pre><code class="lang-bash">[centos@node-0 multi]$ gcc -Wall hello.c -o hello
+[centos@node-0 multi]$ ./hello
+</code></pre>
+</li>
+<li><p>Now let&#39;s Dockerize our hello world application. Add a <code>Dockerfile</code> to the <code>multi</code> folder with this content:</p>
+<pre><code class="lang-bash">FROM alpine:3.5
+RUN apk update &amp;&amp; \
+    apk add --update alpine-sdk
+RUN mkdir /app
+WORKDIR /app
+COPY hello.c /app
+RUN mkdir bin
+RUN gcc -Wall hello.c -o bin/hello
+CMD /app/bin/hello
+</code></pre>
+</li>
+<li><p>Build the image and note its size:</p>
+<pre><code class="lang-bash">[centos@node-0 multi]$ docker image build -t my-app-large .
+[centos@node-0 multi]$ docker image ls | grep my-app-large
+
+REPOSITORY     TAG      IMAGE ID       CREATED         SIZE
+my-app-large   latest   a7d0c6fe0849   3 seconds ago   189MB
+</code></pre>
+</li>
+<li><p>Test the image to confirm it was built successfully:</p>
+<pre><code class="lang-bash">[centos@node-0 multi]$ docker container run my-app-large
+</code></pre>
+<p>It should print &quot;hello world&quot; in the console.</p>
+</li>
+<li><p>Update your Dockerfile to use an <code>AS</code> clause on the first line, and add a second stanza describing a second build stage:</p>
+<pre><code class="lang-bash">FROM alpine:3.5 AS build
+RUN apk update &amp;&amp; \
+    apk add --update alpine-sdk
+RUN mkdir /app
+WORKDIR /app
+COPY hello.c /app
+RUN mkdir bin
+RUN gcc -Wall hello.c -o bin/hello
+
+FROM alpine:3.5
+COPY --from=build /app/bin/hello /app/hello
+CMD /app/hello
+</code></pre>
+</li>
+<li><p>Build the image again and compare the size with the previous version:</p>
+<pre><code class="lang-bash">[centos@node-0 multi]$ docker image build -t my-app-small .
+[centos@node-0 multi]$ docker image ls | grep &#39;my-app-&#39;
+
+REPOSITORY     TAG      IMAGE ID       CREATED              SIZE
+my-app-small   latest   f49ec3971aa6   6 seconds ago        4.01MB
+my-app-large   latest   a7d0c6fe0849   About a minute ago   189MB
+</code></pre>
+<p>As expected, the size of the multi-stage build is much smaller than the large one since it does not contain the Alpine SDK.</p>
+</li>
+<li><p>Finally, make sure the app works:</p>
+<pre><code class="lang-bash">[centos@node-0 multi]$ docker container run --rm my-app-small
+</code></pre>
+<p>You should get the expected &#39;Hello, World!&#39; output from the container with just the required executable.</p>
+</li>
+</ol>
+<h2 id="building-intermediate-images">Building Intermediate Images</h2>
+<p>In the previous step, we took our compiled executable from the first build stage, but that image wasn&#39;t tagged as a regular image we can use to start containers with; only the final <code>FROM</code> statement generated a tagged image. In this step, we&#39;ll see how to persist whichever build stage we like.</p>
+<ol>
+<li><p>Build an image from the <code>build</code> stage in your Dockerfile using the <code>--target</code> flag:</p>
+<pre><code class="lang-bash">[centos@node-0 multi]$ docker image build -t my-build-stage --target build .
+</code></pre>
+<p>Notice all its layers are pulled from the cache; even though the build stage wasn&#39;t tagged originally, its layers are nevertheless persisted in the cache.</p>
+</li>
+<li><p>Run a container from this image and make sure it yields the expected result:</p>
+<pre><code class="lang-bash">[centos@node-0 multi]$ docker container run -it --rm my-build-stage /app/bin/hello
+</code></pre>
+</li>
+<li><p>List your images again to see the size of <code>my-build-stage</code> compared to the small version of the app.</p>
+</li>
+</ol>
+<h2 id="optional-building-from-scratch">Optional: Building from Scratch</h2>
+<p>So far, every image we&#39;ve built has been based on a pre-existing image, referenced in the <code>FROM</code> command. But what if we want to start from nothing, and build a completely original image? For this, we can build <code>FROM scratch</code>.</p>
+<ol>
+<li><p>In a new directory <code>~/scratch</code>, create a file named <code>sleep.c</code> that just launches a sleeping process for an hour:</p>
+<pre><code class="lang-c">#include &lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+int main()
+{
+  int delay = 3600; //sleep for 1 hour
+  printf (&quot;Sleeping for %d second(s)...\n&quot;, delay);
+  sleep(delay);
+  return 0;
+}
+</code></pre>
+</li>
+<li><p>Create a file named <code>Dockerfile</code> to build this sleep program in a build stage, and then copy it to a <code>scratch</code>-based image:</p>
+<pre><code>FROM alpine:3.8 AS build
+RUN [&quot;apk&quot;, &quot;update&quot;]
+RUN [&quot;apk&quot;, &quot;add&quot;, &quot;--update&quot;, &quot;alpine-sdk&quot;]
+COPY sleep.c /
+RUN [&quot;gcc&quot;, &quot;-static&quot;, &quot;sleep.c&quot;, &quot;-o&quot;, &quot;sleep&quot;]
+
+FROM scratch
+COPY --from=build /sleep /sleep
+CMD [&quot;/sleep&quot;]
+</code></pre><p>This image will contain nothing but our executable and the bare minimum file structure Docker needs to stand up a container filesystem. Note we&#39;re statically linking the <code>sleep.c</code> binary, so it will have everything it needs bundled along with it, not relying on the rest of the container&#39;s filesystem for anything.</p>
+</li>
+<li><p>Build your image:</p>
+<pre><code class="lang-bash">[centos@node-0 scratch]$ docker image build -t sleep:scratch .
+</code></pre>
+</li>
+<li><p>List your images, and search for the one you just built:</p>
+<pre><code class="lang-bash">[centos@node-0 scratch]$ docker image ls | grep scratch
+
+REPOSITORY  TAG       IMAGE ID       CREATED         SIZE
+sleep       scratch   1b68b20a85a8   9 minutes ago   128kB
+</code></pre>
+<p>This image is only 128 kB, as tiny as possible.</p>
+</li>
+<li><p>Run your image, and check out its filesystem; we can&#39;t list directly inside the container, since <code>ls</code> isn&#39;t installed in this ultra-minimal image, so we have to find where this container&#39;s filesystem is mounted on the host. Start by finding the PID of your sleep process after its running:</p>
+<pre><code class="lang-bash">[centos@node-0 scratch]$ docker container run --name sleeper -d sleep:scratch
+[centos@node-0 scratch]$ docker container top sleeper
+
+UID   PID   PPID  C  STIME  TTY  TIME     CMD
+root  1190  1174  0  15:21  ?    00:00:00 /sleep
+</code></pre>
+<p>In this example, the PID for <code>sleep</code> is 1190.</p>
+</li>
+<li><p>List your container&#39;s filesystem from the host using this PID:</p>
+<pre><code class="lang-bash">[centos@node-0 scratch]$ sudo ls /proc/&lt;PID&gt;/root
+
+dev  etc  proc  sleep  sys
+</code></pre>
+<p>We see not only our binary <code>sleep</code> but a bunch of other folders and files. Where does these come from? runC, the tool for spawning and running containers, requires a json config of the container and a root file system. At runtime, Docker Engine adds these minimum requirements to form the most minimal container filesystem possible.</p>
+</li>
+<li><p>Clean up by deleting your container:</p>
+<pre><code class="lang-bash">[centos@node-0 scratch]$ docker container rm -f sleeper
+</code></pre>
+</li>
+</ol>
+<h2 id="optional-enabling-buildkit">Optional: Enabling BuildKit</h2>
+<p>In addition to the default builder, BuildKit can be enabled to take advantages of some optimizations of the build process.</p>
+<ol>
+<li><p>Back in the <code>~/multi</code> directory, turn on BuildKit:</p>
+<pre><code class="lang-bash">[centos@node-0 multi]$ export DOCKER_BUILDKIT=1
+</code></pre>
+</li>
+<li><p>Add an <code>AS</code> label to the final stage of your Dockerfile (this is not strictly necessary, but will make the output in the next step easier to understand):</p>
+<pre><code class="lang-Dockerfile">...
+
+FROM alpine:3.5 AS prod
+RUN apk update
+COPY --from=build /app/bin/hello /app/hello
+CMD /app/hello
+</code></pre>
+</li>
+<li><p>Re-build <code>my-app-small</code>, without the cache:</p>
+<pre><code class="lang-bash">[centos@node-0 multi]$ docker image build --no-cache -t my-app-small-bk .
+
+[+] Building 15.5s (14/14) FINISHED                                       
+ =&gt; [internal] load Dockerfile
+ =&gt; =&gt; transferring dockerfile: 97B
+ =&gt; [internal] load .dockerignore
+ =&gt; =&gt; transferring context: 2B
+ =&gt; [internal] load metadata for docker.io/library/alpine:3.5
+ =&gt; CACHED [prod 1/3] FROM docker.io/library/alpine:3.5
+ =&gt; [internal] load build context
+ =&gt; =&gt; transferring context: 87B
+ =&gt; CACHED [internal] helper image for file operations
+ =&gt; [build 2/6] RUN apk update &amp;&amp;     apk add --update alpine-sdk
+ =&gt; [prod 2/3] RUN apk update
+ =&gt; [build 3/6] RUN mkdir /app
+ =&gt; [build 4/6] COPY hello.c /app
+ =&gt; [build 5/6] RUN mkdir bin
+ =&gt; [build 6/6] RUN gcc -Wall hello.c -o bin/hello
+ =&gt; [prod 3/3] COPY --from=build /app/bin/hello /app/hello
+ =&gt; exporting to image
+ =&gt; =&gt; exporting layers
+ =&gt; =&gt; writing image sha256:22de288...
+ =&gt; =&gt; naming to docker.io/library/my-app-small-bk 
+</code></pre>
+<p>Notice the lines marked like <code>[prod 2/3]</code> and <code>[build 4/6]</code>: <code>prod</code> and <code>build</code> in this context are the <code>AS</code> labels you applied to the <code>FROM</code> lines in each stage of your build in the Dockerfile; from the above output, you can see that the build stages were built in parallel. Every step of the final image was completed while the build environment image was being created; the <code>prod</code> environment image creation was only blocked at the <code>COPY</code> instruction since it required a file from the completed <code>build</code> image.</p>
+</li>
+<li><p>Comment out the <code>COPY</code> instruction in the <code>prod</code> image definition in your Dockerfile, and rebuild; the <code>build</code> image is skipped. BuildKit recognized that the <code>build</code> stage was not necessary for the image being built, and skipped it.</p>
+</li>
+<li><p>Turn off BuildKit:</p>
+<pre><code class="lang-bash">[centos@node-0 multi]$ export DOCKER_BUILDKIT=0
+</code></pre>
+</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this exercise, you created a Dockerfile defining multiple build stages. Being able to take artifacts like compiled binaries from one image and insert them into another allows you to create very lightweight images that do not include developer tools or other unnecessary components in your production-ready images, just like how you currently probably have separate build and run environments for your software. This will result in containers that start faster, and are less vulnerable to attack.</p>
+
+        </div>        
+    </div>
+    <div class="row">
+        <ul class="mt-article-pagination" style="display:block;">
+        </ul>
+    </div>
+</div>
+    <div class="footer"></div>
+</body>

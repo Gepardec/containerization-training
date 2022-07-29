@@ -1,0 +1,127 @@
+<html>
+<head>
+    <title>interactive-containers.md</title>
+    <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <link href="../../app.css" rel="stylesheet" >
+</head>
+<body>
+    <nav class="navbar navbar-default">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img class="logo" src="https://www.gepardec.com/files/gepardec_logo_dark_background.svg" alt="Gepardec" title="Gepardec"/ style="width:auto !important; height:"></a> 
+        <h1 class="navbar-title">Exercises</h1>
+        
+        </div>
+    </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="content">
+            <h1 id="interactive-containers">Interactive Containers</h1>
+<p>By the end of this exercise, you should be able to:</p>
+<ul>
+<li>Launch an interactive shell in a new or existing container</li>
+<li>Run a child process inside a running container</li>
+<li>List containers using more options and filters</li>
+</ul>
+<h2 id="writing-to-containers">Writing to Containers</h2>
+<ol>
+<li><p>Create a container using the <code>centos:7</code> image. Connect to its bash shell in interactive mode using the <code>-i</code> flag and request a TTY connection using the <code>-t</code> flag:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container run -it centos:7 bash
+</code></pre>
+</li>
+<li><p>Explore your container&#39;s filesystem with <code>ls</code>, and then create a new file. Use &#39;ls&#39; again to confirm you have successfully created your file. Use the &#39;-l&#39; option with &#39;ls&#39; to list the files and directories in long list format.</p>
+<pre><code class="lang-bash">[root@2b8de2ffdf85 /]# ls -l
+[root@2b8de2ffdf85 /]# echo &#39;Hello there...&#39; &gt; test.txt
+[root@2b8de2ffdf85 /]# ls -l
+</code></pre>
+</li>
+<li><p>Exit the connection to the container:</p>
+<pre><code class="lang-bash">[root@2b8de2ffdf85 /]# exit
+</code></pre>
+</li>
+<li><p>Run the same command as before to start a container using the &#39;centos:7&#39; image:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container run -it centos:7 bash
+</code></pre>
+</li>
+<li><p>Use &#39;ls&#39; to explore your container. You will see that your previously created <code>test.txt</code> is nowhere to be found in your new container. Exit this container in the same way you did above.</p>
+</li>
+</ol>
+<h2 id="reconnecting-to-containers">Reconnecting to Containers</h2>
+<ol>
+<li><p>We wish to recover &#39;test.txt&#39; written to our container in the first example, but starting a new container didn&#39;t get us there. We need to restart and reconnect to our original container. List all your stopped containers:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container ls -a
+
+CONTAINER ID  IMAGE     COMMAND  CREATED              STATUS                       
+cc19f7e9aa91  centos:7  &quot;bash&quot;   About a minute ago   Exited (0) About a minute ago
+2b8de2ffdf85  centos:7  &quot;bash&quot;   2 minutes ago        Exited (0) About a minute ago
+...
+</code></pre>
+</li>
+<li><p>We can restart a container via the container ID listed in the first column. Use the container ID for the first <code>centos:7</code> container you created with <code>bash</code> as its command (see the <code>CREATED</code> column above to make sure you&#39;re choosing the <em>first</em> bash container you ran):</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container start &lt;container ID&gt;
+[centos@node-0 ~]$ docker container ls
+
+CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
+2b8de2ffdf85  centos:7  &quot;bash&quot;   5 minutes ago   Up 21 seconds  ...
+</code></pre>
+<p>Your container status has changed from <code>Exited</code> to <code>Up</code>, via <code>docker container start</code>.</p>
+</li>
+<li><p>Run <code>ps -ef</code> inside the container you just restarted using Docker&#39;s <code>exec</code> command (<code>exec</code> runs the specified process as a child of the PID 1 process inside the container):</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container exec &lt;container ID&gt; ps -ef
+</code></pre>
+<p>What process is PID 1 inside the container? Find the PID of that process on the host machine by using:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container top &lt;container ID&gt;
+</code></pre>
+</li>
+<li><p>Launch a bash shell in your running container with <code>docker container exec</code>:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container exec -it &lt;container ID&gt; bash
+</code></pre>
+</li>
+<li><p>List the contents of the container&#39;s filesystem with <code>ls -l</code>; your <code>test.txt</code> should be where you left it. Exit the container again by typing <code>exit</code>.</p>
+</li>
+</ol>
+<h2 id="using-container-listing-options">Using Container Listing Options</h2>
+<ol>
+<li><p>In the last step, we saw how to get the short container ID of all our containers using <code>docker container ls -a</code>. Try adding the <code>--no-trunc</code> flag to see the entire container ID:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container ls -a --no-trunc
+</code></pre>
+<p>This long ID is the same as the string that is returned after starting a container with <code>docker container run</code>.</p>
+</li>
+<li><p>List only the container ID using the <code>-q</code> flag:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container ls -a -q
+</code></pre>
+</li>
+<li><p>List the last container to have been created using the <code>-l</code> flag:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container ls -l
+</code></pre>
+</li>
+<li><p>Finally, you can also filter results with the <code>--filter</code> flag; for example, try filtering by exit code:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container ls -a --filter &quot;exited=0&quot;
+</code></pre>
+<p>The output of this command will list the containers that have exited successfully.</p>
+</li>
+<li><p>Clean up with:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container rm -f $(docker container ls -aq)
+</code></pre>
+</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this demo, you saw that files added to a container&#39;s filesystem do not get added to all containers created from the same image. Changes to a container&#39;s filesystem are local to itself, and exist only in that particular container. You also learned how to restart a stopped Docker container using <code>docker container start</code>, how to run a command in a running container using <code>docker container exec</code>, and also saw some more options for listing containers via <code>docker container ls</code>.</p>
+
+        </div>        
+    </div>
+    <div class="row">
+        <ul class="mt-article-pagination" style="display:block;">
+        </ul>
+    </div>
+</div>
+    <div class="footer"></div>
+</body>

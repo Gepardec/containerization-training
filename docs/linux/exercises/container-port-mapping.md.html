@@ -1,0 +1,88 @@
+<html>
+<head>
+    <title>container-port-mapping.md</title>
+    <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <link href="../../app.css" rel="stylesheet" >
+</head>
+<body>
+    <nav class="navbar navbar-default">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img class="logo" src="https://www.gepardec.com/files/gepardec_logo_dark_background.svg" alt="Gepardec" title="Gepardec"/ style="width:auto !important; height:"></a> 
+        <h1 class="navbar-title">Exercises</h1>
+        
+        </div>
+    </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="content">
+            <h1 id="container-port-mapping">Container Port Mapping</h1>
+<p>By the end of this exercise, you should be able to:</p>
+<ul>
+<li>Forward traffic from a port on the docker host to a port inside a container&#39;s network namespace</li>
+<li>Define ports to automatically expose in a Dockerfile</li>
+</ul>
+<h2 id="port-mapping-at-runtime">Port Mapping at Runtime</h2>
+<ol>
+<li><p>Run an nginx container with no special port mappings:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker container run -d nginx
+</code></pre>
+<p>nginx stands up a landing page at <code>&lt;ip&gt;:80</code>. If you try to visit this at your host or container&#39;s IP it won&#39;t be visible; no external traffic can make it past the linux bridge&#39;s firewall to the nginx container.</p>
+</li>
+<li><p>Now run an nginx container and map port 80 on the container to port 5000 on your host using the <code>-p</code> flag:</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker container run -d -p 5000:80 nginx
+</code></pre>
+<p>Note that the syntax is: <code>-p [host-port]:[container-port]</code>.</p>
+</li>
+<li><p>Verify the port mappings with the <code>docker container port</code> command</p>
+<pre><code class="lang-bash">[centos@node-1 ~]$ docker container port &lt;container id&gt;
+
+80/tcp -&gt; 0.0.0.0:5000
+</code></pre>
+</li>
+<li><p>Visit your nginx landing page at <code>&lt;host ip&gt;:5000</code>, e.g. using <code>curl -4 localhost:5000</code>, just to confirm it&#39;s working as expected.</p>
+</li>
+</ol>
+<h2 id="exposing-ports-from-the-dockerfile">Exposing Ports from the Dockerfile</h2>
+<ol>
+<li><p>In addition to manual port mapping, we can expose some ports for automatic port mapping on container startup using a Dockerfile. In a new directory <code>~/port</code>, create a Dockerfile:</p>
+<pre><code class="lang-bash">FROM nginx
+
+EXPOSE 80
+</code></pre>
+</li>
+<li><p>Build your image as <code>my_nginx</code>:</p>
+<pre><code class="lang-bash">[centos@node-1 port]$ docker image build -t my_nginx .
+</code></pre>
+</li>
+<li><p>Use the <code>-P</code> flag when running to map all ports mentioned in the <code>EXPOSE</code> directive:</p>
+<pre><code class="lang-bash">[centos@node-1 port]$ docker container run -d -P my_nginx
+</code></pre>
+</li>
+<li><p>Use <code>docker container ls</code> or <code>docker container port</code> to find out which host ports were used, then visit your nginx landing page in a browser at <code>&lt;node-1 public IP&gt;:&lt;port&gt;</code>.</p>
+</li>
+<li><p>Clean up your containers:</p>
+<pre><code class="lang-bash">[centos@node-1 port]$ docker container rm -f $(docker container ls -aq)
+</code></pre>
+</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this exercise, we saw how to explicitly map ports from our container&#39;s network stack onto ports of our host at runtime with the <code>-p</code> option to <code>docker container run</code>, or more flexibly in our Dockerfile with <code>EXPOSE</code>, which will result in the listed ports inside our container being mapped to random available ports on our host. In both cases, Docker is writing iptables rules to forward traffic from the host to the appropriate port in the container&#39;s network namespace.</p>
+
+        </div>        
+    </div>
+    <div class="row">
+        <ul class="mt-article-pagination" style="display:block;">
+        </ul>
+    </div>
+</div>
+    <div class="footer"></div>
+</body>

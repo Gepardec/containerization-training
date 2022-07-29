@@ -1,0 +1,224 @@
+<html>
+<head>
+    <title>command-line-intro.md</title>
+    <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <link href="../../app.css" rel="stylesheet" >
+</head>
+<body>
+    <nav class="navbar navbar-default">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img class="logo" src="https://www.gepardec.com/files/gepardec_logo_dark_background.svg" alt="Gepardec" title="Gepardec"/ style="width:auto !important; height:"></a> 
+        <h1 class="navbar-title">Exercises</h1>
+        
+        </div>
+    </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="content">
+            <h1 id="appendix-a-brief-introduction-to-bash">Appendix: A Brief Introduction to Bash</h1>
+<p>If you&#39;re not familiar with the common Linux commands (cd, ls, ps, sudo, etc.), this exercise is designed to lead you through the common linux commands that we use in the Docker training.</p>
+<p>By the end of this exercise, you should be able to:</p>
+<ul>
+<li>Manage files and folders using Linux commands</li>
+<li>Inspect processes running on your machine and use some discovery tools.</li>
+</ul>
+<p>Pre-requisites:</p>
+<ul>
+<li>A Linux machine.</li>
+</ul>
+<h2 id="managing-files-and-folders">Managing Files and Folders</h2>
+<p>In this first part we will walk through common commands for creating and manipulating files and folders from the command line.</p>
+<ol>
+<li><p>Open a terminal.</p>
+</li>
+<li><p>Terminals work by accepting text-based commands, and retuning text-based responses. Ask the terminal what directory you are currently in; in all our instructions, <code>$</code> represents the terminal prompt, and you should enter what you see <em>after</em> the prompt. Yours might look a bit different; in any case, type <code>pwd</code>:</p>
+<pre><code class="lang-bash">$ pwd
+</code></pre>
+<p><code>pwd</code> stands for Print Working Directory. You should see something like:</p>
+<pre><code class="lang-bash">/Users/ckaserer
+</code></pre>
+<p>This means your terminal is currently in the <code>ckaserer</code> folder, which itself is in the <code>/Users</code> folder (yours will have different folder names, but the logic is the same).</p>
+</li>
+<li><p>List the files and folders in your current directory:</p>
+<pre><code class="lang-bash">$ ls
+
+Applications    Documents   Library     Music       
+Projects        Desktop
+</code></pre>
+<p>Here we show some typical output below the command; again, you only need to enter what comes after the command prompt, <code>ls</code> in this case. <code>ls</code> lists all the contents of your current directory.</p>
+</li>
+<li><p>Change directory with <code>cd</code>:</p>
+<pre><code class="lang-bash">cd Desktop
+</code></pre>
+<p>Again, your directories might be named differently - that&#39;s ok. Try to navigate to a directory you recognize the names of; <code>Desktop</code> or <code>Downloads</code> are common. </p>
+</li>
+<li><p>Use <code>ls</code> again to see what&#39;s in this directory. Compare what you see in your <code>Desktop</code> directory to what you actually see on your machine&#39;s desktop; the contents are identical. The terminal is just another way to browse the contents of your machine, based on programmatic text rather than visual analogies.</p>
+</li>
+<li><p>Make a new folder on your desktop (or wherever you currently are):</p>
+<pre><code class="lang-bash">$ mkdir demo-dir
+</code></pre>
+<p>If you do <code>ls</code> again, you&#39;ll see a new directory <code>demo-dir</code> has been made.</p>
+</li>
+<li><p>Change directory to <code>demo-dir</code>, and open a new plain text file called <code>demo.txt</code> using the simple text editor <code>nano</code>:</p>
+<pre><code class="lang-bash">$ cd demo-dir
+$ nano demo.txt
+</code></pre>
+<p>You&#39;re taken to <code>nano</code>&#39;s text-based interface for creating a plain-text file. There are many other plain-text editors available, the most popular being <code>vim</code>, but <code>nano</code> is probably the simplest if this is your first time using a text editor from the command line.</p>
+</li>
+<li><p>Add any text you want to your file, just by typing something.</p>
+</li>
+<li><p>Save your file by pressing <code>CMD+O</code>, and pressing return when asked for a filename. Exit by typing <code>CMD+X</code>.</p>
+</li>
+<li><p>Dump the contents of your file to the screen:</p>
+<pre><code class="lang-bash">$ cat demo.txt
+</code></pre>
+</li>
+<li><p>Make a copy of your file with <code>cp</code>:</p>
+<pre><code class="lang-bash">$ cp demo.txt demo.copy.txt
+</code></pre>
+</li>
+<li><p>Move and rename your file with <code>mv</code>:</p>
+<pre><code class="lang-bash">$ mv demo.txt demo.moved.txt
+</code></pre>
+</li>
+<li><p>Delete a file:</p>
+<pre><code class="lang-bash">$ rm demo.moved.txt
+</code></pre>
+</li>
+<li><p>Check what directory you&#39;re in, then back up one level with the special <code>..</code> path, and check again:</p>
+<pre><code class="lang-bash">$ pwd
+
+/Users/ckaserer/Desktop/demo-dir
+
+$ cd ..
+$ pwd
+/Users/ckaserer/Desktop
+</code></pre>
+<p><code>cd ..</code> took us one level up in our directory tree, from <code>demo-dir</code> back out to the directory that contains it, <code>Desktop</code> in my example.</p>
+</li>
+<li><p>Delete your <code>demo-dir</code>, again with remove, but this time using the <code>-r</code> <em>flag</em>, which stands for recursive in order to delete the folder and all its contents:</p>
+<pre><code class="lang-bash">rm -r demo-dir
+</code></pre>
+</li>
+</ol>
+<h2 id="some-common-tools">Some Common Tools</h2>
+<p>In this section we will see the basic usage of different command line tools we&#39;ll see again when working with Docker.</p>
+<h3 id="inspecting-processes">Inspecting Processes</h3>
+<ol>
+<li><p>In the next steps we will use <code>ps</code> and <code>top</code>. Check whether these tools are existing in our system:</p>
+<pre><code>$ which pwd
+</code></pre><p><code>which</code> is a quick way to identify the location of executables and should return something similar to the following:</p>
+<pre><code>/bin/pwd
+</code></pre><p>The <code>pwd</code> command we used above is actually a tiny program, and it lives in our filesystem at the path indicated by <code>which</code>. If <code>which</code> returns nothing, that means the requested program probably isn&#39;t installed on your machine.</p>
+</li>
+<li><p>List all processes running in your system:</p>
+<pre><code>$ ps -aux
+</code></pre><p>A long list of processes is returned.</p>
+<p>We will see later how to filter this output to extract only the information we need.</p>
+</li>
+<li><p>There different other tools to inspect processes. Try for example showing the list of processes with usage details (cpu usage, memory, etc.):</p>
+<pre><code>$ top
+</code></pre><p>Exit with <code>CTRL+C</code>.</p>
+</li>
+</ol>
+<h3 id="the-superuser">The Superuser</h3>
+<p>In some cases you want to run commands that require privileges that you don&#39;t have.</p>
+<ol>
+<li><p>Try creating a new user:</p>
+<pre><code>$ adduser myName
+</code></pre><p>This should return <code>Permission denied</code>.</p>
+</li>
+<li><p>Run the same command with <code>sudo</code>:</p>
+<pre><code>$ sudo adduser myName
+</code></pre><p>Sudo runs the command with the privileges of the super user.</p>
+</li>
+<li><p>List the existing users:</p>
+<pre><code>$ cat /etc/passwd
+</code></pre><p>You should see the user <code>myName</code> in the bottom of the list.</p>
+</li>
+</ol>
+<h3 id="pinging-of-an-address">Pinging of an address</h3>
+<p><code>ping</code> is a tool used to test the reachability of a network address.</p>
+<ol>
+<li><p>Send a ping to your <code>localhost</code>:</p>
+<pre><code>$ ping localhost
+</code></pre><p>The ping should be successful. Interrupt it with <code>CTRL+C</code>.</p>
+</li>
+<li><p>Try pinging an unreachable address:</p>
+<pre><code>$ ping -c 3 192.168.1.1
+</code></pre><p>The flag <code>-c</code> stands for the count of the sent packets. If no device is plugged to your machine and has this address, the request should timeout after 3 packets with <code>100% packet loss</code>.</p>
+</li>
+</ol>
+<h3 id="making-http-requests">Making HTTP Requests</h3>
+<p>Use the <code>curl</code> command to issue HTTP requests across the network.</p>
+<ol>
+<li><p><code>curl</code> an example webpage:</p>
+<pre><code class="lang-bash">$ curl example.com
+</code></pre>
+<p>You&#39;ll get some HTML corresponding to a dummy webpage, downloaded directly to your terminal.</p>
+</li>
+</ol>
+<h3 id="working-with-commands">Working with Commands</h3>
+<h4 id="command-piping">Command piping</h4>
+<p>So far, every command we&#39;ve used as accepted text as input, and returned text as output. We can send the text output from one command into the text input of another command using a <em>pipe</em>, <code>|</code>.</p>
+<ol>
+<li><p>Earlier we saw the <code>ps</code> command, to write a large table of all the processes running on our machine. We can send that table to <code>grep</code>, which is a text search tool that will pick out lines containing something we&#39;re interested in:</p>
+<pre><code class="lang-bash">$ ps -aux | grep &#39;ps&#39;
+</code></pre>
+<p>Rather than getting every process on the system, we can just pick out the <code>ps</code> process by text-searching for it using <code>grep</code>.</p>
+</li>
+<li><p>Another common grep usage is with <code>cat</code>, to find a string in a file. Search your <code>/etc/passwd</code> file for the <code>root</code> user:</p>
+<pre><code class="lang-bash">cat /etc/passwd | grep root
+</code></pre>
+<p>Instead of getting every user on the system, only lines with the string <code>root</code> are printed out, making it easier to findwhat you&#39;re looking for. </p>
+</li>
+</ol>
+<h4 id="successive-commands">Successive Commands</h4>
+<p>We can run several commands in a one liner using semicolon <code>;</code> or double-ampersand <code>&amp;&amp;</code>.</p>
+<ol>
+<li><p>Create a new directory:</p>
+<pre><code>$ mkdir newDir
+</code></pre></li>
+<li><p>We know that to remove a directory we need to use <code>rm -r</code>. Let&#39;s simulate a error by forgetting the <code>-r</code> flag, and immediately after removing we&#39;ll create a new directory with the same name:</p>
+<pre><code>$ rm newDir ; mkdir newDir
+</code></pre><p>This should returns:</p>
+<pre><code>rm: cannot remove ‘newDir’: Is a directory
+mkdir: cannot create directory ‘newDir’: File exists
+</code></pre><p>The semicolon <code>;</code> runs the second command even when the first command wasn&#39;t successful.</p>
+</li>
+<li><p>Combining commands with the double-ampersand <code>&amp;&amp;</code> insures that the second command will run only if the first command was successful. Try the following:</p>
+<pre><code>$ rm newDir &amp;&amp; mkdir newDir
+</code></pre><p>This should return the error for the first command only:</p>
+<pre><code>rm: cannot remove ‘newDir’: Is a directory
+</code></pre></li>
+</ol>
+<h4 id="breaking-long-commands">Breaking long commands</h4>
+<p>Some commands get too long, for example because it includes a long file path or it&#39;s a one liner that combines several commands. For better readability, you can break long commands into several lines using the backslash:</p>
+<pre><code>```
+$ mkdir aDirectoryWithAVeryLongName ;  \
+    cd aDirectoryWithAVeryLongName ; \
+    echo &quot;this is a test file&quot; &gt; myTestFile ; \
+    cat myTestFile ; cd ..
+```
+</code></pre><p> This one liner will create a directory, cd into it, create a file, cat the content of the file, and finally change directory a level up.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>We saw most of the Linux commands that we will use in the actual Docker training. Feel free to discover more commands in the following cheat sheet: <a href="https://www.git-tower.com/blog/command-line-cheat-sheet/">https://www.git-tower.com/blog/command-line-cheat-sheet/</a></p>
+
+        </div>        
+    </div>
+    <div class="row">
+        <ul class="mt-article-pagination" style="display:block;">
+        </ul>
+    </div>
+</div>
+    <div class="footer"></div>
+</body>

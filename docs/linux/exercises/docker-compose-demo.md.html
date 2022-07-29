@@ -1,0 +1,174 @@
+<html>
+<head>
+    <title>docker-compose-demo.md</title>
+    <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <link href="../../app.css" rel="stylesheet" >
+</head>
+<body>
+    <nav class="navbar navbar-default">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img class="logo" src="https://www.gepardec.com/files/gepardec_logo_dark_background.svg" alt="Gepardec" title="Gepardec"/ style="width:auto !important; height:"></a> 
+        <h1 class="navbar-title">Exercises</h1>
+        
+        </div>
+    </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="content">
+            <h1 id="instructor-demo-docker-compose">Instructor Demo: Docker Compose</h1>
+<p>In this demo, we&#39;ll illustrate:</p>
+<ul>
+<li>Starting an app defined in a docker compose file</li>
+<li>Inter-service communication using DNS resolution of service names</li>
+</ul>
+<h2 id="exploring-the-compose-file">Exploring the Compose File</h2>
+<ol>
+<li><p>Please download the DockerCoins app from Github and change directory to ~/orchestration-workshop/dockercoins.</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ git clone -b ee3.0 \
+    https://github.com/docker-training/orchestration-workshop.git
+[centos@node-0 ~]$ cd ~/orchestration-workshop/dockercoins
+</code></pre>
+</li>
+<li><p>Let&#39;s take a quick look at our Compose file for Dockercoins:</p>
+<pre><code class="lang-yaml">version: &quot;3.1&quot;
+
+services:
+rng:
+    image: training/dockercoins-rng:1.0
+    networks:
+    - dockercoins
+    ports:
+    - &quot;8001:80&quot;
+
+hasher:
+    image: training/dockercoins-hasher:1.0
+    networks:
+    - dockercoins
+    ports:
+    - &quot;8002:80&quot;
+
+webui:
+    image: training/dockercoins-webui:1.0
+    networks:
+    - dockercoins
+    ports:
+    - &quot;8000:80&quot;
+
+redis:
+    image: redis
+    networks:
+    - dockercoins
+
+worker:
+    image: training/dockercoins-worker:1.0
+    networks:
+    - dockercoins
+
+networks:
+    dockercoins:
+</code></pre>
+<p>This Compose file contains 5 services, along with a bridge network.</p>
+</li>
+<li><p>When we start the app, we will see the service images getting downloaded one at a time:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ docker-compose up -d
+</code></pre>
+</li>
+<li><p>After starting, the images required for this app have been downloaded:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ docker image ls | grep &quot;dockercoins&quot;
+</code></pre>
+</li>
+<li><p>Make sure the services are up and running, as is the dedicated network:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ docker-compose ps
+[centos@node-0 dockercoins]$ docker network ls
+</code></pre>
+</li>
+<li><p>If everyting is up, visit your app at <code>&lt;node-0 public IP&gt;:8000</code> to see Dockercoins in action.</p>
+</li>
+</ol>
+<h2 id="communicating-between-containers">Communicating Between Containers</h2>
+<ol>
+<li><p>In this section, we&#39;ll demonstrate that containers created as part of a service in a Compose file are able to communicate with containers belonging to other services using just their service names. Let&#39;s start by listing our DockerCoins containers:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ docker container ls | grep &#39;dockercoins&#39;
+</code></pre>
+</li>
+<li><p>Now, connect into one container; let&#39;s pick <code>webui</code>:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ docker container exec -it &lt;Container ID&gt; bash
+</code></pre>
+</li>
+<li><p>From within the container, ping <code>rng</code> by name:</p>
+<pre><code class="lang-bash">[root@&lt;Container ID&gt;]# ping rng
+</code></pre>
+<p>Logs should be outputted resembling this:</p>
+<pre><code class="lang-bash">PING rng (172.18.0.5) 56(84) bytes of data.
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=1 ttl=64 time=0.108 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=2 ttl=64 time=0.049 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=3 ttl=64 time=0.073 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=4 ttl=64 time=0.067 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=5 ttl=64 time=0.057 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=6 ttl=64 time=0.074 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=7 ttl=64 time=0.052 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=8 ttl=64 time=0.057 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=9 ttl=64 time=0.080 ms
+</code></pre>
+<p>Use <code>CTRL+C</code> to terminate the ping. DNS lookup for the services in DockerCoins works because they are all attached to the user-defined <code>dockercoins</code> network.</p>
+</li>
+<li><p>After exiting this container, let&#39;s navigate to the <code>worker</code> folder and take a look at a section of <code>worker.py</code>:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ cd worker
+[centos@node-0 worker]$ cat worker.py
+
+import logging
+import os
+from redis import Redis
+import requests
+import time
+
+DEBUG = os.environ.get(&quot;DEBUG&quot;, &quot;&quot;).lower().startswith(&quot;y&quot;)
+
+log = logging.getLogger(__name__)
+if DEBUG:
+    logging.basicConfig(level=logging.DEBUG)
+else:
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger(&quot;requests&quot;).setLevel(logging.WARNING)
+
+redis = Redis(&quot;redis&quot;)
+
+def get_random_bytes():
+    r = requests.get(&quot;http://rng/32&quot;)
+    return r.content
+
+def hash_bytes(data):
+    r = requests.post(&quot;http://hasher/&quot;,
+                    data=data,
+                    headers={&quot;Content-Type&quot;: &quot;application/octet-stream&quot;})
+    hex_hash = r.text
+    return hex_hash
+</code></pre>
+<p>As we can see in the last two stanzas, we can direct traffic to a service via a DNS name that exactly matches the service name defined in the docker compose file.</p>
+</li>
+<li><p>Shut down Dockercoins and clean up its resources:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ docker-compose down
+</code></pre>
+</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this exercise, we stood up an application using Docker Compose. The most important new idea here is the notion of Docker Services, which are collections of identically configured containers. Docker Service names are resolvable by DNS, so that we can write application logic designed to communicate service to service; all service discovery and load balancing between your application&#39;s services is abstracted away and handled by Docker.</p>
+
+        </div>        
+    </div>
+    <div class="row">
+        <ul class="mt-article-pagination" style="display:block;">
+        </ul>
+    </div>
+</div>
+    <div class="footer"></div>
+</body>

@@ -1,0 +1,114 @@
+<html>
+<head>
+    <title>database-volumes.md</title>
+    <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <link href="../../app.css" rel="stylesheet" >
+</head>
+<body>
+    <nav class="navbar navbar-default">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img class="logo" src="https://www.gepardec.com/files/gepardec_logo_dark_background.svg" alt="Gepardec" title="Gepardec"/ style="width:auto !important; height:"></a> 
+        <h1 class="navbar-title">Exercises</h1>
+        
+        </div>
+    </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="content">
+            <h1 id="database-volumes">Database Volumes</h1>
+<p>By the end of this exercise, you should be able to:</p>
+<ul>
+<li>Provide a docker volume as a database backing to Postgres</li>
+<li>Recover a Postgres database from volume contents after destroying the original Postgres container</li>
+</ul>
+<h2 id="launching-postgres">Launching Postgres</h2>
+<ol>
+<li><p>Download a postgres image, and look at its history to determine its default volume usage:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker image pull postgres:9-alpine
+[centos@node-0 ~]$ docker image inspect postgres:9-alpine
+
+...
+&quot;Volumes&quot;: {
+    &quot;/var/lib/postgresql/data&quot;: {}
+},
+...
+</code></pre>
+<p>You should see a <code>Volumes</code> block like the above, indicating that those paths in the container filesystem will get volumes automatically mounted to them when a container is started based on this image.</p>
+</li>
+<li><p>Set up a running instance of this postgres container:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container run --name some-postgres \
+    -v db_backing:/var/lib/postgresql/data \
+    -e POSTGRES_PASSWORD=password \
+    -d postgres:9-alpine
+</code></pre>
+<p>Notice the explicit volume mount, <code>-v db_backing:/var/lib/postgresql/data</code>; if we hadn&#39;t done this, a randomly named volume would have been mounted to the container&#39;s <code>/var/lib/postgresql/data</code>. Naming the volume explicitly is a best practice that will become useful when we start mounting this volume in multiple containers.</p>
+</li>
+</ol>
+<h2 id="writing-to-the-database">Writing to the Database</h2>
+<ol>
+<li><p>The <code>psql</code> command line interface to postgres comes packaged with the postgres image; spawn it as a child process in your postgres container interactively, to create a postgres terminal:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container exec \
+    -it some-postgres psql -U postgres
+</code></pre>
+</li>
+<li><p>Create an arbitrary table in the database:</p>
+<pre><code class="lang-bash">postgres=# CREATE TABLE PRODUCTS(PRICE FLOAT, NAME TEXT);
+postgres=# INSERT INTO PRODUCTS VALUES(&#39;18.95&#39;, &#39;widget&#39;);
+postgres=# INSERT INTO PRODUCTS VALUES(&#39;1.45&#39;, &#39;sprocket&#39;);
+</code></pre>
+<p>Double check you created the table you expected, and then quit this container:</p>
+<pre><code class="lang-bash">postgres=# SELECT * FROM PRODUCTS;
+
+  price  |  name  
+---------+-----------
+  18.95  | widget
+  1.45   | sprocket
+(2 rows)
+
+postgres=# \q
+</code></pre>
+</li>
+<li><p>Delete the postgres container:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container rm -f some-postgres
+</code></pre>
+</li>
+<li><p>Create a new postgres container, mounting the <code>db_backing</code> volume just like last time:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container run \
+    --name some-postgres \
+    -v db_backing:/var/lib/postgresql/data \
+    -e POSTGRES_PASSWORD=password \
+    -d postgres:9-alpine
+</code></pre>
+</li>
+<li><p>Reconnect a <code>psql</code> interface to your database, also like before:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container exec \
+    -it some-postgres psql -U postgres
+</code></pre>
+</li>
+<li><p>List the contents of the <code>PRODUCTS</code> table:</p>
+<pre><code class="lang-bash">postgres=# SELECT * FROM PRODUCTS;
+</code></pre>
+<p>The contents of the database have survived the deletion and recreation of the database container; this would not have been true if the database was keeping its data in the writable container layer. As above, use <code>\q</code> to quit from the postgres prompt.</p>
+</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>Whenever data needs to live longer than the lifecycle of a container, it should be pushed out to a volume outside the container&#39;s filesystem; numerous popular databases are containerized using this pattern.</p>
+
+        </div>        
+    </div>
+    <div class="row">
+        <ul class="mt-article-pagination" style="display:block;">
+        </ul>
+    </div>
+</div>
+    <div class="footer"></div>
+</body>

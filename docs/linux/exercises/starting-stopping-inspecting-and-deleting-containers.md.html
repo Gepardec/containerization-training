@@ -1,0 +1,132 @@
+<html>
+<head>
+    <title>starting-stopping-inspecting-and-deleting-containers.md</title>
+    <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <link href="../../app.css" rel="stylesheet" >
+</head>
+<body>
+    <nav class="navbar navbar-default">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img class="logo" src="https://www.gepardec.com/files/gepardec_logo_dark_background.svg" alt="Gepardec" title="Gepardec"/ style="width:auto !important; height:"></a> 
+        <h1 class="navbar-title">Exercises</h1>
+        
+        </div>
+    </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="content">
+            <h1 id="starting-stopping-inspecting-and-deleting-containers">Starting, Stopping, Inspecting and Deleting Containers</h1>
+<p>By the end of this exercise, you should be able to:</p>
+<ul>
+<li>Restart containers which have exited</li>
+<li>Distinguish between stopping and killing a container</li>
+<li>Fetch container metadata using <code>docker container inspect</code></li>
+<li>Delete containers</li>
+</ul>
+<h2 id="starting-and-restarting-containers">Starting and Restarting Containers</h2>
+<ol>
+<li><p>Start by running a container in the background, and check that it&#39;s really running:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container run -d centos:7 ping 8.8.8.8
+[centos@node-0 ~]$ docker container ls
+</code></pre>
+</li>
+<li><p>Stop the container using <code>docker container stop</code>, and check that the container is indeed stopped:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container stop &lt;container ID&gt;
+[centos@node-0 ~]$ docker container ls -a
+</code></pre>
+<p>Note that the <code>stop</code> command takes a few seconds to complete. <code>docker container stop</code> first sends a <code>SIGTERM</code> to the PID 1 process inside a container, asking it to shut down nicely; it then waits 10 seconds before sending a <code>SIGKILL</code> to kill it off, ready or not. The exit code you see (<code>137</code> in this case) is the exit code returned by the PID 1 process (<code>ping</code>) upon being killed by one of these signals.</p>
+</li>
+<li><p>Start the container again with <code>docker container start</code>, and attach to it at the same time with the <code>-a</code> flag:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container start -a &lt;container ID&gt;
+</code></pre>
+<p>As you saw previously, this brings the container from the <code>Exited</code> to the <code>Up</code> state; in this case, we&#39;re also attaching to the PID 1 process.</p>
+</li>
+<li><p>Detach and stop the container with <code>CTRL+C</code>, then restart the container without attaching and follow the logs starting from 10 lines previous.</p>
+</li>
+<li><p>Finally, stop the container with <code>docker container kill</code>:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container kill &lt;container ID&gt;
+</code></pre>
+<p>Unlike <code>docker container stop</code>, <code>container kill</code> just sends the <code>SIGKILL</code> right away - no grace period.</p>
+</li>
+</ol>
+<h2 id="inspecting-a-container">Inspecting a Container</h2>
+<ol>
+<li><p>Start your ping container again, then inspect the container details using <code>docker container inspect</code>:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container start &lt;container ID&gt;
+[centos@node-0 ~]$ docker container inspect &lt;container ID&gt;
+</code></pre>
+<p>You get a JSON object describing the container&#39;s config, metadata and state.</p>
+</li>
+<li><p>Find the container&#39;s IP and long ID in the JSON output of <code>inspect</code>. If you know the key name of the property you&#39;re looking for, try piping to grep:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container inspect &lt;container ID&gt; | grep IPAddress
+</code></pre>
+<p>The output should look similar to this:</p>
+<pre><code class="lang-bash">&quot;SecondaryIPAddresses&quot;: null,
+&quot;IPAddress&quot;: &quot;&lt;Your IP Address&gt;&quot;
+</code></pre>
+</li>
+<li><p>Now try grepping for <code>Cmd</code>, the PID 1 command being run by this container. <code>grep</code>&#39;s simple text search doesn&#39;t always return helpful results:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container inspect &lt;container ID&gt; | grep Cmd
+
+&quot;Cmd&quot;: [
+</code></pre>
+</li>
+<li><p>A more powerful way to filter this JSON is with the <code>--format</code> flag. Syntax follows Go&#39;s text/template package: <a href="http://golang.org/pkg/text/template/">http://golang.org/pkg/text/template/</a>. For example, to find the <code>Cmd</code> value we tried to grep for above, instead try:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container inspect --format=&#39;{{.Config.Cmd}}&#39; &lt;container ID&gt;
+
+[ping 8.8.8.8]
+</code></pre>
+<p>This time, we get a the value of the <code>Config.Cmd</code> key from the <code>inspect</code> JSON.</p>
+</li>
+<li><p>Keys nested in the JSON returned by <code>docker container inspect</code> can be chained together in this fashion. Try modifying this example to return the IP address you grepped for previously.</p>
+</li>
+<li><p>Finally, we can extract all the key/value pairs for a given object using the <code>json</code> function:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container inspect --format=&#39;{{json .Config}}&#39; &lt;container ID&gt;
+</code></pre>
+<p>Try adding <code>| jq</code> to this command to get the same output a little bit easier to read.</p>
+</li>
+</ol>
+<h2 id="deleting-containers">Deleting Containers</h2>
+<ol>
+<li><p>Start three containers in background mode, then stop the first one.</p>
+</li>
+<li><p>List only exited containers using the <code>--filter</code> flag we learned earlier, and the option <code>status=exited</code>.</p>
+</li>
+<li><p>Delete the container you stopped above with <code>docker container rm</code>, and do the same listing operation as above to confirm that it has been removed:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container rm &lt;container ID&gt;
+[centos@node-0 ~]$ docker container ls ...
+</code></pre>
+</li>
+<li><p>Now do the same to one of the containers that&#39;s still running; notice <code>docker container rm</code> won&#39;t delete a container that&#39;s still running, unless we pass it the force flag <code>-f</code>. Delete the second container you started above:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container rm -f &lt;container ID&gt;
+</code></pre>
+</li>
+<li><p>Try using the <code>docker container ls</code> flags we learned previously to remove the last container that was run, or all stopped containers. Recall that you can pass the output of one shell command <code>cmd-A</code> into a variable of another command <code>cmd-B</code> with syntax like <code>cmd-B $(cmd-A)</code>.</p>
+</li>
+<li><p>When done, clean up any containers you may still have:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container rm -f $(docker container ls -aq)
+</code></pre>
+</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this exercise, you explored the lifecycle of a container, particularly in terms of stopping and restarting containers. Keep in mind the behavior of <code>docker container stop</code>, which sends a <code>SIGTERM</code>, waits a grace period, and then sends a <code>SIGKILL</code> before forcing a container to stop; this two step process is designed to give your containers a chance to shut down &#39;nicely&#39;: dump their state to a log, finish a database transaction, or do whatever your application needs them to do in order to exit without causing additional problems. Make sure you bear this in mind when designing containerized software.</p>
+<p>Also keep in mind the <code>docker container inspect</code> command we saw, for examining container metadata, state and config; this is often the first place to look when trying to troubleshoot a failed container.</p>
+
+        </div>        
+    </div>
+    <div class="row">
+        <ul class="mt-article-pagination" style="display:block;">
+        </ul>
+    </div>
+</div>
+    <div class="footer"></div>
+</body>

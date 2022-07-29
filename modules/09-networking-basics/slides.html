@@ -40,7 +40,7 @@
     <section class="no_bg">
         <h2>The Container Network Model</h2>
 
-        <img src='images/cnm-simplified.png'></img>
+        <img src='images/container-networking-model.svg' height="auto" width="100%"/>
 
         <aside class='notes'>
             <ul>
@@ -57,8 +57,7 @@
     <section class="no_bg">
         <h2>Linux: Default Single-Host Network</h2>
 
-        <img src='images/default-network-1.png'></img>
-
+        <img src='images/linux-single-host-network.svg' height="auto" width="100%"/>
         <aside class='notes'>
             <ul>
                 <li>When Docker is started on the host, a linux bridge is created by default, and assigned an unused private subnet from 172.[17-31].0.0/16 or 192.168.[0-240].0/20. A linux bridge is an in-software switch, that routes packets by MAC address.</li>
@@ -70,7 +69,7 @@
     <section class="no_bg">
         <h2>Linux: Default Container Networking</h2>
 
-        <img src='images/default-network-2.png'></img>
+        <img src='images/linux-default-container-networking.svg' height="auto" width="100%"/>
         <p><span class='keyword'>Quiz:</span> identify the sandbox, endpoint and network corresponding to the container networking model objects in this diagram.</p>
 
         <aside class='notes'>
@@ -85,7 +84,7 @@
     <section class="no_bg">
         <h2>Linux: User-Defined Bridges &amp; Firewalls</h2>
 
-        <img src='images/user-bridge.png'></img>
+        <img src='images/linux-custom-container-networking.svg' height="auto" width="100%"/>
 
         <aside class='notes'>
             <ul>

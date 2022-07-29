@@ -1,0 +1,192 @@
+<html>
+<head>
+    <title>running-and-inspecting-containers.md</title>
+    <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <link href="../../app.css" rel="stylesheet" >
+</head>
+<body>
+    <nav class="navbar navbar-default">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img class="logo" src="https://www.gepardec.com/files/gepardec_logo_dark_background.svg" alt="Gepardec" title="Gepardec"/ style="width:auto !important; height:"></a> 
+        <h1 class="navbar-title">Exercises</h1>
+        
+        </div>
+    </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="content">
+            <h1 id="running-inspecting-containers">Running &amp; Inspecting Containers</h1>
+<p>By the end of this exercise, you should be able to:</p>
+<ul>
+<li>Start a container</li>
+<li>List containers in multiple ways</li>
+<li>Query the <code>docker</code> command line help</li>
+<li>Remove containers</li>
+</ul>
+<ol>
+<li><p>Create and start a new CentOS 7 container running <code>ping</code> to 8.8.8.8.  Docker will downlaod the CentOS 7 image since you do not have it available locally.</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container run centos:7 ping 8.8.8.8
+
+Unable to find image &#39;centos:7&#39; locally
+7: Pulling from library/centos
+a02a4930cb5d: Pull complete 
+Digest: sha256:184e5f35598e333bfa7de10d8fb1cebb5ee4df5bc0f970bf2b1e7c7345136426
+Status: Downloaded newer image for centos:7
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=108 time=7.07 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=108 time=7.11 ms
+64 bytes from 8.8.8.8: icmp_seq=3 ttl=108 time=7.03 ms
+64 bytes from 8.8.8.8: icmp_seq=4 ttl=108 time=7.09 ms
+64 bytes from 8.8.8.8: icmp_seq=5 ttl=108 time=7.01 ms
+64 bytes from 8.8.8.8: icmp_seq=6 ttl=108 time=7.00 ms
+^C
+--- 8.8.8.8 ping statistics ---
+6 packets transmitted, 6 received, 0% packet loss, time 5006ms
+rtt min/avg/max/mdev = 7.008/7.056/7.110/0.039 ms
+
+....
+</code></pre>
+<p>Press <code>CTRL+C</code> after a few pings. This stops and exits the container.</p>
+</li>
+<li><p>This first container sent its STDOUT to your terminal. Create a second container, this time in <em>detached mode</em>:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container run --detach centos:7 ping 8.8.4.4
+
+8aef3d0d411c7b02532292ec3267a54f9258eaafb71d3d73a8ad41e702bd35a2
+</code></pre>
+<p>Instead of seeing the executed command (<code>ping 8.8.4.4</code>), Docker engine displays a long hexidecimal number, which is the full <em>container ID</em> of your new container. The container is running detached, which means the container is running as a background process, rather than printing its STDOUT to your terminal.</p>
+</li>
+<li><p>List the running Docker containers using the <code>docker container ls</code> container command. You will see only one container running.</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container ls
+
+CONTAINER ID IMAGE    COMMAND        CREATED       STATUS        PORTS  NAMES
+8aef3d0d411c centos:7 &quot;ping 8.8.4.4&quot; 3 minutes ago Up 3 minutes         zen_jang
+</code></pre>
+</li>
+<li><p>Now you know that the <code>docker container ls</code> command only shows running containers. You can show all containers that exist (running or stopped) by using <code>docker container ls --all</code>.  Your container ID and name will vary. Note that you will see two containers: a stopped container and a running container.</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container ls --all 
+
+CONTAINER ID  IMAGE     COMMAND         CREATED        STATUS         NAMES
+8aef3d0d411c  centos:7  &quot;ping 8.8.4.4&quot;  2 minutes ago  Up 2 minutes   zen_jang
+00f763b9308d  centos:7  &quot;ping 8.8.8.8&quot;  4 minutes ago  Exited (0)...  inspiring_cheb
+</code></pre>
+<blockquote>
+<p><strong>Where did those names come from?</strong> All containers have names, which in most Docker CLI commands can be substituted for the container ID as we&#39;ll see in later exercises. By default, containers get a randomly generated name of the form <code>&lt;adjective&gt;_&lt;scientist / technologist&gt;</code>, but you can choose a name explicitly with the <code>--name</code> flag in <code>docker container run</code>. </p>
+</blockquote>
+</li>
+<li><p>Start up another detached container, this time giving it a name &quot;opendnsping&quot;.</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container run --detach --name opendnsping \
+                   centos:7 ping 208.67.222.222
+
+3bdc61a95e76fdfe2597ef18aa00321a53dcdc9c36b2db97fbe738f8a623ecad
+</code></pre>
+</li>
+<li><p>List all your containers again. You can see all of the containers, including your new one with your customized name.</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container ls --all
+
+CONTAINER ID IMAGE    COMMAND               CREATED        STATUS         NAMES
+3bdc61a95e76 centos:7 &quot;ping 208.67.222.222&quot; 23 seconds ago Up 22 seconds  opendnsping
+8aef3d0d411c centos:7 &quot;ping 8.8.4.4&quot;        4 minutes ago  Up 14 minutes  zen_jang
+00f763b9308d centos:7 &quot;ping 8.8.8.8&quot;        9 minutes ago  Exited (0)...  inspirin...
+</code></pre>
+</li>
+<li><p>Next, remove the exited container. To do this, use <code>docker container rm &lt;container ID&gt;</code>. In the example above, the Docker container ID is <code>00f763b9308d</code>. You only need as many characters as to uniquely identify this container from all the others.</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container rm &lt;container ID&gt;
+
+00f763b9308d
+</code></pre>
+</li>
+<li><p>Now try to remove one of the other Docker containers using the same command. It does not work. Why?</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container rm &lt;container ID&gt;
+
+Error response from daemon: You cannot remove a running container 
+3bdc61a95e76fdfe2597ef18aa00321a53dcdc9c36b2db97fbe738f8a623ecad. 
+Stop the container before attempting removal or force remove
+</code></pre>
+</li>
+<li><p>You can see that running containers are not removed. You&#39;ll have to look for an option to remove a running container. In order to find out the option you need to do a force remove, check the command line help. To do this with the <code>docker container rm</code> command, use the <code>--help</code> option:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container rm --help
+
+Usage: docker container rm [OPTIONS] CONTAINER [CONTAINER...]
+
+Remove one or more containers
+
+Options:
+ -f, --force     Force the removal of a running container (uses SIGKILL)
+ -l, --link      Remove the specified link
+ -v, --volumes   Remove the volumes associated with the container
+</code></pre>
+<blockquote>
+<p><strong>Help works with all Docker commands</strong> Not only can you use <code>--help</code> with <code>docker container rm</code>, but it works on all levels of <code>docker</code> commands. For example, <code>docker --help</code> provides you will all available <code>docker</code> commands, and <code>docker container --help</code> provides you with all available container commands.</p>
+</blockquote>
+</li>
+<li><p>Now, run a force remove on the running container you tried to remove in the two previous steps. This time it works.</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container rm --force &lt;container ID&gt; 
+
+8aef3d0d411c
+</code></pre>
+</li>
+<li><p>Start another detached container pinging 8.8.8.8, with the name <code>pinggoogledns</code>.</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container run --detach --name pinggoogledns \
+                   centos:7 ping 8.8.8.8
+
+38e121e629611daa0726a21d634bc5189400377d82882cc6fd8a3870dc9943a0
+</code></pre>
+</li>
+<li><p>Now that you&#39;ve finished your testing, you need to remove your containers. In order to remove all of them at once, you want to get only the container IDs. Look at <code>docker container ls --help</code> to get the information you need:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container ls --help
+
+Usage:    docker container ls [OPTIONS]
+
+List containers
+
+Aliases:
+  ls, ps, list
+
+Options:
+  -a, --all           Show all containers (default shows just running)
+  -f, --filter filter Filter output based on conditions provided
+  --format string     Pretty-print containers using a Go template
+  -n, --last int      Show n last created containers (includes all states)
+  -l, --latest        Show the latest created container (includes all states)
+      --no-trunc      Don&#39;t truncate output
+  -q, --quiet         Only display numeric IDs
+  -s, --size          Display total file sizes
+</code></pre>
+</li>
+<li><p>To get only the container IDs, use the <code>--quiet</code> option.  If you want to use only the container IDs of all existing containers to perform an action on, you can use <code>--quiet</code> with the <code>--all</code> option.</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container ls --all --quiet
+
+3bdc61a95e76     
+38e121e62961
+</code></pre>
+</li>
+<li><p>Since we are done running pings on the public DNS servers, kill the containers. To do this, use the syntax <code>docker container rm --force &lt;containerID&gt;</code>. However, this only kills one container at a time. We want to kill all the containers, no matter what state the containers are in. To get this information, you will need to use the output from <code>docker container ls --quiet --all</code>. To capture this output within the command, use <code>$(...)</code> to nest the listing command inside the <code>docker container rm</code> command.</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ docker container rm --force \
+    $(docker container ls --quiet --all)
+
+3bdc61a95e76     
+38e121e62961
+</code></pre>
+</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>This exercise taught you how to start, list, and kill containers. In this exercise you ran your first containers using <code>docker container run</code>, and how they are running commands inside the containers. You also learned to how to list your containers, and how to kill the containers using the command <code>docker container rm</code>. If you run into trouble, you&#39;ve learned that the <code>--help</code> option can provide you with information that could help get you answers.</p>
+
+        </div>        
+    </div>
+    <div class="row">
+        <ul class="mt-article-pagination" style="display:block;">
+        </ul>
+    </div>
+</div>
+    <div class="footer"></div>
+</body>

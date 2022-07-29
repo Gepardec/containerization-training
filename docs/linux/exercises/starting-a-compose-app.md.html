@@ -1,0 +1,96 @@
+<html>
+<head>
+    <title>starting-a-compose-app.md</title>
+    <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u' crossorigin='anonymous'>
+    <link href="../../app.css" rel="stylesheet" >
+</head>
+<body>
+    <nav class="navbar navbar-default">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html"><img class="logo" src="https://www.gepardec.com/files/gepardec_logo_dark_background.svg" alt="Gepardec" title="Gepardec"/ style="width:auto !important; height:"></a> 
+        <h1 class="navbar-title">Exercises</h1>
+        
+        </div>
+    </div><!-- /.container-fluid -->
+    </nav>
+    <div class="container">
+    <div class="row">
+        <div class="content">
+            <h1 id="starting-a-compose-app">Starting a Compose App</h1>
+<p>By the end of this exercise, you should be able to:</p>
+<ul>
+<li>Read a basic docker compose yaml file and understand what components it is declaring</li>
+<li>Start, stop, and inspect the logs of an application defined by a docker compose file</li>
+</ul>
+<h2 id="inspecting-a-compose-app">Inspecting a Compose App</h2>
+<ol>
+<li><p>Download the Dockercoins app from github:</p>
+<pre><code class="lang-bash">[centos@node-0 ~]$ git clone -b ee3.0 \
+    https://github.com/docker-training/orchestration-workshop.git
+[centos@node-0 ~]$ cd orchestration-workshop/dockercoins
+</code></pre>
+<p>This app consists of 5 services: a random number generator <code>rng</code>, a <code>hasher</code>, a backend <code>worker</code>, a <code>redis</code> queue, and a <code>web</code> frontend; the code you just downloaded has the source code for each process and a Dockerfile to containerize each of them.</p>
+</li>
+<li><p>Have a brief look at the source for each component of your application. Each folder under <code>~/orchestration-workshop/ dockercoins</code> contains the application logic for the component, and a Dockerfile for building that logic into a Docker image. We&#39;ve pre-built these images as <code>training/dockercoins-rng:1.0</code>, <code>training/dockercoins-worker:1.0</code> et cetera, so no need to build them yourself.</p>
+</li>
+<li><p>Have a look in <code>docker-compose.yml</code>; especially notice the <code>services</code> section. Each block here defines a different Docker service. They each have exactly one image which containers for this service will be started from, as well as other configuration details like network connections and port exposures. Full syntax for Docker Compose files can be found here: <a href="https://dockr.ly/2iHUpeX">https://dockr.ly/2iHUpeX</a>.</p>
+</li>
+</ol>
+<h2 id="starting-the-app">Starting the App</h2>
+<ol>
+<li><p>Stand up the app:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ docker-compose up
+</code></pre>
+<p>After a moment, your app should be running; visit <code>&lt;node 0 public IP&gt;:8000</code> to see the web frontend visualizing your rate of Dockercoin mining.</p>
+</li>
+<li><p>Logs from all the running services are sent to STDOUT. Let&#39;s send this to the background instead; kill the app with <code>CTRL+C</code>, sending a <code>SIGTERM</code> to all running processes; some exit immediately, while others wait for a 10s timeout before being killed by a subsequent <code>SIGKILL</code>. Start the app again in the background:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ docker-compose up -d
+</code></pre>
+</li>
+<li><p>Check out which containers are running thanks to Compose:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ docker-compose ps
+
+        Name                      Command               State          Ports         
+------------------------------------------------------------------------------------
+dockercoins_hasher_1   ruby hasher.rb                   Up      0.0.0.0:8002-&gt;80/tcp 
+dockercoins_redis_1    docker-entrypoint.sh redis ...   Up      6379/tcp             
+dockercoins_rng_1      python rng.py                    Up      0.0.0.0:8001-&gt;80/tcp 
+dockercoins_webui_1    node webui.js                    Up      0.0.0.0:8000-&gt;80/tcp 
+dockercoins_worker_1   python worker.py                 Up 
+</code></pre>
+</li>
+<li><p>Compare this to the usual <code>docker container ls</code>; do you notice any differences? If not, start a couple of extra containers using <code>docker container run...</code>, and check again.</p>
+</li>
+</ol>
+<h2 id="viewing-logs">Viewing Logs</h2>
+<ol>
+<li><p>See logs from a Compose-managed app via:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ docker-compose logs
+</code></pre>
+</li>
+<li><p>The logging API in Compose follows the main Docker logging API closely. For example, try following the tail of the logs just like you would for regular container logs:</p>
+<pre><code class="lang-bash">[centos@node-0 dockercoins]$ docker-compose logs --tail 10 --follow
+</code></pre>
+<p>Note that when following a log, <code>CTRL+S</code> and <code>CTRL+Q</code> pauses and resumes live following; <code>CTRL+C</code> exits follow mode as usual.</p>
+</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this exercise, you saw how to start a pre-defined Compose app, and how to inspect its logs. Application logic was defined in each of the five images we used to create containers for the app, but the manner in which those containers were created was defined in the <code>docker-compose.yml</code> file; all runtime configuration for each container is captured in this manifest. Finally, the different elements of Dockercoins communicated with each other via service name; the Docker daemon&#39;s internal DNS was able to resolve traffic destined for a service, into the IP or MAC address of the corresponding container.</p>
+
+        </div>        
+    </div>
+    <div class="row">
+        <ul class="mt-article-pagination" style="display:block;">
+        </ul>
+    </div>
+</div>
+    <div class="footer"></div>
+</body>
