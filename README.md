@@ -15,6 +15,8 @@ The used decktape container image has no ARM plattform support for now, but work
 Set the the default conatienr image architecture via an environment variable `export DOCKER_DEFAULT_PLATFORM=linux/arm64`. +
 Build the container image with `docker build --tag astefanutti/decktape:3.1.0 .` on your MAC and it will build the image for the `linux/arm64` architecture.
 
+When we want to access the VM of a Docker-for-MAC then we need to use the container image of this [repository](https://github.com/justincormack/nsenter1) to be able to do that.
+
 # contributions
 - [Thomas Herzog](https://github.com/cchet)
 
