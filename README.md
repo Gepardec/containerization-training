@@ -17,3 +17,5 @@ Build the container image with `docker build --tag astefanutti/decktape:3.1.0 .`
 
 # contributions
 - [Thomas Herzog](https://github.com/cchet)
+
+See [here](https://gepardec.github.io/containerization-training/) for the Containerization Training exersices
