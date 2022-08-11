@@ -17,6 +17,10 @@ Build the container image with `docker build --tag astefanutti/decktape:3.1.0 .`
 
 When we want to access the VM of a Docker-for-MAC then we need to use the container image of this [repository](https://github.com/justincormack/nsenter1) to be able to do that.
 
+## AWS Training environment
+
+docker run --rm -it -v $(echo ~)/.aws:/root/.aws:ro -v $(pwd):/opt/train/workdir $(pwd)/bootstrap.sh:/opt/train/terraform/files/bootstrap/bootstrap.sh:ro gepardec/train:latest apply
+
 # contributions
 - [Thomas Herzog](https://github.com/cchet)
 

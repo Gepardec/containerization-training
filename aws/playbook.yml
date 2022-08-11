@@ -1,0 +1,42 @@
+---
+- name: Install JBoss Training
+  hosts: localhost
+  gather_facts: no
+  vars:
+      jboss_version: 7.4
+      training_home: ../
+      linux_user: ubuntu
+  tasks:
+    - name: Install Utility Packages
+      become: yes
+      ansible.builtin.apt:
+        update_cache: yes
+        name: "{{ item }}"
+        cache_valid_time: 86400 #One day
+      with_items:
+        - pip
+
+    - name: Install python dependencies
+      ansible.builtin.pip:
+        name:
+          - docker-py # Needed by docker_container
+
+    - name: Ensure group "docker" exists
+      become: yes
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: Add the user to docker group
+      become: yes
+      ansible.builtin.user:
+        name: "{{ linux_user }}"
+        groups: docker
+        append: yes
+
+    - name: Install Docker
+      become: yes
+      snap:
+        name:
+          - docker
+        state: present

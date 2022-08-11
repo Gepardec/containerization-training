@@ -4,3 +4,4 @@
 generated/
 *.iml
 .idea/
+/aws/containerization-training/
