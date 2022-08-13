@@ -1,0 +1,43 @@
+== Virtualization vs Containerization
+
+=== What we want
+
+Ideal software should
+
+* be modular and flexible (DEVs)
+* be easy to migrate (DEVOPS)
+* be easy to scale, monitor and lifecycle (OPS)
+* mitigate vulnerabilities (Security)
+* and run cheap (business)
+
+=== Virtualization
+
+image::02_virtualization_vs_containerization/pre-container.svg[]
+
+=== Containerization
+
+image::02_virtualization_vs_containerization/post-container.svg[]
+
+=== Rapid development
+
+image::02_virtualization_vs_containerization/component-upgrade.svg[]
+
+Containers can be removed and replaced with a minimum of impact on their neighbors, increasing developer choice and speed.
+
+=== Smooth migration
+
+image::02_virtualization_vs_containerization/component-migration.svg[]
+
+Containers carry their environment and dependencies with them, simplifying and minimizing requirements on the hosts that run them.
+
+=== Simple sclae & mainenance
+
+image::02_virtualization_vs_containerization/component-scalability.svg[]
+
+Containers have private system resources, so a compromise in one does not affect the rest.
+
+=== Application density
+
+image::02_virtualization_vs_containerization/component-density.svg[]
+
+Containers save datacenter costs by running many more application instances than virtual machines can on the same physical hosts.

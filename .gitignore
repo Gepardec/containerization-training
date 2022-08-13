@@ -5,3 +5,6 @@ generated/
 *.iml
 .idea/
 /aws/containerization-training/
+node_modules/
+package-lock.json
+presentation.html

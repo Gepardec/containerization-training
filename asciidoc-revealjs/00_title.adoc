@@ -1,0 +1,4 @@
+= Training Containerization
+:title-slide-background-image: gepard_white.png
+:title-slide-transition: zoom
+:title-slide-transition-speed: fast

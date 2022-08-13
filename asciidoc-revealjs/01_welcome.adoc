@@ -1,0 +1,53 @@
+== Gepardec who?
+
+[.columns]
+=== That's us
+
+[.column]
+* office: vienna / linz
+* size: ~ 40 people
+* we do what we love..
+** custom software solution
+** cloud transformation
+** devOps automation
+
+[.column.is-vcentered]
+image::01_welcome/team.jpg[width=450px]
+
+[.column]
+[frame=none, grid=none]
+|===
+| image:01_welcome/openshift.svg[width=100px]
+| image:01_welcome/rh_premium_partner.jpg[width=150px]
+| image:01_welcome/jboss.svg[width=150px]
+|===
+
+=== How we teach
+
+* Gepardec believes in **learning by doing**
+* The training is **lab driven**
+* Work together!
+* Ask questions at any time
+
+=== Session Logistics
+
+* 2 days duration
+* Mostly exercises
+* Regular breaks
+
+=== Assumed knowledge and requirements
+
+* Fmailiarity with Bash or Powershell
+* Bash Cheat sheet link:http://bit.ly/2mTQr8l[http://bit.ly/2mTQr8l]
+
+=== Your lab environment
+
+* You have been given an instance for use in the exercises
+* Ask the instructor for the credentials if you don't have them already
+
+=== Training learning objectives
+
+By the end of this training, trainess will be able to 
+
+* Asses the advantages of a containerized software development & deployment
+* Use container engine features necessary for running containerized applications
