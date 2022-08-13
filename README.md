@@ -1,9 +1,4 @@
-# containerization-training
-
-This repository holds the sources for the containerization training. 
-This training will learn trainees to understand the fundamentals of containerization with Docker.
-
-## Training
+# Training
 
 This training is based on AWS, where w host training environment for trainees. So, all you need a shell and an internet access, the rest will be provided to you.
 
@@ -34,15 +29,15 @@ We discuss composing multiple service with Docker-Compose.
 
 The objective of this training is that trainees understand containerization with Docker and can use containerization in there daily work.
 
-### Presentation
+## Presentation
 
 The presentation contains the theory behind containerization and we will work through it during the training. The presentation is based on revealjs and can be built via Docker as discussed in [section](#build-presentation) 
 
-### Training exercises
+## Training exercises
 
 Additionally to the presentation we provide [training exercises](https://gepardec.github.io/containerization-training/) which we work trough during the training, and which cover the topics discussed in the presentation.
 
-### Training environment
+## Training environment
 
 The training environment will be provided to by your trainer, and is used for hands on with Docker. You will connect to the environment via ssh, whereby the ssh public key will be provided to you, and is only valid for the provisioned environment during the training.
 
@@ -61,23 +56,23 @@ With this command you can copy a directory to the environment.
 scp -r buntu@<PROVIDED_AWS_URI>:<REMOTE_PATH> <LOCAL_DIR_PATH> -i <PROVIDED_PUBLIC_KEY>
 ```
 
-## Trainer 
+# Trainer 
 
 This section is for trainers only, and documents how to prepare for a training.
 
-### Build Presentation
+## Build Presentation
 
 This presentation can be rendered as HTMl and PDF on Unix/Linux Hosts via Docker.
 
 `./make.sh` will render the HTMl and PDf slides.
 
-#### Apple M1/2 (ARM64)
+### Apple M1/2 (ARM64)
 
 The used `decktape` container image has no ARM64 platform support for now, but works on ARM if you build it yourself.  
 Set the the default container image architecture via an environment variable `export DOCKER_DEFAULT_PLATFORM=linux/arm64`.  
 Build the container image with `docker build --tag astefanutti/decktape:3.1.0 .` on your ARM based host, and it will build the image for the `linux/arm64` architecture.
 
-### Provision an training environment in AWS
+## Provision an training environment in AWS
 
 We use AWS to provision a training environment, which is based on this [git repository](https://github.com/Gepardec/train) which provides  
 a [container image](https://github.com/Gepardec/train/pkgs/container/train) which uses Terraform to provision the training environment.
