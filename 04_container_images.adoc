@@ -1,9 +1,26 @@
 == Container images
 
+[.notes]
+--
+* In our discussion of containers, we focused on how processes are isolated.
+* But if a process is to be truly portable, it also needs its filesystem and dependencies to come along with it.
+* In this module, we'll explore images in-depth, including a focus on creating and modifying images.         
+--
+
 === Discussion: provisioning filesystems
 
 What are some potential difficulties with provisioning entire filesystems for containers? +
 How can we avoid these problems?
+
+[.notes]
+--
+* Guide the class to thinking about some of the non-obvious nuances around building and sharing images
+* Obvious answer: disk and bandwidth usage
+* Hint questions if the class is stuck:
+* Are all container filesystems necessarily unique? If two containers share a filesystem, how will they remain independent? (leads to layer sharing and read-only images)
+* What's a simple way to minimize the risk of vulnerable components making it onto your production servers via a Docker image? (answer: don't install any component you don't absolutely need, indicates the logic of minimal images)
+* If containers and their filesystems are meant to move across environments like dev, testing, staging and prod without needing to be modified, how can they reflect the important differences between those environments? (leads to motivating multi-stage builds)
+--
 
 === Learning objectives
 
@@ -26,21 +43,55 @@ By the end of this module, trainess will be able to
 [.column]
 image::04_container_images/image-layered-fs.svg[]
 
+[.notes]
+--
+* Images are composed in layers; each layer consists of a bunch of files that capture how this layer adapts the one beneath it.
+* Note: On Windows there are also Windows registy entries that are captured as part of the layer.
+* These stacks of layers always start with a base image, which typically captures only the base operating system for this image.
+* each subsequent image layer captures sequential changes to the image.
+--
+
 === Sharing layers
 
 image::04_container_images/image-shared-layers.svg[]
+
+[.notes]
+--
+* Sharing layers == smaller on disk and in memory
+* Sharing layers == faster downloads (de-duped by default)
+* Allows caching when constructing images
+--
 
 === The writable container layer
 
 image::04_container_images/image-container-layer.svg[]
 
+[.notes]
+--
+* Starting a container essentially adds a single writable layer to the image stack; since Docker is just adding this one thin layer, container startup is very fast and resource efficient.
+* Any manipulations of the filesystem a container does is written only to this R/W layer; all image layers are always read-only.
+* When a container edits a file from the base image, then and only then is that file copied to the R/W layer; this is what is meant by Docker's 'copy on write' filesystem; this also implies that the copy of a file that is visible in a running container is whichever copy of that file sits highest in the stack of filesystem layers.
+--
+
 === Images: Copy on write
 
 image::04_container_images/image-copy-on-write.svg[]
 
+[.notes]
+--
+* The final product is composed per this diagram, via what we call a 'copy on write' composition strategy
+* Each time a layer is added, only files that are changed are copied up to the next layer; each of these layers actually exists as a directory on your host machine.
+--
+
 === Linux Containers: Union FS
 
 image::04_container_images/image-union-fs.svg[]
+
+[.notes]
+--
+* When creating a container on Linux, a R/W container layer is created, and all these filesystem layers are composed via a union filesystem mount. This assembles the image layers into a unified filesystem similar to superimposing a stack of overhead transparencies on top of each other; files on higher layers obscure earlier versions of themselves on lower layers.
+* When a container modifies a file from the image, it performs the same copy on write action as above, into the R/W container layer.
+--
 
 === Creating images
 
@@ -56,13 +107,26 @@ Three methods:
 * Pro: build container images interactively
 * Con: hard to reproduce or audit; [.keyword]#avoid this# in pratice
 
-=== Contaierfiles
+[.notes]
+--
+* One way of building up images is to save the container layer as a new image layer
+* This is fine for experiments, but it's really something best avoided in the development of production grade code, since it isn't easily auditable, reproducible or automated.
+--
+
+=== Containerfiles (1/2)
 
 * Content manifest
 * Provides container image layer documentation
 * Enable automation (CI/CD)
 
-=== Containerfiles
+[.notes]
+--
+* Interactive image creation is good for tinkering, but its main drawback is that it doesn't produce an artifact describing the steps to create the image in a machine-readable way.
+* Therefore, there's no way to build images this way as part of a CI/CD chain, and it can be hard to audit what exactly is in the image.
+* A Dockerfile is essentially a recipe to build an image, layer by layer. This can be ingested in build processes and CI/CD pipelines, and preserves a record of all the steps taken to create an image.
+--
+
+=== Containerfiles (2/2)
 * [.keyword]#FROM# command defines the base image
 * Each subsequent command adds a layer of metadata
 * `docker image build ...` builds container image Containerfile
@@ -74,6 +138,11 @@ FROM ubuntu:16.04
 RUN apt-get update && apt-get install -y wget
 ADD /data /myapp/data
 ----
+
+[.notes]
+--
+* Note that dockerfiles for linux and windows are syntactically identical; they use different images for their bases and run different processes at each step, but the way we specify our image recipe doesn't change at all.
+--
 
 [.dark_background.demo.background]
 === icon:task[role=moby_icon] Instructor demo: Creating images
@@ -105,6 +174,14 @@ image::04_container_images/image-build-cache.svg[width=20%]
 
 After completion, the resulting container images layer is labeled with a hash of the content of all current image layer in the stack.
 
+[.notes]
+--
+* Layers are fetched from the cache via the hash label affixed to that layer the first time it was created.
+* Q: Why is a hash for a layer computed based on the entire image? Why not just that layer?
+* A: A layer can't be reused unless all layers under it are the same; put another way, the effect of whatever command generated the layer might be different depending on substrate layers.
+* The upshot being that the builder will stop using the cache at the first change in the Dockerfile.
+--
+
 === CMD and ENTRYPOINT
 
 * Recall all container run a process as their PID 1
@@ -113,6 +190,14 @@ After completion, the resulting container images layer is labeled with a hash of
 * [.keyword]#CMD# & [.keyword]#ENTRYPOINT# provides command, [.keyword]#CMD# provides default parameters.
 * [.keyword]#CMD# overridden by command argument to `docker container run`
 * [.keyword]#ENTRYPOINT# overriden via `--entrypoint` flag to `docker container run`. 
+
+[.notes]
+--
+* Another pair of helpful commands in Dockerfiles are CMD and ENTRYPOINT
+* These are used for specifying default processes and options to run in containers created from this image.
+* Oftentimes images are designed to do exactly one thing; CMD and ENTRYPOINT allow you to bake that intention right into the image, by pre-specifying that command.
+* The difference between the two is essentially in how you want to override these defaults
+--
 
 === Shell vs Exec format
 
@@ -124,6 +209,19 @@ CMD sudo -u ${USER} java ...
 # Exec form
 CMD ["sudo", "-u", "jdoe", "java", ...]
 ----
+
+[.notes]
+--
+* CMD, ENTRYPOINT and RUN commands can use either exec or shell syntax
+* If we have a command like this on Windows `powershell New-Item c:\test` then if it is in declared in shell form what is executed is in reality `cmd /S /C powershell New-Item c:\test` whilst in exec form the command is executed as is without the use of the shell (cmd in this case). The analogous is true for Linux containers.
+* exec is generally preferred for ENTRYPOINT, since it preserves the ability to override options.
+* subtle differences:
+** `Shell form` allows for the parsing of variables like `CMD sudo -u ${USER} java ... `
+** `Exec form` can run in a container with no shell; shell form always runs via `/bin/sh -c`
+** `Shell form` for `ENTRYPOINT` prevents options from being overridden by `CMD` or `docker container run`. 
+* Note that exec form is formal JSON - double quotes mandatory.
+* When using the shell form, the specified binary is executed with an invocation of the shell using /bin/sh -c, which means the process running as PID 1 is the /bin/sh executable.     
+--
 
 [.dark_background.exercise.background]
 === icon:task[role=moby_icon] Exercise: Containerfiles (2/2)
@@ -155,6 +253,13 @@ COPY <src> <dest>
 * log checksum in build cache
 * cache invalidated if checksum changed
 
+[.notes]
+--
+* COPY and ADD add files from the local filesystem to the image
+* Build process uses a checksum against the files to be added to bust the cache if those files have changed
+* Note that ADD can also copy files from a URL and for Linux containers only(!) untar files upon copying them into the image.  
+--
+
 === Containerfile command roundup
 
 * [.keyword]#FROM#: base image to start fron (usually OS)
@@ -164,6 +269,11 @@ COPY <src> <dest>
 
 Many more Containerfile commands are available; see the docs at link:https://docs.docker.com/engine/reference/builder/[https://docs.docker.com/engine/reference/builder/]
 
+[.notes]
+--
+We've seen the greatest hits of Dockerfile commands, but there are tons more; see the docs.<
+--
+
 === Advanced Containerfile construction
 
 How can we build container images that are
@@ -171,6 +281,15 @@ How can we build container images that are
 * Lighweight
 * Secure
 * Minimal build times
+
+[.notes]
+--
+* Now that we've seen the basics of image construction with Dockerfiles, we'd like to investigate best practices around image construction
+* Our priorities for image creation are size, security, and build times.
+* Size and security can be addressed by similar techniques; making sure we only install things we absolutely need in our image not only keeps the image size down, but avoids exposing ourselves to potential vulnerabilities in superfluous components.
+* Also during the course of development, we'd like build times to be as fast as possible, either by leveraging the cache we've already seen, or by parallelizing parts of the build process.
+* For the next part of this chapter, we'll look at some advanced techniques for achieving all of these.
+--
 
 === The scratch ontainer image
 
@@ -195,6 +314,13 @@ org.label-schema.build-date="20181205"
 CMD ["/bin/bash"]
 ----
 
+[.notes]
+--
+* The scratch image is an empty image that exists in Docker Hub, but has no tags and can't be pulled.
+* When used in a Dockerfile, the line `FROM scratch` doesn't add any layer to the image. The next command in the Dockerfile will be the first filesystem layer.
+* The scratch image is used typically to build base images with as few components as possible installed in them, to give the smallest possible attack surface to our images.
+--
+
 === Multi-Stage builds (1/2)
 
 Hello worls, in C:
@@ -218,6 +344,14 @@ $ docker image ls hwc
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
 hwc                 latest              142c29686b6a        15 hours ago        184 MB
 ----
+
+[.notes]
+--
+* Here's a Dockerization of hello world, in C. By now, we should recognize the steps: we start from an operating system, use RUN to install dependencies, ADD to import files from our host machine, and define some default behavior with CMD.
+* There's just one problem: we have successfully made a hello world application in a mere 184 MB. Giant images are at best slow to start, and can have security problems depending on what unnecessary components have been included.
+* Most of this bloat is due to things we don't actually need in production: compilers, developer tools and the like.
+* The Docker image builder implements Multi Stage Builds to allow you to create executables, then throw away the scaffolding needed to compile them, leaving you with a fast, lightweight image.
+--
 
 === Multi-Stage builds (2/2)
 
@@ -248,6 +382,14 @@ REPOSITORY          TAG                 IMAGE ID            CREATED             
 hwc                 latest              5d925cfc9c96        39 seconds ago      4MB
 ----
 
+[.notes]
+--
+* To make a lightweight version of hello world with all the developer tools stripped out, we start with the exact same Dockerfile, but we've added the AS clause to the FROM statement.
+* Then, we've added a second stanza, where we start from the same OS, but instead of installing the developer's kit, we use the --from flag with COPY to reference the 'build' image described above, and copy just the final executable over into our final image.
+* The --from flag to COPY can also also specify an earlier image by index counting from 0 (so --from=0 would have had the same effect in the second stanza above).
+* Note that it kind of looks like we built two images here - in fact, only the final FROM stanza results in an image on disk. All previous stanzas create cached image layers, but no final image.
+--
+
 === Build target
 
 Containerfile
@@ -273,6 +415,12 @@ building the container image
 
 `docker image build --tag <name> ...`
 
+[.notes]
+--
+* We can also build intermediate images by specifying the "--target" parameter with the name of the intermediate build.
+* If no "--target" is provided then the "docker image build" command always builds only the last image (the one starting with the last FROM statement in the Dockerfile)
+* The <name> of an intermediate image is either the index of the FROM in the Dockerfile or the alias provided in the FROM statement (e.g. FROM base as test - in that case <name> would be "test")
+--
 
 [.dark_background.exercise.background]
 === icon:task[role=moby_icon] Exercise: Multi-Stage Builds
@@ -293,6 +441,14 @@ in the exercise book.
 * Use multi-stage builds to drop compilers, SDKs, ...
 * More layers leverage the cache
 * ...but fewer layers perform better
+
+[.notes]
+--
+* Now that we have the mechanics of making Dockerfiles, there's also a number of optional best practices to consider.
+* Base your images off of official images whenever possible; you can recognize these on Docker Hub as they don't have an explicit namespace like vendor/product; they're just single-word names, possibly with a tag. These are all battle-tested images produced in collaboration between the product vendors and Docker, and are scanned regularly for security vulnerabilities.
+* Take advantage of multi-stage builds; these allow you to drop unnecessary layers, which will result in faster container start times, and less components that potentially inject vulnerabilities into your containers.
+* Deciding how many layers to build an image out of depends on your priorities. The fundamental tension is that more layers leverage the cache better (since hopefully you don't invalidate the cache until you're most of the way through your Dockerfile), but this creates more overhead at container runtime, which you may wish to avoid for production images.
+--
 
 [.columns]
 === Development: More layers
@@ -320,6 +476,12 @@ COPY /mypy /app/
 ...
 ----
 
+[.notes]
+--
+* A common best practice during development is to split up oft-changing and rarely-changing elements into different layers. Move the rarely-changing parts as high as possible in the Dockerfile, so they don't have to be redone when the frequently changing parts are changed.
+* In this case, we save ourselves from redoing the `pip install` when anything other than the requirements file changes.
+--
+
 === Production: Less layers
 
 * To collapse ALL image layer:
@@ -334,11 +496,26 @@ cat image.tar | docker image import - myflatimage:1.0
 * Or build with `--squash` flag (experimental): compress all non-base-layers
 * Combine `container export` with `--squash` for one shareable base layer & one application specific upper layer
 
+[.notes]
+--
+* Once it's time to go to production (or even to start CI/CD), we don't care so much about build times and caching. The image is nominally built - what matters is performance.
+* One way to compress everything into a single layer is to export a container as a tarball, and reimport it as a new, single layer image. This completely destroys the ability of containers to share layers, though
+* Another method is the experimental squash flag, which combines all non-base layers into a single layer. Now the base layer remains sharable, and our production image is only two layers.
+* One technique for getting the best of both worlds when layer sharing is important is to use the first method to collapse all widely shared layers into a common base image, and then use the --squash flag on subsequent builds to squash the application-unique layers into a single application layer.
+--
+
 === Best practices: Patching & Updates
 
 image::04_container_images/image-good-bad-layering.svg[]
 
-=== Image tags
+[.notes]
+--
+* When revving an image, don't just apply patches on top of old images. If it's your base layer that's been revved, the vendor will likely release a new image corresponding to the new software version; update your Dockerfile and rebuild your image with the new base layer.
+* The same logic holds true for updating other image layers; rebuild your image from its Dockerfile, pulling in the desired versions of your dependencies, rather than just installing patches on top of patches like you would for software installed on the host.
+* *Remember copy on write: when you apply a patch, it doesn't overwrite whatever its upgrading; all versions of all files are persisted in their entirety in an ever-growing image layer stack. This will bloat your images and slow down their performance.
+--
+
+=== Container Image tags
 
 * Optional string after image name, separated by `:`
 * `:latest` by default
@@ -356,13 +533,28 @@ centos              7                   8140d0c64310        7 days ago          
 centos              mytag               8140d0c64310        7 days ago          193 MB
 ----
 
-=== contaienr Image namespaces
+[.notes]
+--
+* In addition to the name of the image, images can be given an optional tag.
+* Tags are often used to capture version number or base image distro.
+* The tag will default to `latest` if omitted.
+* Note that tags are essentially just pointers to an image which is uniquely identified by its ID; creating another tag pointing to the same image doesn't duplicate the image on disk, but just creates another reference to it.
+--
+
+=== Container Image namespaces
 
 Container images exist in one of three namespaces:
 
 * Root ([.keyword]#ubuntu, nginx, mongo, mysql#,...)
 * User / Org ([.keyword]#jdoe/myapp:1.1#, [.keyword]#microsoft/nanoserver:latest#,...)
 * Registry ([.keyword]#FQDN/jdoe/myapp:1.1#)
+
+[.notes]
+--
+* Certified images produced in collaboration between Docker and third-party software vendors are given single-word names in the root namespace.
+* Images meant to be shared on hub.docker.com are namespaced via the owning account, then the image name
+* Images stored in docker trusted registry are similar to hub.docker.com names, but prefixed with the FQDN of the registry.
+--
 
 === Image tagging & namespacing
 
@@ -372,11 +564,24 @@ Container images exist in one of three namespaces:
 * Names and tags are just pointers to container image ID
 * Container Image ID corresponds to immutable content addressable storage
 
+[.notes]
+--
+* Images can be tagged on build or retagged at any time.
+* Always remember that an image must be namespaced correctly to push to a registry, whether it's hub.docker.com or Docker Trusted Registry.
+* Finally, remember that docker registries all use content addressable storage models; image names and tags are really just human-friendly pointers to image IDs, which serve as the true address for immutable image information. As such, it is a good security strategy to pull by sha and not by tag; then you always know exactly what you're getting.
+--
+
 === Sharing container images
 
 * Docker HUB
 ** Provides certified commercial and free software distributed as Docker Images
 ** Shares community-generated container images and content
+
+[.notes]
+--
+* Docker Hub allows you to access and share your public repositories with the Docker community at large. You can download two types of images from the Docker Hub: Docker Verified Images and Community/Hub images.
+* Docker Hub is a cloud-based registry service which allows you to link to code repositories, build your images and test them, stores manually pushed images, and links to Docker Cloud so you can deploy images to your hosts. If you have built images, you can push them to a Docker Hub repository that you add to your Docker Hub user or organization account.
+--
 
 [.dark_background.exercise.background]
 === icon:task[role=moby_icon] Exercise: Managing container images
@@ -408,3 +613,8 @@ in the exercise book.
 * How to select a storage driver: link:http://dockr.ly/2eDu8yO[http://dockr.ly/2eDu8yO]
 * Use the AUFS storage driver: link:http://dockr.ly/2jVc1Zz[http://dockr.ly/2jVc1Zz]
 * User guided caching in Docker: link:http://dockr.ly/2xKafPf[http://dockr.ly/2xKafPf]
+
+[.notes]
+--
+additional resources about creating images for Linux
+--

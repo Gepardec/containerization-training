@@ -22,12 +22,28 @@ image::01_welcome/team.jpg[width=450px]
 | image:01_welcome/jboss.svg[width=150px]
 |===
 
+[.notes]
+--
+* Wir sind eine kleine Firma bestehend aus knapp 40 Mitarbeitern in Wien und Linz.
+* Wir sind auf custom software entwicklung spezialisiert mit einem zusätlichen Focus auf cloud transformation und devOps Automatisierung
+* Ich bin sehr stolz darauf, sagen zu können, dass wir im Beruf das machen, was uns begeistert.
+* Das macht uns zu einem ausgezeichneten Partner.
+--
+
 === How we teach
 
 * Gepardec believes in **learning by doing**
 * The training is **lab driven**
 * Work together!
 * Ask questions at any time
+
+[.notes]
+--
+* This workshop is primarily exercise based
+* Lecture will be limited and focus on the high-level concepts, best practices, and ideas we want to tell you about
+* Most of our time will be spent on demo exercises, designed to illustrate the usage, syntax, and details of all the tools we explore, and map onto the learning objectives for each chapter
+          
+--
 
 === Session Logistics
 
@@ -39,6 +55,14 @@ image::01_welcome/team.jpg[width=450px]
 
 * Fmailiarity with Bash or Powershell
 * Bash Cheat sheet link:http://bit.ly/2mTQr8l[http://bit.ly/2mTQr8l]
+
+[.notes]
+--
+* Filesystem navigation and manipulation: ls, cd, mv, cp, rm
+* Tooling: ssh, top, chmod, curl, wget
+* Package management with apt
+* And powershell equivalents
+--
 
 === Your lab environment
 

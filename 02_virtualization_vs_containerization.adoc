@@ -1,5 +1,10 @@
 == Virtualization vs Containerization
 
+[.notes]
+--
+An intro module to get students on message with what containerization is, and the priorities and concerns of distributed application dev and ops.
+--
+
 === What we want
 
 Ideal software should
@@ -10,13 +15,40 @@ Ideal software should
 * mitigate vulnerabilities (Security)
 * and run cheap (business)
 
+[.notes]
+--
+* Every stakeholder in the software supply chain has a set of priorities they'd like software to satisfy.
+* Developers want flexibility and choice in the components they build application out of; problems like vendor lock-in, technical debt, and tight coupling between components slows the development cycle down and can prevent developers from building the software they want.
+* Devops engineers in charge of building and maintaining CI/CD pipelines are primarily responsible for getting applications running across many environments; they'd like to be able to move software easily, and rely that tests passing in one environment won't break in another.
+* Operations teams responsible for scaling, maintaining and monitoring software would like to be able to deploy applications easily across a datacenter, and know what to expect from those applications to make monitoring and maintenance simple.
+* Security teams want assurances that software not only minimizes attack surfaces, but has built-in failsafes to mitigate compromises when they occur.
+* Finally, business interests want to be able to do all of the above as cheaply as possible, by making most efficient use of the compute resources purchased to run it.
+* These are many and varied priorities - but containerization is such a success because it speaks to all of them.
+           
+--
+
 === Virtualization
 
 image::02_virtualization_vs_containerization/pre-container.svg[]
 
+[.notes]
+--
+* Without containerization, we can imagine a host that looks as such. The key feature of this diagram is that all the dependencies, configurations, and system resources for applications on this host are shared.
+* From the developer's standpoint, an uncontainerized environment requires strict discipline to avoid tight coupling between components; it's easy to develop your way into a state where changes to one component break another, and all components are affected by the environmental requirements of the others, complicating and hindering testing and development.
+* For a devops engineer, the shared host environment of these components also adds friction. Every environment in the CI pipeline has to reflect this stack of dependencies and configurations, which can be difficult to maintain and difficult to reproduce.
+* For operations personnel, the more tightly coupled different components become, the more difficult they can be to scale and monitor; tight couplings can make it complicated to understand what's needed to relax a performance bottleneck or trace root causes of application failures.
+--
+
 === Containerization
 
 image::02_virtualization_vs_containerization/post-container.svg[]
+
+[.notes]
+--
+* The fundamental insight of the containerization movement was similar to that of the real-life logistics chains from which containerization got its name: many problems are solved by strictly encapsulating software as we develop, migrate, and deploy it.
+* The key feature of a software container is that it is self-contained, all the way down to the OS filesystem; not only our executables, but all their configs and all their dependencies, and even the OS filesystem they run in, are captured in a container that can be moved as a complete unit.</li>
+* Modern Linux and Windows kernels can even represent the host system differently to different containers, presenting them different network devices, process trees, filesystems and more; all you need installed on the host is the Docker engine.
+--
 
 === Rapid development
 
@@ -24,11 +56,23 @@ image::02_virtualization_vs_containerization/component-upgrade.svg[]
 
 Containers can be removed and replaced with a minimum of impact on their neighbors, increasing developer choice and speed.
 
+[.notes]
+--
+* From the developer's point of view, aggressive encapsulation equals speed and flexibility; since containers provide assurances that one component doesn't affect another, developers can upgrade one component while remaining confident they won't break others.
+* Remember that containers carry the full dependency stack of the application they're designed to run, all the way down to the OS filesystem; this means that developers can use different stacks for different components, all on the same host with no chance of dependency conflicts.
+--
+
 === Smooth migration
 
 image::02_virtualization_vs_containerization/component-migration.svg[]
 
 Containers carry their environment and dependencies with them, simplifying and minimizing requirements on the hosts that run them.
+
+[.notes]
+--
+* From the devops point of view, aggressive encapsulation equals smooth migrations; since containers carry everything they need with them, they impose relatively few requirements on the host that runs them. Hosts need only provide a compatible kernel and architecture, and a container engine; no application specific dependencies or environment configurations need be maintained across environments.
+* In this way, not only will a container that runs in dev likely run in prod, it will run the same way; containerized software passing tests in one environment has a better chance of passing tests in all environments, since environment matters comparatively little once we containerize our applications.
+--
 
 === Simple sclae & mainenance
 
@@ -36,8 +80,34 @@ image::02_virtualization_vs_containerization/component-scalability.svg[]
 
 Containers have private system resources, so a compromise in one does not affect the rest.
 
+[.notes]
+--
+* From the point of view of operations personnel, the encapsulation provided by containers translates into simple methodology for scaling and maintaining applications.
+* Scale is achieved by containers in part by the minimal requirements they put on their environment; since containers are designed to run the same way regardless of their hosting environment, multiple instances can be spun up in parallel, or distributed across all the hosts in a datacenter.
+* Furthermore, a well-designed container should run only a very limited set of tasks; by avoiding tight coupling and defining relatively simple behaviors for each container, it becomes simpler to define what 'healthy' means for a container, compared to a complete host with many interacting processes.
+--
+
+=== Secure by default
+
+image::02_virtualization_vs_containerization/component-isolation.svg[]
+
+Containers have private system resources, so a compromise in one does not affect the rest.
+
+[.notes]
+--
+* From the point of view of security, aggressive encapsulation automatically enhances our security posture.
+* On an uncontainerized host, if an attacker successfully compromises one component with elevated privileges, they can leverage those privileges across the entire host, using any vulnerable component as a point of ingress.
+* On the other hand, containerized software mitigates its own vulnerabilities; even if an attacker compromises one container via a vulnerable component, privileges gained there do not grant the same level of access to other containers or to the host; root in a container does not equal root on the host.
+--
+
 === Application density
 
 image::02_virtualization_vs_containerization/component-density.svg[]
 
 Containers save datacenter costs by running many more application instances than virtual machines can on the same physical hosts.
+
+[.notes]
+--
+* In terms of operational costs, containers can radically reduce the amount of metal needed to run a given workload compared to a virtual machine, because they are so resource efficient; containerized processes use the host kernel and don't require fixed allocations of CPU and memory, so can be run with the absolute minimal footprint.
+* It's not unusual for the same datacenter to be able to run 10x as many containers encapsulating a given process, compared to VMs encapsulating the same software, resulting in substantial cost savings to users.
+--
