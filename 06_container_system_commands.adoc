@@ -1,0 +1,108 @@
+== Docker system commands
+
+=== Learning objectives
+
+By the end of this module, trainees will be able to
+
+* Execut cleanup commands
+* Locate Docker system information
+
+=== Cleanup commands
+
+* `docker system df`
+
+[source,shell]
+----
+TYPE           TOTAL    ACTIVE   SIZE        RECLAIMABLE
+Images         39       2        9.01 GB     7.269 GB (80%)
+Containers     2        2        69.36 MB    0 B
+----
+
+* `docker system prune`
+
+more limited...
+
+* `docker image prune [--filter "foo=bar"]`
+* `docker container prune [--filter "foo=bar"]`
+* `docker volume prune [--filter "foo=bar"]`
+* `docker network prune [--filter "foo=bar"]`
+
+=== Inspect the system
+
+`docker system info`
+
+[source,bash]
+----
+Containers: 2
+ Running: 2
+ Paused: 0
+ Stopped: 0
+Images: 105
+Server Version: 17.03.0-ee
+Storage Driver: overlay2
+ Backing Filesystem: extfs
+ Supports d_type: true
+ Native Overlay Diff: true
+Logging Driver: json-file
+Cgroup Driver: cgroupfs
+Plugins:
+ Volume: local
+ Network: bridge host ipvlan macvlan null overlay
+Swarm: active
+ NodeID: ybmqksh6fm627armruq0e8id1
+ Is Manager: true
+ ClusterID: 2rbf1dv6t5ntro2fxbry6ikr3
+ Managers: 1
+ Nodes: 1
+ Orchestration:
+  Task History Retention Limit: 5
+ Raft:
+  Snapshot Interval: 10000
+  Number of Old Snapshots to Retain: 0
+  Heartbeat Tick: 1
+----
+
+=== System events
+
+Start observing with... +
+`docker system events`
+
+Generates events with... +
+`docker container run --rm apline echo 'Hello world'`
+
+[source,bash]
+----
+2017-01-25T16:57:48.553596179-06:00 container create 30eb630790d44052f26c1081...
+2017-01-25T16:57:48.556718161-06:00 container attach 30eb630790d44052f26c1081...
+2017-01-25T16:57:48.698190608-06:00 network connect de1b2b40f522e69318847ada3...
+2017-01-25T16:57:49.062631155-06:00 container start 30eb630790d44052f26c1081d...
+2017-01-25T16:57:49.164526268-06:00 container die 30eb630790d44052f26c1081dbf...
+2017-01-25T16:57:49.613422740-06:00 network disconnect de1b2b40f522e69318847a...
+2017-01-25T16:57:49.815845051-06:00 container destroy 30eb630790d44052f26c108...
+----
+
+[.dark_background.exercise.background]
+=== icon:task[role=moby_icon] Exercise: System commands
+
+Work through
+
+* Cleaning up Docker resources
+* Inspecting Commands
+
+in the exercise book.
+
+
+++++
+<h2 id="exercise_docker_system_commands" class="timer"></h2>
+++++
+
+=== Discussion
+
+* What is the origin of dangling container image layers?
+* What are some potential pitfalls to automating system cleanup with prune commands, and how to avoid them?
+* Questions?
+
+=== Further reading
+
+* System commands reference: link:http://dockr.ly/2eMR53i[http://dockr.ly/2eMR53i]
+

@@ -1,0 +1,5 @@
+== Containerization fundementals conclusion: Any app, anywhere
+
+* Containers are isolated processes
+* Container images provide filesystem for containers
+* Volumes persist data

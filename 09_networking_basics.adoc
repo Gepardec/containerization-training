@@ -1,0 +1,80 @@
+== Container networking basics
+
+=== Disciussion: Portable networks
+
+Network traffic must by efinition traverse a network outside its origination container. +
+How can we make inter-container communication as portable and secure as containers themselves?
+
+=== Learning objectives
+
+By the end of this module, trainees will be able to
+
+* Describe Docker's container network model and its security implications
+* Describe the basic technologies that underwrite single host networks
+* Understand how Docker manipulates a host's firewall rules to control container traffic
+
+=== The container network model
+
+image::09_networking_basics/container-networking-model.svg[]
+
+=== Linux: Default single-host network
+
+image::09_networking_basics/linux-single-host-network.svg[]
+
+=== Linux: Default container networking
+
+image:09_networking_basics/linux-default-container-networking.svg[]
+
+[.keyword]#Quiz:# identify the sandbox, endpoint and network corresponding to the container networking model objects in this diagram.
+
+=== Linux: User-defined bridges & firewalls
+
+image:09_networking_basics/linux-custom-container-networking.svg[]
+
+=== Exposing container ports
+
+* Containers have no public IP address by default.
+* Can forward host port -> container port
+* Mapping created manually or automatically.
+* Port mappings visible via
+`docker container ls` or
+`docker container port`
+
+[.dark_background.demo.background]
+=== icon:task[role=moby_icon] Instructor demo: Single host networks
+
+See the demo
+
+* Single host netowrks
+
+in the exercise book.
+
+[.dark_background.exercise.background]
+=== icon:task[role=moby_icon] Exercise: Single host networks
+
+Work through
+
+* Introduction to Container Networking
+* Container Port Mapping
+
+in the exercise book.
+
+++++
+<h2 id="exercise_networking_host_networks" class="timer"></h2>
+++++
+
+=== Container networking takeaways
+
+* Single host networks follow the container networking model:
+** Sandbox: Network namespaces
+** Endpoint: veth (linux)
+** Network: bridge (linux)
+* Containers resolve each other by DNS lookup when explicitly named and attached to custom networks
+* Docker software defined networks are firewalled from each other by default
+
+=== Further reading
+
+* Docker Reference Architecture: Designing Scalable, Portable Docker Container Networks: link:https://dockr.ly/2q3O8jq[https://dockr.ly/2q3O8jq]
+* Network containers: link:http://dockr.ly/2x1BYgW[http://dockr.ly/2x1BYgW]
+* Docker container networking: link:http://dockr.ly/1QnT6y8[http://dockr.ly/1QnT6y8]
+* Understand container communication: link:http://dockr.ly/2iSrHO0[http://dockr.ly/2iSrHO0]

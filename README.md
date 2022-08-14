@@ -58,17 +58,60 @@ scp -r buntu@<PROVIDED_AWS_URI>:<REMOTE_PATH> <LOCAL_DIR_PATH> -i <PROVIDED_PUBL
 
 This section is for trainers only, and documents how to prepare for a training.
 
-## Build Presentation
+## Render Presentation
 
-This presentation can be rendered as HTMl and PDF on Unix/Linux Hosts via Docker.
+This presentation is based on asciidoctor-revealjs and can be rendered to HTML via `node` and exported as PDF with `node` and a `Chrome/Chromium browser`.
 
-`./make.sh` will render the HTML and PDF slides.
+### If Node is installed
 
-### Apple M1/2 (ARM64)
+Get dependencies
+```
+npm update
+```
 
-The used `decktape` container image has no ARM64 platform support for now, but works on ARM if you build it yourself.  
-Set the the default container image architecture via an environment variable `export DOCKER_DEFAULT_PLATFORM=linux/arm64`.  
-Build the container image with `docker build --tag astefanutti/decktape:3.1.0 .` on your ARM based host, and it will build the image for the `linux/arm64` architecture.
+Converts asciidoc to HTML
+```
+node convert.js
+```
+
+### If you want to use Docker
+
+Get dependencies
+```
+docker run --rm \
+-v $(pwd):/home/node \
+-w /home/node node:latest \
+npm update
+```
+
+Render to HTML
+```
+docker run --rm \
+-v $(pwd):/home/node \
+-w /home/node node:18.7.0 \
+convert.js
+```
+
+## HTML to PDF
+
+1. Start webserver
+
+With node installed
+```
+node_modules/http-server/bin/http-server
+```
+
+With Docker 
+```
+docker run --rm \
+-v $(pwd):/home/node \
+-p 8080:8080 \
+-w /home/node node:18.7.0 \
+node_modules/http-server/bin/http-server
+```
+
+2. Open in Chrome/Chromium browser `http://localhost:8080/presentation?print-pdf`
+3. Open Chrome browser print dialog and save as pdf.
 
 ## Provision an training environment in AWS
 

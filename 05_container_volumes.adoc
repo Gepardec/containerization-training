@@ -1,0 +1,93 @@
+== Container Volumes
+
+=== Discussion: Managing data
+
+If a container generates at lot of data, where should it be stored? +
+What if you need to provision data to a container?
+
+=== Learning objectives
+
+By the end of this module, trainees will be able to
+
+* Define a volume and identify its primary use cases
+* Describe the advantages and potential secuity risks o mounting volumes and host directories into containers
+
+=== Volume usecases
+
+Volumes provide a R/W path [.keyword]#separate from the layered filesystem#.
+
+* [.keyword]#Mount# data at container startup
+* [.keyword]#Persist# data when a container is deleted
+* [.keyword]#Share# data between containers
+* [.keyword]#Speed up# I/O by circumventing the union filesystem
+
+=== Basic volumes
+
+* [.keyword]#Named#: managed by Docker; filesystem independent; user-specified identifier
+* [.keyword]#Anonymous#: managed by Docker; filesystem independent; randomly-generated identifier
+* [.keyword]#Host mounted#: mount a specific path on the host; DIY management
+
+[.dark_background.demo.background]
+=== icon:task[role=moby_icon] Instructor demo: Volumes
+
+See the demo
+
+* Basic Volume Usage
+
+in the exercise book.
+
+=== Volumes in Dockerfile
+
+* [.keyword]#VOLUME# instructions creates a mount point
+* Can specify arguments in a JSON array or string
+* Cannot map volumes to host directories
+* Volumes are initialized when the container is executed
+
+[source,yaml]
+----
+FROM nginx:latest
+...
+# string example
+VOLUME /myvolume
+
+# string example with multiple volumes
+VOLUME /www/website1 /www/website2
+
+# JSON example
+VOLUME ["myvol1", "myvol2"]
+...
+----
+
+=== Volumes and security
+
+* Point of ingress to the host and other containers
+* Don't mount things unnecessarily
+* Use the `:ro` flag whenever possible
+* Linu: in-memory `tmpfs` mounts available
+
+[.dark_background.exercise.background]
+=== icon:task[role=moby_icon] Exercise: Volumes usecases
+
+Work through
+
+* Database Volumes
+
+in the exercise book.
+
+
+++++
+<h2 id="exercise_container_volumes_database" class="timer"></h2>
+++++
+
+=== Container volumes takeaways
+
+* Volumes persist data beyond the container lifecycle
+* Volumes bypass the copy-ob-write system (better for write-heavy containers)
+
+=== Further reading
+
+* How to use volumes: link:http://dockr.ly/2vRZBDG[http://dockr.ly/2vRZBDG]
+* Troubleshoot volume errors: link:http://dockr.ly/2vyjvbP[http://dockr.ly/2vyjvbP]
+* Docker volume reference: link:http://dockr.ly/2ewrlew[http://dockr.ly/2ewrlew]
+
+

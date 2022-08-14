@@ -1,0 +1,410 @@
+== Container images
+
+=== Discussion: provisioning filesystems
+
+What are some potential difficulties with provisioning entire filesystems for containers? +
+How can we avoid these problems?
+
+=== Learning objectives
+
+By the end of this module, trainess will be able to 
+
+* Create container images via several methods
+* Describe the filesystem structure underlying a container image
+* Understand the performance implications of different container image design decisions
+* Correctly tag and namespace container images for distribution via a registry
+
+[.columns]
+=== What are container images?
+
+[.column]
+* A [.keyword]#filesystem# for container processes
+* Made of a stack of [.keyword]#immutable# layers
+* Start with a [.keyword]#base image#
+* New layer for each change
+
+[.column]
+image::04_container_images/image-layered-fs.svg[]
+
+=== Sharing layers
+
+image::04_container_images/image-shared-layers.svg[]
+
+=== The writable container layer
+
+image::04_container_images/image-container-layer.svg[]
+
+=== Images: Copy on write
+
+image::04_container_images/image-copy-on-write.svg[]
+
+=== Linux Containers: Union FS
+
+image::04_container_images/image-union-fs.svg[]
+
+=== Creating images
+
+Three methods:
+
+* [.keyword]#Commit# the R/W container layer as a new R/O container image layer.
+* Define layers to add to a existing container image in a [.keyword]#Containerfile#.
+* [.keyword]#Import# a traball into as a standalone base image.  
+
+=== Commiting container changes
+
+* `docker container commit` saves the container layer as a new R/O container image layer
+* Pro: build container images interactively
+* Con: hard to reproduce or audit; [.keyword]#avoid this# in pratice
+
+=== Contaierfiles
+
+* Content manifest
+* Provides container image layer documentation
+* Enable automation (CI/CD)
+
+=== Containerfiles
+* [.keyword]#FROM# command defines the base image
+* Each subsequent command adds a layer of metadata
+* `docker image build ...` builds container image Containerfile
+
+[source,yaml]
+----
+# Comments begin with the pound sign
+FROM ubuntu:16.04
+RUN apt-get update && apt-get install -y wget
+ADD /data /myapp/data
+----
+
+[.dark_background.demo.background]
+=== icon:task[role=moby_icon] Instructor demo: Creating images
+
+See the demo
+
+* Creating images
+
+in the exercise book.
+
+
+[.dark_background.exercise.background]
+=== icon:task[role=moby_icon] Exercise: Creating images
+
+Work through
+
+* Interactive Image Creation
+* Creating Images with Dockerfiles (1/2)
+
+in the exercise book.
+
+++++
+<h2 id="exercise_container_images" class="timer"></h2>
+++++
+
+=== Build cache
+
+image::04_container_images/image-build-cache.svg[width=20%]
+
+After completion, the resulting container images layer is labeled with a hash of the content of all current image layer in the stack.
+
+=== CMD and ENTRYPOINT
+
+* Recall all container run a process as their PID 1
+* [.keyword]#CMD# and [.keyword]#ENTRYPOINT# allow us to specify default processes
+* [.keyword]#CMD# alone: default command ans list of parameters.
+* [.keyword]#CMD# & [.keyword]#ENTRYPOINT# provides command, [.keyword]#CMD# provides default parameters.
+* [.keyword]#CMD# overridden by command argument to `docker container run`
+* [.keyword]#ENTRYPOINT# overriden via `--entrypoint` flag to `docker container run`. 
+
+=== Shell vs Exec format
+
+[source,yaml]
+----
+# Shell form
+CMD sudo -u ${USER} java ...
+
+# Exec form
+CMD ["sudo", "-u", "jdoe", "java", ...]
+----
+
+[.dark_background.exercise.background]
+=== icon:task[role=moby_icon] Exercise: Containerfiles (2/2)
+
+Work through
+
+* Creating Images with Dockerfiles (2/2)
+
+in the exercise book.
+
+++++
+<h2 id="exercise_container_images_container_files_2" class="timer"></h2>
+++++
+
+=== COPY and ADD commands
+
+`COPY`` copies files from build context to container image
+
+[source,yaml]
+----
+COPY <src> <dest>
+----
+
+`ÀDD` can also [.keyword]#untar#* or [.keyword]#fetch URLs#.
+
+[.comment]#* Linux containers only!#
+
+* create checksum for files added
+* log checksum in build cache
+* cache invalidated if checksum changed
+
+=== Containerfile command roundup
+
+* [.keyword]#FROM#: base image to start fron (usually OS)
+* [.keyword]#RUN#: run a command in the environment defined so far
+* [.keyword]#CMD# & [.keyword]#ENTRYPOINT#: define default behaviour
+* [.keyword]#COPY# & [.keyword]#ADD#: copy files into container
+
+Many more Containerfile commands are available; see the docs at link:https://docs.docker.com/engine/reference/builder/[https://docs.docker.com/engine/reference/builder/]
+
+=== Advanced Containerfile construction
+
+How can we build container images that are
+
+* Lighweight
+* Secure
+* Minimal build times
+
+=== The scratch ontainer image
+
+* An "empty" image
+* Can't be pulled
+* Doesn't create a layer
+* Used for building container image not based on any pre-existing container image
+* Linux only
+
+[source,yaml]
+----
+FROM scratch
+
+ADD centos-7-docker.tar.xz /
+
+LABEL org.label-schema.schema-version="1.0" \
+org.label-schema.name="CentOS Base Image" \
+org.label-schema.vendor="CentOS" \
+org.label-schema.license="GPLv2" \
+org.label-schema.build-date="20181205"
+
+CMD ["/bin/bash"]
+----
+
+=== Multi-Stage builds (1/2)
+
+Hello worls, in C:
+[source,yaml]
+----
+FROM alpine:3.5
+RUN apk update && \
+    apk add --update alpine-sdk
+RUN mkdir /app
+WORKDIR /app
+ADD hello.c /app
+RUN mkdir bin
+RUN gcc -Wall hello.c -o bin/hello 
+CMD /app/bin/hello
+----
+
+Builds to:
+[source,yaml]
+----
+$ docker image ls hwc
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+hwc                 latest              142c29686b6a        15 hours ago        184 MB
+----
+
+=== Multi-Stage builds (2/2)
+
+Hello worls, in C:
+[source,yaml]
+----
+# Full SDK version (built and discarded)
+FROM alpine:3.5 AS build
+RUN apk update && \
+    apk add --update alpine-sdk
+RUN mkdir /app
+WORKDIR /app
+ADD hello.c /app
+RUN mkdir bin
+RUN gcc -Wall hello.c -o bin/hello 
+
+# Lightweight image returned as final product
+FROM alpine:3.5
+COPY --from=build /app/bin/hello /app/hello
+CMD /app/hello
+----
+
+Builds to:
+[source,yaml]
+----
+$ docker image ls hwc
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+hwc                 latest              5d925cfc9c96        39 seconds ago      4MB
+----
+
+=== Build target
+
+Containerfile
+[source,yaml]
+----
+FROM <base image> as base
+...
+
+FROM <foo image> as foo
+...
+
+FROM <bar image> as bar
+...
+
+FROM alpine:3.4
+...
+COPY --from foo ...
+COPY --from bar ...
+...
+----
+
+building the container image
+
+`docker image build --tag <name> ...`
+
+
+[.dark_background.exercise.background]
+=== icon:task[role=moby_icon] Exercise: Multi-Stage Builds
+
+Work through 
+
+* Multi-stage Builds
+
+in the exercise book.
+
+++++
+<h2 id="exercise_cotnainer_images_multi_stage_builds" class="timer"></h2>
+++++
+
+=== Container image construction best practices
+
+* Startt with an official container image
+* Use multi-stage builds to drop compilers, SDKs, ...
+* More layers leverage the cache
+* ...but fewer layers perform better
+
+[.columns]
+=== Development: More layers
+
+[.column]
+Bad caching:
+[source,yaml]
+----
+FROM python:3.5-alpine
+RUN mkdir /app
+COPY /mypy /app/
+RUN pip install -r app/reqs.txt
+...
+----
+
+[.column]
+Good caching:
+[source,yaml]
+----
+FROM python:3.5-alpine
+RUN mkdir /app
+COPY /mypy/reqs.txt /app/
+RUN pip install -r app/reqs.txt
+COPY /mypy /app/
+...
+----
+
+=== Production: Less layers
+
+* To collapse ALL image layer:
+
+[source,bash]
+----
+docker container run -d --name demo mytallimage:1.0
+docker container export demo > image.tar
+cat image.tar | docker image import - myflatimage:1.0
+----
+
+* Or build with `--squash` flag (experimental): compress all non-base-layers
+* Combine `container export` with `--squash` for one shareable base layer & one application specific upper layer
+
+=== Best practices: Patching & Updates
+
+image::04_container_images/image-good-bad-layering.svg[]
+
+=== Image tags
+
+* Optional string after image name, separated by `:`
+* `:latest` by default
+* Same image with two tags share same ID, image layer:
+
+[source,bash]
+----
+$ docker image ls centos*
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+centos              7                   8140d0c64310        7 days ago          193 MB
+$ docker image tag centos:7 centos:mytag
+$ docker image ls centos*
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+centos              7                   8140d0c64310        7 days ago          193 MB
+centos              mytag               8140d0c64310        7 days ago          193 MB
+----
+
+=== contaienr Image namespaces
+
+Container images exist in one of three namespaces:
+
+* Root ([.keyword]#ubuntu, nginx, mongo, mysql#,...)
+* User / Org ([.keyword]#jdoe/myapp:1.1#, [.keyword]#microsoft/nanoserver:latest#,...)
+* Registry ([.keyword]#FQDN/jdoe/myapp:1.1#)
+
+=== Image tagging & namespacing
+
+* Tag on build: `docker image build -t myapp:1.0 .`
+* Retag an exisitng image: `docker image tag myapp:1.0 me/myapp:2.0`
+* Note `docker image tag` can set both tag and namespace
+* Names and tags are just pointers to container image ID
+* Container Image ID corresponds to immutable content addressable storage
+
+=== Sharing container images
+
+* Docker HUB
+** Provides certified commercial and free software distributed as Docker Images
+** Shares community-generated container images and content
+
+[.dark_background.exercise.background]
+=== icon:task[role=moby_icon] Exercise: Managing container images
+
+Work through
+
+* Managing Images
+
+in the exercise book.
+
+++++
+<h2 id="exercise_cotnainer_images_mmanaging_images" class="timer"></h2>
+++++
+
+=== Container Image Creation takeaways
+* COntainer images are built out of R/O layers.
+* Containerfiles specify container image layer contents
+* Key Containerfile commands: [.keyword]#FROM, RUN, COPY# and [.keyword]#ENTRYPOINT#
+* Container images must be namepsaced accoriding to where you intend on sharing them
+
+=== Further reading
+
+* Best practices for writing Dockerfiles: link:http://dockr.ly/22WiJiO[http://dockr.ly/22WiJiO]link:
+* Use multi-stage builds: link:http://dockr.ly/2ewcUY3[http://dockr.ly/2ewcUY3]
+* More about images, containers, and storage drivers: link:http://dockr.ly/1TuWndC[http://dockr.ly/1TuWndC]
+* Details on image layering: link:https://bit.ly/2AHX7iW[https://bit.ly/2AHX7iW]
+* Graphdriver plugins: link:http://dockr.ly/2eIVCab[http://dockr.ly/2eIVCab]
+* Docker Reference Architecture: An Intro to Storage Solutions for Docker CaaS: link:http://dockr.ly/2x8sBw2[http://dockr.ly/2x8sBw2]
+* How to select a storage driver: link:http://dockr.ly/2eDu8yO[http://dockr.ly/2eDu8yO]
+* Use the AUFS storage driver: link:http://dockr.ly/2jVc1Zz[http://dockr.ly/2jVc1Zz]
+* User guided caching in Docker: link:http://dockr.ly/2xKafPf[http://dockr.ly/2xKafPf]
