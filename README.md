@@ -60,7 +60,9 @@ This section is for trainers only, and documents how to prepare for a training.
 
 ## Render Presentation
 
-This presentation is based on asciidoctor-revealjs and can be rendered to HTML via `node` and exported as PDF with `node` and a `Chrome/Chromium browser`.
+The presentation is located at `/presentation` and is based on `asciidoctor-revealjs` and can be rendered to HTML via `node` and exported as PDF with `node` and a `Chrome/Chromium browser`.
+
+> All following commands must be executed in the directory `/presentation`. 
 
 ### If Node is installed
 
@@ -119,8 +121,9 @@ We use AWS to provision a training environment, which is based on this [git repo
 a [container image](https://github.com/Gepardec/train/pkgs/container/train) which uses Terraform to provision the training environment.
 These [Github Pages](https://gepardec.github.io/train/) provide the documentation how our provisioning in AWS works.
 
-All of the following commands must be executed in the `/aws` directory of this repository.  
 You need Docker, an active AWS account and a set up AWS CLI on the host you want to provision the environment from.
+
+> All of the following commands must be executed in the `/aws` directory.
 
 Provision an training environment
 ```

@@ -1,0 +1,124 @@
+== Introduction to container compose
+
+=== Discussion: Processes vs. applications
+
+Containers and images describe individual processes. +
+What will we need to describe entire applications?
+
+[.notes]
+--
+* Lead class to the simple answer (some sort of manifest file that describes the application, in the spirit of deploy scripts or infrastructure-as-code), as well as the more substantial answer of some way to manage a living application, where 'manage' in this context means scale, route traffic, deploy and upgrade.
+* Hint questions if the class is stuck:
+* It's not enough just to 'describe' an application - we need to make the deployment of those applications reproducible and portable. How? (someone should think of some sort of script).
+* Are applications static after they're launched? What if load changes? (leads to thinking about scaling).
+* After scaling an application, how do we make sure traffic gets to the new instances of our app? Re-do service discovery? Reconfigure load balancers? We'd rather have something a little more transparent.
+--
+
+=== Learning objectives
+
+By the end of this module, trainees will be able to
+
+* Design scalable Docker services
+* Leverage Docker's built in service discovery mechanism
+* Write a compose file describing an application
+
+=== Distributed application architecture
+
+* Applications consisting of one or more containers across one or more nodes
+* Docker Compose facilitates multi-container design [.keyword]#on a single node#
+
+[.notes]
+--
+* At this point, we've seen that Docker can provide adequately portable and isolated containers, and we've seen some basic nuts and bolts regarding how those containers can be networked together; we're now ready to start exploring our first orchestration tool for making a true distributed application.
+* Ultimately, we'll want to be able to completely decentralize our application, be networking many containers together across many hosts; for now, we'll just solve half the problem, by making an application out of many containers, still all on the same host. We'll relax the single-host constraint in the next chapter.
+--
+
+=== Container services
+
+* Goal: declare and (re)configure many similar containers all at once
+* Goal: scale apps by adding containers seamlessly
+* A service defines the desired state of a group of identically configured containers
+* Docker provides transparent service discovery for Services
+
+[.notes]
+--
+* So far, we've declared containers one at a time with `docker container run...`, and we've seen how to network individual containers together. This all works, but doesn't scale conveniently.
+* Since we're going to start designing apps to consist of potentially many containers, we'd like to be able to create and reconfigure containers en masse.
+* Furthermore, we need to put some thought into how discovery will work in this paradigm; if we scale up an app by declaring more containers, how will they all find out about each other and network themselves together
+* To address this problem, Docker orchestration introduces the idea of services. A service defines the desired state of a collection of identically configured containers, allowing us to declare a batch of containers all at once, and reconfigure them later by updating the service definition.
+* Furthermore, Docker provides out-of-the-box service discovery for services, automatically providing and configuring the networking necessary for these groups of containers to interact.
+--
+
+=== Service discovery
+
+image::10_compose/service-discovery.svg[]
+
+Services are assigned a [.keyword]#Virtual IP# which spreads traffic out across the underlying container automatically.
+
+[.notes]
+--
+* Formerly, we may have had individual processes or containers communicating directly; this isn't practical for a service we want to scale into many processes on demand.
+* To address this, Docker assigns a virtual IP to every service, and maintains a DNS lookup table on the host, so that at the application logic level, traffic can be directed to a service as a whole; load balancing to the underlying containers is handled by Docker's onboard VIP server.
+* In this way, we can change the number of containers provisioned by a service without needing to do any explicit service discovery in our applications; the application logic sends traffic to the service regardless of how many containers it has provisioned, and Docker does the rest.
+--
+
+[.columns]
+=== Our application: Dockercoins
+
+[.column]
+image:10_compose/dockercoins.png[width=50%] +
+(DockerCoins 2016 logo courtesy of [.keyword]#@XtlCnslt# and [.keyword]#@ndeloof#. Thanks!)
+
+[.column]
+It is a Dockercoin miner! +
+💰🐳📦🚢 +
+with 5 services: 
+image:10_compose/dockercoins-flow.svg[]
+
+[.dark_background.demo.background]
+=== icon:task[role=moby_icon] Instructor demo: Docker-Compose
+
+See the demo
+
+* Docker Compose
+
+in the exercise book.
+
+[.dark_background.exercise.background]
+=== icon:task[role=moby_icon] Exercise: Compose apps
+
+Work through
+
+* Starting a Compose App
+* Scaling s Compose App
+
+in the exercise book.
+
+++++
+<h2 id="exercise_compose_app" class="timer"></h2>
+++++
+
+=== Container Compose takeaways
+
+* Docker Compose makes single node orchestration easy
+* Compose services makes scaling applications easy
+* Bottleneck identification important
+* Syntactically: [.keyword]#docker-compose.yml# + API
+
+[.notes]
+--
+* Compose should be your go-to native Docker solution for orchestrating services and containers on a single node.
+* In the next section, we'll learn how to do the same across many nodes.
+--
+
+=== Further reading
+
+* Docker compose examples: link:http://dockr.ly/1FL2VQ6[http://dockr.ly/1FL2VQ6]
+* Overview of docker-compose CLI: link:http://dockr.ly/2wtQlZT[http://dockr.ly/2wtQlZT]
+* docker-compose.yaml reference: link:http://dockr.ly/2iHUpeX[http://dockr.ly/2iHUpeX]
+* Docker Compose and Windows: link:http://bit.ly/2watrqk[http://bit.ly/2watrqk]
+
+[.notes]
+--
+additional resources about Docker compose
+--

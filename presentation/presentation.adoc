@@ -1,0 +1,43 @@
+// asciidoc configurations
+:docinfo: shared
+:customcss: assets/css/gepardec-custom.css
+:icons: image
+:iconsdir: assets/icons
+:icontype: png
+:imagesdir: assets/images
+// highlightjs configurations
+:source-highlighter: highlightjs
+:highlightjs-theme: assets/highlight/styles/base16/solarized-light.min.css
+:highlightjsdir: assets/highlight
+:highlightjs-languages: yaml,bash,shell,dockerfile
+//  revealjs configurations
+:revealjs_customtheme: assets/css/revealjs-theme.css
+:revealjs_hash: true
+:revealjs_center: true
+:revealjs_margin: 0.08
+
+include::00_title.adoc[]
+
+include::01_welcome.adoc[]
+
+include::02_virtualization_vs_containerization.adoc[]
+
+include::03_containerization_basics.adoc[]
+
+include::04_container_images.adoc[]
+
+include::05_container_volumes.adoc[]
+
+include::06_container_system_commands.adoc[]
+
+include::07_container_fundementals.adoc[]
+
+include::08_containerization_wrap_up.adoc[]
+
+include::09_networking_basics.adoc[]
+
+include::10_compose.adoc[]
+
+include::11_compose_wrap_up.adoc[]
+
+include::12_end.adoc[]

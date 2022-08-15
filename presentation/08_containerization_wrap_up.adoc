@@ -1,0 +1,41 @@
+== Wrap up - Spring Boot
+
+[.dark_background.exercise.background]
+=== icon:task[role=moby_icon] Exercise instructions
+
+* [.keyword]#Goal:# Build a docker image that runs a Java application
+* Clone the git repository at link:https://github.com/ckaserer/java-helloworld[https://github.com/ckaserer/java-helloworld]
+* Find the fat-jar file at [.keyword]#build/libs#.
+* Run the application with `java –jar rest-service-0.0.1-SNAPSHOT.jar``.
+* Try it out via [.keyword]#http://<AWS_URI>>:8080/greeting#
+
+Considerations:
+
+* What container image is suitable?
+* Do you need [.keyword]#CMD#, or [.keyword]#ENTRYPOINT#, or maybe both?
+* If you run two containers, what do need to take care of?
+
+++++
+<h2 id="exercise_wrap_up_spring_boot" class="timer"></h2>
+++++
+
+=== Solution
+
+Sampe Containerfile
+
+[source,dockerfile]
+----
+FROM anapsix/alpine-java
+LABEL MAINTAINER=clemens.kaserer@gepardec.com
+WORKDIR /data
+EXPOSE 8080
+COPY build/libs/rest-service-0.0.1-SNAPSHOT.jar \
+     rest-service-0.0.1-SNAPSHOT.jar
+CMD ["-jar", "rest-service-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java"]
+----
+
+Solution commands
+
+* `docker build -t spring_boot_example .`
+* `docker run -d -p 8080:8080 spring_boot_example`

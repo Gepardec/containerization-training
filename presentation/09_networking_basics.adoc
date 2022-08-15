@@ -1,0 +1,140 @@
+== Container networking basics
+
+[.notes]
+--
+* [Instructor aside: this module is intended to bridge between one day of introduction to containerization, and one day of introduction to orchestration. As such it can equally well go at the end of the first or the beginning of the second, or be omitted entirely if the workshop isn't introducing orchestration].
+* To begin our exploration of orchestration, we first need to examine the basics of how two containers can be networked together on a single host.
+--
+
+=== Disciussion: Portable networks
+
+Network traffic must by efinition traverse a network outside its origination container. +
+How can we make inter-container communication as portable and secure as containers themselves?
+
+[.notes]
+--
+* Lead the class to think about the need for networking abstractions, both software defined networks and DNS-resolvable container names.
+* Hint questions if the class is stuck:
+* Can we rely on a container having the same IP or mac address every time it is created, no matter what host it is created on? (obviously not, a given private IP could already be taken on a destination host, and any global public identifier like a public IP or mac address couldn't be practically registered at container run time). Therefore, we must need some sort of networking layer that abstracts away the host network. That also might give us the opportunity to impose some security on our networks, since we control this extra networking layer.
+* How will service discovery work in our containerized application logic? We'd like to avoid having a lot of boilerplate that exposes the networking underlay to our application logic; Docker should provide some portable addressing mechanism. (leads to thinking about DNS).
+--
+
+=== Learning objectives
+
+By the end of this module, trainees will be able to
+
+* Describe Docker's container network model and its security implications
+* Describe the basic technologies that underwrite single host networks
+* Understand how Docker manipulates a host's firewall rules to control container traffic
+
+=== The container network model
+
+image::09_networking_basics/container-networking-model.svg[]
+
+[.notes]
+--
+* At high level, docker thinks about networking with an abstraction called the Container Network Model (CNM) that consists of 3 parts:
+* The container (network) sandbox, which firewalls containers by default.
+* The network endpoint, which serves as a controlled port in and out of the container sandbox
+* The network itself, which is any device that facilitates inter-container communication.
+* If you think about it for a moment, the CNM is in some sense very vague; anything that satisfies these requirements is a valid implementation option. Just like we saw with containerization itself, Docker leverages battle-tested kernel features and linux tools to realize the CNM in practice.
+--
+
+=== Linux: Default single-host network
+
+image::09_networking_basics/linux-single-host-network.svg[]
+
+[.notes]
+--
+* When Docker is started on the host, a linux bridge is created by default, and assigned an unused private subnet from 172.[17-31].0.0/16 or 192.168.[0-240].0/20. A linux bridge is an in-software switch, that routes packets by MAC address.
+--
+
+=== Linux: Default container networking
+
+image:09_networking_basics/linux-default-container-networking.svg[]
+
+[.keyword]#Quiz:# identify the sandbox, endpoint and network corresponding to the container networking model objects in this diagram.
+
+[.notes]
+--
+* When a container is created, the container networking model must be satisfied. Containers run in their own network namespace, satisfying the sandboxing requirement; inside the namespace, processes won't be able to access host networking devices unless explicitly connected to them.
+* In order to connect a container to the rest of the system, a virtual ethernet (veth) pair is created, with one endpoint connected to the default docker bridge, and the other presented as an ethX port inside the container with a private IP taken from the bridge's subnet. Veth connections operate as a pipe, forwarding all traffic in one end to the other, even across network namespaces.
+--
+
+=== Linux: User-defined bridges & firewalls
+
+image:09_networking_basics/linux-custom-container-networking.svg[]
+
+[.notes]
+--
+* Users can optionally create their own linux bridges, and plug containers into them for communicating on the same host.
+* Containers on user-created bridge networks can resolve each other by container name; containers names are registered in the Docker daemon's DNS table for resolution.
+* You'll build something like this in the next exercise.
+--
+
+=== Exposing container ports
+
+* Containers have no public IP address by default.
+* Can forward host port -> container port
+* Mapping created manually or automatically.
+* Port mappings visible via
+`docker container ls` or
+`docker container port`
+
+[.notes]
+--
+* An axiom of Docker security can be thought of as 'isolated by default'
+* In terms of networking, this implies that containers are not reachable from the outside world by default.
+* Port mappings have to be set up if a containerized process is to be reachable directly.       
+--
+
+[.dark_background.demo.background]
+=== icon:task[role=moby_icon] Instructor demo: Single host networks
+
+See the demo
+
+* Single host netowrks
+
+in the exercise book.
+
+[.dark_background.exercise.background]
+=== icon:task[role=moby_icon] Exercise: Single host networks
+
+Work through
+
+* Introduction to Container Networking
+* Container Port Mapping
+
+in the exercise book.
+
+++++
+<h2 id="exercise_networking_host_networks" class="timer"></h2>
+++++
+
+=== Container networking takeaways
+
+* Single host networks follow the container networking model:
+** Sandbox: Network namespaces
+** Endpoint: veth (linux)
+** Network: bridge (linux)
+* Containers resolve each other by DNS lookup when named and attached to custom networks
+* Docker software defined networks are firewalled from each other by default
+
+[.notes]
+--
+* The key takeaway for Docker container networking is the paradigm of isolation by default. Containers must be explicitly connected to the same network to talk to each other; leverage this to easily improve the security of your applications.
+* Similarly, containers are not exposed on the external network by default; they must explicitly have ports mapped to the host if they are to be reachable by the outside world. Do not expose or map ports unnecessarily, as this leads to port conflicts and security risks!
+* For much more detail, see the corresponding reference architecture linked below.
+--
+
+=== Further reading
+
+* Docker Reference: Designing Scalable, Portable Container Networks: link:https://dockr.ly/2q3O8jq[https://dockr.ly/2q3O8jq]
+* Network containers: link:http://dockr.ly/2x1BYgW[http://dockr.ly/2x1BYgW]
+* Docker container networking: link:http://dockr.ly/1QnT6y8[http://dockr.ly/1QnT6y8]
+* Understand container communication: link:http://dockr.ly/2iSrHO0[http://dockr.ly/2iSrHO0]
+
+[.notes]
+--
+additional resources about networking basics
+--
