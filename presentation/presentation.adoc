@@ -14,7 +14,9 @@
 :revealjs_customtheme: assets/css/revealjs-theme.css
 :revealjs_hash: true
 :revealjs_center: true
-:revealjs_margin: 0.08
+:revealjs_margin: 0.05
+:revealjs_width: "100%"
+:revealjs_height: "100%"
 
 include::00_title.adoc[]
 
