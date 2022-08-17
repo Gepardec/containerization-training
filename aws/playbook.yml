@@ -14,15 +14,11 @@
       with_items:
         - pip
         - docker.io
+        - docker-compose
         - nano
         - zip
         - unzip
         - tar
-
-    - name: "Install python dependencies"
-      ansible.builtin.pip:
-        name:
-          - docker-py # Needed by docker_container
 
     - name: "Ensure group 'docker' exists"
       become: yes
