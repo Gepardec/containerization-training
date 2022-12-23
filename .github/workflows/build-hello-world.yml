@@ -27,6 +27,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     - name: Build and release hello-world JAR
-      run: mvn -B deploy --file resources/hello-world/pom.xml -p github-packages
+      run: mvn -B deploy --file resources/hello-world/pom.xml -P github-packages
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
