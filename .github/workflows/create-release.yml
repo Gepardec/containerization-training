@@ -17,7 +17,7 @@ jobs:
     - name: Build assets  
       uses: .github/workflows/build-assets.yml@${{ github.ref }}
     - name: Collect assets
-      run: >
+      run: |
         mkdir -p /assets
         cp presentation/presentation.html /assets/
         cp -r presentation/assets /assets/
@@ -31,7 +31,7 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: Release ${{ github.ref }}
-        body: >
+        body: |
           Containerization Training resources
           - presentation.hml 
             The presentation for the Training
