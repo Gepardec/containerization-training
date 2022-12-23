@@ -4,8 +4,11 @@
 name: Build Hello World Quarkus
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - main
+    paths: 
+      - resources/hello-world
 
 jobs:
   build:
