@@ -9,6 +9,7 @@ on:
       - main
     paths: 
       - resources/hello-world
+  workflow_dispatch:
 
 jobs:
   build:
