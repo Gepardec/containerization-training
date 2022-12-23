@@ -34,7 +34,7 @@ jobs:
         npm update
         node convert.js
     - name: Build hello-world jar
-      run: mvn -B deploy --file resources/hello-world/pom.xml
+      run: mvn -B install --file resources/hello-world/pom.xml
         
 
     
