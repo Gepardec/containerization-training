@@ -4,10 +4,9 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.gepardec.training.containerization</groupId>
   <artifactId>hello-world</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>${revision}</version>
   <properties>
     <revision>1.0.0</revision>
-
     <compiler-plugin.version>3.10.1</compiler-plugin.version>
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
