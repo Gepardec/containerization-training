@@ -23,6 +23,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+<<<<<<< Updated upstream:.github/workflow.yml
     - name: Builde hello-world JAR
       run: mvn -B clean install --file resources/hello-world/pom.xml
 
@@ -31,3 +32,9 @@ jobs:
       with: 
         name: hello-world-quarkus
         path: esources/hello-world/target/hello-world-1.0.0-SNAPSHOT-runner.jar
+=======
+    - name: Build and release hello-world JAR
+      run: mvn -B deploy --file resources/hello-world/pom.xml -p github-packages
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+>>>>>>> Stashed changes:.github/workflows/build-hello-world.yml
