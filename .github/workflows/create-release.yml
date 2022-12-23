@@ -15,7 +15,7 @@ jobs:
 
     steps:
     - name: Build assets  
-      uses: .github/workflows/build-assets.yml@main
+      uses: ./gi.github/workflows/build-assets.yml
     - name: Collect assets
       run: |
         mkdir -p /assets
