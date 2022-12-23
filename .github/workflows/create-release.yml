@@ -15,7 +15,7 @@ jobs:
 
     steps:
     - name: Build assets  
-      uses: .github/workflows/build-assets.yml@${{ github.ref }}
+      uses: .github/workflows/build-assets.yml@main
     - name: Collect assets
       run: |
         mkdir -p /assets
