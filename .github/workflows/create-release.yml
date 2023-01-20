@@ -17,7 +17,7 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v3
     - name: Build assets  
-      uses: ./.github/workflows/build-assets
+      uses: Gepardec/containerization-training/.github/workflows/build-assets.yml
     - name: Collect assets
       run: |
         mkdir -p /assets
