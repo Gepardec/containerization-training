@@ -36,7 +36,9 @@ jobs:
           npm update
           node convert.js
       - name: Build hello-world jar
-        run: mvn -B install --file resources/hello-world/pom.xml
+        run: | 
+          mvn -B install --file resources/hello-world/pom.xml
+          mvn help:evaluate -Dexpression=project.version -q -DforceStdout >> $GITHUB_ENV
       - name: Collect assets
         run: |
           mkdir -p ./assets
@@ -56,7 +58,7 @@ jobs:
             Containerization Training resources
             - presentation.hml 
               The presentation for the Training
-            - hello-world-<VERSION>-runner.jar
+            - hello-world-${{ env.GITHUB_ENV }}-runner.jar
               The hello-world application for containerization hands-on
           draft: false
           prerelease: false
