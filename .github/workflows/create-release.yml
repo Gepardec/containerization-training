@@ -38,7 +38,7 @@ jobs:
       - name: Build hello-world jar
         run: | 
           mvn -B install --file resources/hello-world/pom.xml
-          echo "$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+          echo "ARTEFACT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
       - name: Collect assets
         run: |
           mkdir -p ./assets
@@ -58,7 +58,7 @@ jobs:
             Containerization Training resources
             - presentation.hml 
               The presentation for the Training
-            - hello-world-${{ env.GITHUB_ENV }}-runner.jar
+            - hello-world-${{ env.ARTEFACT_VERSION }}-runner.jar
               The hello-world application for containerization hands-on
           draft: false
           prerelease: false
