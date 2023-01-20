@@ -5,6 +5,7 @@ name: Build Assets Workflow
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   build:
