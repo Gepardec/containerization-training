@@ -4,3 +4,7 @@ generated/
 node_modules/
 package-lock.json
 presentation.html
+.vscode
+*.jar
+target/
+.idea/

@@ -5,49 +5,75 @@ name: Create a release
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v\d+.\d+.\d+'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+    permissions: write-all
     steps:
-    - name: Build assets  
-      uses: .github/workflows/build-assets.yml@main
-    - name: Collect assets
-      run: |
-        mkdir -p /assets
-        cp presentation/presentation.html /assets/
-        cp -r presentation/assets /assets/
-        cp resources/hello-world/target/hello-world-*-runner.jar /assets/
-        zip --junk-paths /assets/containerization-training /assets/*
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        body: |
-          Containerization Training resources
-          - presentation.hml 
-            The presentation for the Training
-          - hello-world-<VERSION>-runner.jar
-            The hello-world application for containerization hands-on
-        draft: false
-        prerelease: false
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: /assets/containerization-training.zip
-        asset_name: containerization-training.zip
-        asset_content_type: application/zip
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - name: Set up jdk-17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Setup npm/node-16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: presentation/package.json
+      - name: Render presentation
+        run: |
+          cd presentation
+          npm update
+          node convert.js
+      - name: Build hello-world jar
+        run: | 
+          mvn -B install --file resources/hello-world/pom.xml
+          echo "ARTEFACT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+      - name: Collect assets
+        run: |
+          mkdir -p ./assets/node_modules
+          cp -r presentation/presentation.html presentation/assets ./assets/
+          cp -r presentation/node_modules/reveal.js ./assets/node_modules/
+          cp resources/hello-world/target/hello-world-*-runner.jar ./assets/
+          cd ./assets
+          zip -r ./containerization-training .
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Containerization Training resources
+            - assets
+              The assets of the presentation
+            - node_modules
+              All node mdoules needed by the presentation
+            - presentation.hml 
+              The presentation for the Training
+            - hello-world-${{ env.ARTEFACT_VERSION }}-runner.jar
+              The hello-world application for containerization hands-on
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./assets/containerization-training.zip
+          asset_name: containerization-training.zip
+          asset_content_type: application/zip
 
   
