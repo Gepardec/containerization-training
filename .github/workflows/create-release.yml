@@ -5,10 +5,11 @@ name: Create a release
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v\d+.\d+.\d+'
 
 jobs:
-#  build-assets:
-#    uses: ./.github/workflows/build-assets.yml
   build:
     runs-on: ubuntu-latest
     permissions: write-all
