@@ -11,10 +11,7 @@ jobs:
 #    uses: ./.github/workflows/build-assets.yml
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+    permissions: write-all
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
