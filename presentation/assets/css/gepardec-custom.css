@@ -68,6 +68,12 @@ span.alert {
   color: red;
 }
 
+span.header {
+  font-size: 1.1em !important;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
 /* Header */
 /* title headers */
 section[data-state='title'] h1,

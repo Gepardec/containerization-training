@@ -15,6 +15,8 @@
 :revealjs_hash: true
 :revealjs_center: true
 :revealjs_margin: 0.05
+:revealjs_minscale: 0.2
+:revealjs_maxscale: 2.0
 :revealjs_width: "100%"
 :revealjs_height: "100%"
 

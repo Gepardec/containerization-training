@@ -5,5 +5,7 @@ generated/
 node_modules/
 presentation.html
 exercises.html
-target/
+.vscode
 *.jar
+target/
+.idea/

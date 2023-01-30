@@ -12,7 +12,7 @@
 ** devOps automation
 
 [.column.is-vcentered]
-image::01_welcome/team.jpg[width=450px]
+image::01_welcome/team.jpg[width=700px]
 
 [.column]
 [frame=none, grid=none]
@@ -73,7 +73,7 @@ Basic familiarity with:
 
 === Training learning objectives
 
-By the end of this training, trainess will be able to 
+By the end of this training, trainess will be able to
 
 * Asses the advantages of a containerized software development & deployment
 * Use container engine features necessary for running containerized applications
