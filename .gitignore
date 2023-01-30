@@ -1,6 +1,9 @@
 .DS_Store
+.vscode/
 generated/
 /aws/containerization-training/
 node_modules/
-package-lock.json
 presentation.html
+exercises.html
+target/
+*.jar

@@ -1,0 +1,9 @@
+:sectnums:
+:source-highlighter: highlightjs
+:highlightjs-languages: yaml,bash,shell,dockerfile
+
+= Container exercises
+
+include::01_running_inspecting_containers.adoc[]
+
+include::02_interactive_containers.adoc[]
