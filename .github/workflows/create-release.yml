@@ -33,16 +33,12 @@ jobs:
           cd presentation
           npm update
           node convert.js
-      - name: Build hello-world jar
-        run: | 
-          mvn -B install --file resources/hello-world/pom.xml
-          echo "ARTEFACT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
       - name: Collect assets
         run: |
           mkdir -p ./assets/node_modules
           cp -r presentation/presentation.html presentation/assets ./assets/
           cp -r presentation/node_modules/reveal.js ./assets/node_modules/
-          cp resources/hello-world/target/hello-world-*-runner.jar ./assets/
+          cp resources/hello-world/target/hello-world-runner.jar ./assets/
           cd ./assets
           zip -r ./containerization-training .
       - name: Create Release
@@ -61,8 +57,8 @@ jobs:
               All node mdoules needed by the presentation
             - presentation.hml 
               The presentation for the Training
-            - hello-world-${{ env.ARTEFACT_VERSION }}-runner.jar
-              The hello-world application for containerization hands-on
+            - hello-world-runner.jar
+              The quarkus hello-world application for containerization hands-on
           draft: false
           prerelease: false
       - name: Upload Release Asset
