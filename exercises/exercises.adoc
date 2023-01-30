@@ -17,3 +17,7 @@ include::05_interactive_image_creation.adoc[]
 include::06_create_image_dockerfile_1.adoc[]
 
 include::06_create_image_dockerfile_2.adoc[]
+
+include::07_multistage_builds.adoc[]
+
+include::08_manage_images.adoc[]
