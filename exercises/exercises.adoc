@@ -7,3 +7,13 @@
 include::01_running_inspecting_containers.adoc[]
 
 include::02_interactive_containers.adoc[]
+
+include::03_detached_containers_and_logging.adoc[]
+
+include::04_starting_stopping_deleting_containers.adoc[]
+
+include::05_interactive_image_creation.adoc[]
+
+include::06_create_image_dockerfile_1.adoc[]
+
+include::06_create_image_dockerfile_2.adoc[]

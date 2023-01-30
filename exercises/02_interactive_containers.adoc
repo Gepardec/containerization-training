@@ -8,32 +8,32 @@ By the end of this exercise, you should be able to:
 
 === Writing to Containers
 
-* Create a container using the centos:7 image. Connect to its bash shell in interactive mode using the `-i` flag and request a TTY connection using the `-t` flag:
+Create a container using the centos:7 image. Connect to its bash shell in interactive mode using the `-i` flag and request a TTY connection using the `-t` flag:
 
-[source, bash]
+[source, shell]
 ----
 [centos@node-0 ~]$ docker container run -it centos:7 bash
 ----
 
-* Explore your container's filesystem with ls, and then create a new file. Use `ls` again to confirm you have successfully created your file. Use the `-l` option with `ls` to list the files and directories in long list format.
+Explore your container's filesystem with ls, and then create a new file. Use `ls` again to confirm you have successfully created your file. Use the `-l` option with `ls` to list the files and directories in long list format.
 
-[source, bash]
+[source, shell]
 ----
 [root@2b8de2ffdf85 /]$ ls -l
 [root@2b8de2ffdf85 /]$ echo 'Hello there...' > test.txt
 [root@2b8de2ffdf85 /]$ ls -l
 ----
 
-* Exit the connection to the container:
+Exit the connection to the container:
 
-[source, bash]
+[source, shell]
 ----
 [root@2b8de2ffdf85 /]# exit
 ----
 
-* Run the same command as before to start a container using the `centos:7` image:
+Run the same command as before to start a container using the `centos:7` image:
 
-[source, bash]
+[source, shell]
 ----
 [centos@node-0 ~]$ docker container run -it centos:7 bash
 ----
@@ -44,7 +44,7 @@ Use `ls` to explore your container. You will see that your previously created te
 
 We wish to recover `test.txt` written to our container in the first example, but starting a new container didn't get us there. We need to restart and reconnect to our original container. List all your stopped containers:
 
-[source, bash]
+[source, shell]
 ----
 [centos@node-0 ~]$ docker container ls -a
 
@@ -56,7 +56,7 @@ cc19f7e9aa91  centos:7  "bash"   About a minute ago   Exited (0) About a minute 
 
 We can restart a container via the container ID listed in the first column. Use the container ID for the first centos:7 container you created with bash as its command (see the CREATED column above to make sure you're choosing the first bash container you ran):
 
-[source, bash]
+[source, shell]
 ----
 [centos@node-0 ~]$ docker container start <container ID>
 [centos@node-0 ~]$ docker container ls
@@ -69,20 +69,20 @@ Your container status has changed from Exited to Up, via docker container start.
 
 Run `ps -ef` inside the container you just restarted using Docker's exec command (exec runs the specified process as a child of the PID 1 process inside the container):
 
-[source, bash]
+[source, shell]
 ----
 [centos@node-0 ~]$ docker container exec <container ID> ps -ef
 ----
 What process is PID 1 inside the container? Find the PID of that process on the host machine by using:
 
-[source, bash]
+[source, shell]
 ----
 [centos@node-0 ~]$ docker container top <container ID>
 ----
 
 Launch a bash shell in your running container with docker container exec:
 
-[source, bash]
+[source, shell]
 ----
 [centos@node-0 ~]$ docker container exec -it <container ID> bash
 ----
@@ -92,7 +92,7 @@ List the contents of the container's filesystem with ls -l; your test.txt should
 
 In the last step, we saw how to get the short container ID of all our containers using docker container `ls -a`. Try adding the `--no-trunc` flag to see the entire container ID:
 
-[source, bash]
+[source, shell]
 ----
 [centos@node-0 ~]$ docker container ls -a --no-trunc
 ----
@@ -100,13 +100,13 @@ This long ID is the same as the string that is returned after starting a contain
 
 List only the container ID using the -q flag:
 
-[source, bash]
+[source, shell]
 ----
 [centos@node-0 ~]$ docker container ls -a -q
 ----
 List the last container to have been created using the `-l` flag:
 
-[source, bash]
+[source, shell]
 ----
 [centos@node-0 ~]$ docker container ls -l
 ----
@@ -116,7 +116,7 @@ Finally, you can also filter results with the `--filter` flag; for example, try 
 The output of this command will list the containers that have exited successfully.
 
 Clean up with:
-[source, bash]
+[source, shell]
 ----
 [centos@node-0 ~]$ docker container rm -f $(docker container ls -aq)
 ----
