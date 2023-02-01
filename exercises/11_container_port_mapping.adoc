@@ -1,0 +1,71 @@
+== Container Port Mapping
+
+By the end of this exercise, you should be able to:
+
+* Forward traffic from a port on the docker host to a port inside a container's network namespace
+* Define ports to automatically expose in a Dockerfile
+
+=== Port Mapping at Runtime
+
+Run an nginx container with no special port mappings:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container run -d nginx
+----
+
+nginx stands up a landing page at `<ip>:80`. If you try to visit this at your host or container's IP it won't be visible; no external traffic can make it past the linux bridge's firewall to the nginx container.
+
+Now run an nginx container and map port 80 on the container to port 5000 on your host using the `-p` flag:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container run -d -p 5000:80 nginx
+----
+
+Note that the syntax is: `-p [host-port]:[container-port]`.
+
+Verify the port mappings with the `docker container port` command
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container port <container id>
+
+80/tcp -> 0.0.0.0:5000
+----
+Visit your nginx landing page at `<host ip>:5000`, e.g. using `curl -4 localhost:5000`, just to confirm it's working as expected.
+
+=== Exposing Ports from the Dockerfile
+
+In addition to manual port mapping, we can expose some ports for automatic port mapping on container startup using a Dockerfile. In a new directory `~/port`, create a Dockerfile:
+
+[source,Dockerfile]
+----
+FROM nginx
+
+EXPOSE 80
+----
+Build your image as `my_nginx`:
+
+[source,shell]
+----
+[centos@node-1 port]$ docker image build -t my_nginx .
+----
+Use the `-P` flag when running to map all ports mentioned in the `EXPOSE` directive:
+
+[source,shell]
+----
+[centos@node-1 port]$ docker container run -d -P my_nginx
+----
+Use `docker container ls` or `docker container port` to find out which host ports were used, then visit your nginx landing page in a browser at `<node-1 public IP>:<port>`.
+
+Clean up your containers:
+
+[source,shell]
+----
+[centos@node-1 port]$ docker container rm -f $(docker container ls -aq)
+----
+
+=== Conclusion
+
+In this exercise, we saw how to explicitly map ports from our container's network stack onto ports of our host at runtime with the `-p` option to `docker container run`, or more flexibly in our Dockerfile with `EXPOSE`, which will result in the listed ports inside our container being mapped to random available ports on our host. In both cases, Docker is writing iptables rules to forward traffic from the host to the appropriate port in the container's network namespace.

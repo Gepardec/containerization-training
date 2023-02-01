@@ -21,3 +21,11 @@ include::06_create_image_dockerfile_2.adoc[]
 include::07_multistage_builds.adoc[]
 
 include::08_manage_images.adoc[]
+
+include::09_database_volumes.adoc[]
+
+include::10_introduction_container_networking.adoc[]
+
+include::11_container_port_mapping.adoc[]
+
+include::12_starting_compose_app.adoc[]

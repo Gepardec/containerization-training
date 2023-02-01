@@ -1,0 +1,183 @@
+== Introduction to Container Networking
+
+By the end of this exercise, you should be able to:
+
+* Create docker bridge networks and attach containers to them
+* Design networks of containers that can successfully resolve each other via DNS and reach each other across a Docker software defined network.
+
+=== Inspecting the Default Bridge
+
+In the dropdown menu at the top of the Strigo webpage, click into `node-1`. See what networks are present on your host:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker network ls
+----
+
+You should have entries for `host`, `none`, and `bridge`.
+
+Find some metadata about the default `bridge` network:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker network inspect bridge
+----
+
+Note especially the private subnet assigned by Docker's IPAM driver to this network. The first IP in this range is used as the network's gateway, and the rest will be assigned to containers as they join the network.
+
+See similar info from common networking tools:
+
+[source,shell]
+----
+[centos@node-1 ~]$ ip addr
+----
+
+Note the `bridge` network's gateway corresponds to the IP of the `docker0` device in this list. `docker0` is the linux `bridge` itself, while bridge is the name of the default Docker network that uses that bridge.
+
+Use `brctl` to see connections to the `docker0` bridge:
+
+[source,shell]
+----
+[centos@node-1 ~]$ brctl show docker0
+
+bridge name bridge id       STP enabled interfaces
+docker0     8000.02427f12c30b   no
+----
+
+At the moment, there are no connections to `docker0`.
+
+=== Connecting Containers to `docker0`
+
+Start a container and reexamine the network; the container is listed as connected to the network, with an IP assigned to it from the bridge network's subnet:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container run --name u1 -dt centos:7
+[centos@node-1 ~]$ docker network inspect bridge
+
+...
+    "Containers": {
+        "11da9b7db065f971f78aebf14b706b0b85f07ec10dbf6f0773b1603f48697961": {
+            "Name": "u1",
+            "EndpointID": "670c495...",
+            "MacAddress": "02:42:ac:11:00:02",
+            "IPv4Address": "172.17.0.2/16",
+            "IPv6Address": ""
+        }
+    },
+...
+----
+
+Inspect the network interfaces with `ip` and `brctl` again, now that you have a container running:
+
+[source,shell]
+----
+[centos@node-1 ~]$ ip addr
+
+...
+5: veth6f244c3@if4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue 
+    master docker0 state UP 
+    link/ether aa:71:82:6c:f3:88 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet6 fe80::a871:82ff:fe6c:f388/64 scope link 
+       valid_lft forever preferred_lft forever
+
+[centos@node-1 ~]$ brctl show docker0
+bridge name bridge id       STP enabled interfaces
+docker0     8000.02427f12c30b   no      veth6f244c3
+----
+
+`ip addr` indicates a veth endpoint has been created and plugged into the `docker0` bridge, as indicated by `master docker0`, and that it is connected to device index 4 in this case (indicated by the `@if4` suffix to the veth device name above). Similarly, `brctl` now shows this veth connection on `docker0` (notice that the ID for the veth connection matches in both utilities).
+
+Launch a bash shell in your container, and look for the `eth0` device therein:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container exec -it u1 bash
+[root@11da9b7db065 /]# yum install -y iproute
+[root@11da9b7db065 /]# ip addr
+
+...
+4: eth0@if5: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue 
+    state UP group default 
+    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.17.0.2/16 scope global eth0
+       valid_lft forever preferred_lft forever
+----
+
+We see that the `eth0` device in this namespace is in fact the device that the veth connection in the host namespace indicated it was attached to, and vice versa - `eth0@if5` indicates it is plugged into networking interface number 5, which we saw above was the other end of the veth connection. Docker has created a veth connection with one end in the host's `docker0` bridge, and the other providing the `eth0` device in the container.
+
+=== Defining Additional Bridge Networks
+
+In the last step, we investigated the default bridge network; now let's try making our own. User defined bridge networks work exactly the same as the default one, but provide DNS lookup by container name, and are firewalled from other networks by default.
+
+Create a bridge network by using the `bridge` driver with `docker network create`:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker network create --driver bridge my_bridge
+----
+
+Launch a container connected to your new network via the `--network` flag:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container run --name=u2 --network=my_bridge -dt centos:7
+----
+
+Use the `inspect` command to investigate the network settings of this container:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container inspect u2
+----
+
+`my_bridge` should be listed under the `Networks` key.
+
+Launch another container, this time interactively:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container run --name=u3 --network=my_bridge -it centos:7
+----
+
+From inside container `u3`, ping `u2` by name: `ping u2`. The ping succeeds, since Docker is able to resolve container names when they are attached to a custom network.
+
+Try starting a container on the default network, and pinging `u1` by name:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container run centos:7 ping u1
+
+ping: u1: Name or service not known
+----
+
+The ping fails; even though the containers are both attached to the `bridge` network, Docker does not provide name lookup on this default network. Try the same command again, but using `u1` 's IP instead of name, and you should be successful.
+
+Finally, try pinging `u1` by IP, this time from container `u2`:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container exec u2 ping <u1 IP>
+----
+
+The ping fails, since the containers reside on different networks; all Docker networks are firewalled from each other by default.
+
+Clean up your containers and networks:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container rm -f $(docker container ls -aq)
+[centos@node-1 ~]$ docker network rm my_bridge
+----
+
+=== Conclusion
+
+In this exercise, you explored the fundamentals of container networking. The key take away is that containers on separate networks are firewalled from each other by default. This should be leveraged as much as possible to harden your applications; if two containers don't need to talk to each other, put them on separate networks.
+
+You also explored a number of API objects:
+
+* `docker network ls` lists all networks on the host
+* `docker network inspect <network name>` gives more detailed info about the named network
+* `docker network create --driver <driver> <network name>` creates a new network using the specified driver; so far, we've only seen the bridge driver, for creating a linux bridge based network.
+* `docker network connect <network name> <container name or id>` connects the specified container to the specified network after the container is running; the `--network` flag in `docker container run` achieves the same result at container launch.
+* `docker container inspect <container name or id>` yields, among other things, information about the networks the specified container is connected to.
