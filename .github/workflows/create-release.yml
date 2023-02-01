@@ -15,60 +15,73 @@ jobs:
     permissions: write-all
     steps:
       - name: Checkout sources
+        id: checkout_sources
         uses: actions/checkout@v3
       - name: Set up jdk-17
+        id: setup_jdk_17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
       - name: Setup npm/node-16
+        id: setup_npm_node_16
         uses: actions/setup-node@v3
         with:
           node-version: 16
           cache: 'npm'
           cache-dependency-path: presentation/package.json
       - name: Render presentation
+        id: render_presentation
         run: |
           cd presentation
           npm update
           node convert.js
-      - name: Collect assets
+      - name: Render Exercises
+        id: render_exercises
         run: |
-          mkdir -p ./assets/node_modules
-          cp -r presentation/presentation.html presentation/assets ./assets/
-          cp -r presentation/node_modules/reveal.js ./assets/node_modules/
-          cp resources/hello-world/target/hello-world-runner.jar ./assets/
-          cd ./assets
+          cd exercises
+          npm update
+          node convert.js revision='${{ github.ref }}'
+      - name: Collect Assets
+        id: collect_assets
+        run: |
+          mkdir -p ./release/presentation/assets/node_modules
+          mkdir -p ./release/exercises
+          mkdir -p ./release/resources
+          cp -r presentation/presentation.html presentation/assets ./release/presentation/assets/
+          cp -r presentation/node_modules/reveal.js ./release/presentation/assets/node_modules/
+          cp -r exercises/exercises.html exercises/assets ./release/exercises/
+          cp resources/hello-world/target/hello-world-runner.jar ./release/resources/
+          cd ./release
           zip -r ./containerization-training .
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
           body: |
-            Containerization Training resources
-            - assets
-              The assets of the presentation
-            - node_modules
-              All node mdoules needed by the presentation
-            - presentation.hml 
-              The presentation for the Training
-            - hello-world-runner.jar
-              The quarkus hello-world application for containerization hands-on
+            # Containerization Training
+
+            * presentation
+              The rendered HTML presentation and its assets
+            * exercises
+              The rendered HTML exercises and its assets
+            * resources
+              The additional resources fro the training such as example applications
           draft: false
           prerelease: false
       - name: Upload Release Asset
-        id: upload-release-asset 
+        id: upload_release_asset 
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./assets/containerization-training.zip
+          asset_path: ./release/containerization-training.zip
           asset_name: containerization-training.zip
           asset_content_type: application/zip
 
