@@ -11,7 +11,7 @@ By the end of this exercise, you should be able to:
 
 Create and start a new CentOS 7 container running ping to 8.8.8.8. Docker will downlaod the CentOS 7 image since you do not have it available locally.
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container run centos:7 ping 8.8.8.8
 
@@ -39,7 +39,7 @@ Press `CTRL+C` after a few pings. This stops and exits the container.
 
 This first container sent its STDOUT to your terminal. Create a second container, this time in detached mode:
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container run --detach centos:7 ping 8.8.4.4
 
@@ -52,7 +52,7 @@ Instead of seeing the executed command (`ping 8.8.4.4`), Docker engine displays 
 
 List the running Docker containers using the `docker container ls` container command. You will see only one container running.
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container ls
 
@@ -64,7 +64,7 @@ CONTAINER ID IMAGE    COMMAND        CREATED       STATUS        PORTS  NAMES
 
 Now you know that the docker container ls command only shows running containers. You can show all containers that exist (running or stopped) by using `docker container ls --all`. Your container ID and name will vary. Note that you will see two containers: a stopped container and a running container.
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container ls --all 
 
@@ -79,7 +79,7 @@ Where did those names come from? All containers have names, which in most Docker
 
 Start up another detached container, this time giving it a name "opendnsping".
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container run --detach --name opendnsping \
                    centos:7 ping 208.67.222.222
@@ -89,7 +89,7 @@ Start up another detached container, this time giving it a name "opendnsping".
 
 List all your containers again. You can see all of the containers, including your new one with your customized name.
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container ls --all
 
@@ -103,7 +103,7 @@ CONTAINER ID IMAGE    COMMAND               CREATED        STATUS         NAMES
 
 Next, remove the exited container. To do this, use `docker container rm <container ID>`. In the example above, the Docker container ID is `00f763b9308d`. You only need as many characters as to uniquely identify this container from all the others.
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container rm <container ID>
 
@@ -114,7 +114,7 @@ Next, remove the exited container. To do this, use `docker container rm <contain
 
 Now try to remove one of the other Docker containers using the same command. It does not work. Why?
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container rm <container ID>
 
@@ -125,7 +125,7 @@ Stop the container before attempting removal or force remove
 
 You can see that running containers are not removed. You'll have to look for an option to remove a running container. In order to find out the option you need to do a force remove, check the command line help. To do this with the `docker container rm` command, use the `--help` option:
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container rm --help
 
@@ -143,7 +143,7 @@ Options:
 
 Now, run a force remove on the running container you tried to remove in the two previous steps. This time it works.
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container rm --force <container ID> 
 
@@ -152,7 +152,7 @@ Now, run a force remove on the running container you tried to remove in the two 
 
 Start another detached container pinging 8.8.8.8, with the name `pinggoogledns`.
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container run --detach --name pinggoogledns \
                    centos:7 ping 8.8.8.8
@@ -162,7 +162,7 @@ Start another detached container pinging 8.8.8.8, with the name `pinggoogledns`.
 
 Now that you've finished your testing, you need to remove your containers. In order to remove all of them at once, you want to get only the container IDs. Look at docker container ls --help to get the information you need:
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container ls --help
 
@@ -186,7 +186,7 @@ Options:
 
 To get only the container IDs, use the `--quiet` option. If you want to use only the container IDs of all existing containers to perform an action on, you can use `--quiet` with the `--all` option.
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container ls --all --quiet
 
@@ -196,7 +196,7 @@ To get only the container IDs, use the `--quiet` option. If you want to use only
 
 Since we are done running pings on the public DNS servers, kill the containers. To do this, use the syntax `docker container rm --force <containerID>`. However, this only kills one container at a time. We want to kill all the containers, no matter what state the containers are in. To get this information, you will need to use the output from docker container ls `--quiet` `--all`. To capture this output within the command, use `$(...)` to nest the listing command inside the docker container rm command.
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 ~]$ docker container rm --force \
     $(docker container ls --quiet --all)

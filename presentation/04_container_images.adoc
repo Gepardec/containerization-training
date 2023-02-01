@@ -335,7 +335,7 @@ CMD /app/bin/hello
 ----
 
 Builds to:
-[source,bash]
+[source,shell]
 ----
 $ docker image ls hwc
 REPOSITORY      TAG             IMAGE ID        CREATED         SIZE
@@ -372,7 +372,7 @@ CMD /app/hello
 ----
 
 Builds to:
-[source,bash]
+[source,shell]
 ----
 $ docker image ls hwc
 REPOSITORY      TAG             IMAGE ID        CREATED         SIZE
@@ -487,7 +487,7 @@ COPY /mypy /app/
 
 * To collapse ALL image layer:
 
-[source,bash]
+[source,shell]
 ----
 $ docker container run -d --name demo mytallimage:1.0
 $ docker container export demo > image.tar
@@ -522,7 +522,7 @@ image::04_container_images/image-good-bad-layering.svg[]
 * `:latest` by default
 * Same image with two tags share same ID, image layer:
 
-[source,bash]
+[source,shell]
 ----
 $ docker image ls centos*
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE

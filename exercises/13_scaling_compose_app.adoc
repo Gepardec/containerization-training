@@ -10,7 +10,7 @@ Any service defined in our `docker-compose.yml` can be scaled up from the Compos
 
 Scale up the `worker` service in our Dockercoins app to have two workers generating coin candidates by redeploying the app with the `--scale` flag, while checking the list of running containers before and after:
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 dockercoins]$ docker-compose ps
 [centos@node-0 dockercoins]$ docker-compose up -d --scale worker=2
@@ -33,7 +33,7 @@ Look at the performance graph provided by the web frontend; the coin mining rate
 
 Try running `top` to inspect the system resource usage; it should still be fairly negligible. So, keep scaling up your workers:
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 dockercoins]$ docker-compose up -d --scale worker=10
 [centos@node-0 dockercoins]$ docker-compose ps
@@ -42,7 +42,7 @@ Check your web frontend again; has going from 2 to 10 workers provided a 5x perf
 
 Look in `docker-compose.yml` at the `rng` and `hasher` services; they're exposed on host ports 8001 and 8002, so we can use `httping` to probe their latency.
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 dockercoins]$ httping -c 5 localhost:8001
 [centos@node-0 dockercoins]$ httping -c 5 localhost:8002
@@ -51,7 +51,7 @@ Look in `docker-compose.yml` at the `rng` and `hasher` services; they're exposed
 
 For now, shut your app down:
 
-[source,bash]
+[source,shell]
 ----
 [centos@node-0 dockercoins]$ docker-compose down
 ----
