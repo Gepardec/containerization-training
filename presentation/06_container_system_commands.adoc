@@ -15,7 +15,7 @@ By the end of this module, trainees will be able to
 
 === Cleanup commands
 
-[source,shell]
+[source,bash]
 ----
 $ docker system df
 TYPE           TOTAL    ACTIVE   SIZE        RECLAIMABLE
@@ -42,7 +42,7 @@ more limited...
 
 === Inspect the system
 
-[source,shell]
+[source,bash]
 ----
 $ docker system info
 Containers: 2
@@ -85,7 +85,7 @@ Swarm: active
 
 === System events
 
-[source,shell]
+[source,bash]
 ----
 $ docker system events
 2017-01-25T16:57:48.553596179-06:00 container create 30eb630790d44052f26c1081...

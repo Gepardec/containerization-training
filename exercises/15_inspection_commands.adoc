@@ -1,0 +1,89 @@
+== Inspection Commands
+
+By the end of this exercise, you should be able to:
+
+* Gather system level info from the docker engine
+* Consume and format the docker engine's event stream for monitoring purposes
+
+=== Inspecting System Information
+
+We can find the `info` command under `system`. Execute:
+
+[source,shell]
+----
+[centos@node-3 ~]$ docker system info
+----
+This provides some high-level information about the docker deployment on the current node, and the node itself. From this output, identify:
+
+* how many images are cached on your machine?
+* how many containers are running or stopped?
+* what version of containerd are you running?
+* whether Docker is running in swarm mode?
+
+=== Monitoring System Events
+
+There is another powerful system command that allows us to monitor what's happening on the Docker host. Execute the following command:
+
+[source,shell]
+----
+[centos@node-3 ~]$ docker system events
+----
+Please note that it looks like the system is hanging, but that is not the case. The system is just waiting for some events to happen.
+
+Open a second connection to `node-3` and execute the following command:
+
+[source,shell]
+----
+[centos@node-3 ~]$ docker container run --rm alpine echo 'Hello World!'
+and observe the generated output in the first terminal. It should look similar to this:
+
+2017-01-25T16:57:48.553596179-06:00 container create 30eb63 ...
+2017-01-25T16:57:48.556718161-06:00 container attach 30eb63 ...
+2017-01-25T16:57:48.698190608-06:00 network connect de1b2b ...
+2017-01-25T16:57:49.062631155-06:00 container start 30eb63 ...
+2017-01-25T16:57:49.065552570-06:00 container resize 30eb63 ...
+2017-01-25T16:57:49.164526268-06:00 container die 30eb63 ...
+2017-01-25T16:57:49.613422740-06:00 network disconnect de1b2b ...
+2017-01-25T16:57:49.815845051-06:00 container destroy 30eb63 ...
+----
+Granular information about every action taken by the Docker engine is presented in the events stream.
+
+If you don't like the format of the output then we can use the `--format` parameter to define our own format in the form of a link::https://golang.org/pkg/text/template/[Go template]. Stop the events watch on your first terminal with `CTRL+C`, and try this:
+
+[source,shell]
+----
+[centos@node-3 ~]$ docker system events --format '--> {{.Type}}-{{.Action}}'
+----
+now the output looks a little bit less cluttered when we run our alpine container on the second terminal as above.
+
+Finally we can find out what the event structure looks like by outputting the events in `json` format (once again after killing the events watcher on the first terminal and restarting it with):
+
+[source,shell]
+----
+[centos@node-3 ~]$ docker system events --format '{{json .}}' | jq
+----
+which should give us for the first event in the series after re-running our alpine container on the other connection to `node-3` something like this (note, the output has been prettyfied for readability):
+
+[source,json]
+----
+{
+   "status":"create",
+   "id":"95ddb6ed4c87d67fa98c3e63397e573a23786046e00c2c68a5bcb9df4c17635c",
+   "from":"alpine",
+   "Type":"container",
+   "Action":"create",
+   "Actor":{
+      "ID":"95ddb6ed4c87d67fa98c3e63397e573a23786046e00c2c68a5bcb9df4c17635c",
+      "Attributes":{
+         "image":"alpine",
+         "name":"sleepy_roentgen"
+      }
+   },
+   "time":1485385702,
+   "timeNano":1485385702748011034
+}
+----
+
+=== Conclusion
+
+In this exercise we have learned how to inspect system wide properties of our Docker host by using the `docker system info` command; this is one of the first places to look for general config information to include in a bug report. We also saw a simple example of `docker system events`; the events stream is one of the primary sources of information that should be logged and monitored when running Docker in production. Many commercial as well as open source products (such as Elastic Stack) exist to facilitate aggregating and mining these streams at scale.

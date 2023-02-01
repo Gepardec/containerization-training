@@ -1,0 +1,61 @@
+== Cleaning up Docker Resources
+
+By the end of this exercise, you should be able to:
+
+* Assess how much disk space docker objects are consuming
+* Use `docker prune` commands to clear out unneeded docker objects
+* Apply label based filters to `prune` commands to control what gets deleted in a cleanup operation
+
+Find out how much memory Docker is using by executing:
+
+[source,shell]
+----
+[centos@node-3 ~]$ docker system df
+----
+The output will show us how much space images, containers and local volumes are occupying and how much of this space can be reclaimed.
+
+Reclaim all reclaimable space by using the following command:
+
+[source,shell]
+----
+[centos@node-3 ~]$ docker system prune
+----
+Answer with `y` when asked if we really want to remove all unused networks, containers, images and volumes.
+
+Create a couple of containers with labels (these will exit immediately; why?):
+
+[source,shell]
+----
+[centos@node-3 ~]$ docker container run --label apple --name fuji -d alpine
+[centos@node-3 ~]$ docker container run --label orange --name clementine -d alpine
+----
+Delete only those stopped containers bearing the `apple` label:
+
+[source,shell]
+----
+[centos@node-3 ~]$ docker container ls -a
+[centos@node-3 ~]$ docker container prune --filter 'label=apple'
+[centos@node-3 ~]$ docker container ls -a
+----
+Only the container named `clementine` should remain after the targeted prune.
+
+Finally, prune containers launched before a given timestamp using the `until` filter; start by getting the current RFC 3339 time (hlink::ttps://tools.ietf.org/html/rfc3339[RFC3339] - note Docker requires the otherwise optional `T` separating date and time), then creating a new container:
+
+[source,shell]
+----
+[centos@node-3 ~]$ TIMESTAMP=$(date --rfc-3339=seconds | sed 's/ /T/')
+[centos@node-3 ~]$ docker container run --label tomato --name beefsteak -d alpine
+----
+And use the timestamp returned in a prune:
+
+[source,shell]
+----
+[centos@node-3 ~]$ docker container prune -f --filter "until=$TIMESTAMP"
+[centos@node-3 ~]$ docker container ls -a
+----
+Note the `-f` flag, to suppress the confirmation step. `label` and `until` filters for pruning are also available for networks and images, while data volumes can only be selectively pruned by `label`; finally, images can also be pruned by the boolean `dangling` key, indicating if the image is untagged.
+
+=== Conclusion
+
+In this exercise, we saw some very basic `docker prune` usage - most of the top-level docker objects have a `prune` command (`docker container prune`, `docker volume prune` etc). Most docker objects leave something on disk even after being shut down; consider using these cleanup commands as part of your cluster maintenance and garbage collection plan, to avoid accidentally running out of disk on your Docker hosts.
+

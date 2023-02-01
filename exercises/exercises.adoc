@@ -1,8 +1,14 @@
-:sectnums:
-:source-highlighter: highlightjs
-:highlightjs-languages: yaml,bash,shell,dockerfile
-
 = Container exercises
+Thomas Herzog <thomas.herzog@gepardec.com>; Clemens Kaserer
+:sectnums:
+:sectnumlevels: 1
+:source-highlighter: highlightjs
+:highlightjsdir: ./assets/highlight
+:highlightjs-theme: base16/ia-light
+:highlightjs-languages: yaml,bash,shell,shell,dockerfile
+:toc: left
+:toclevels: 1
+:stylesheet: ./assets/css/asciidoctor.css
 
 include::01_running_inspecting_containers.adoc[]
 
@@ -29,3 +35,13 @@ include::10_introduction_container_networking.adoc[]
 include::11_container_port_mapping.adoc[]
 
 include::12_starting_compose_app.adoc[]
+
+include::13_scaling_compose_app.adoc[]
+
+include::14_cleanup_docker_resources.adoc[]
+
+include::15_inspection_commands.adoc[]
+
+== Appendix
+
+include::apendix_01_introduction_bash.adoc[]
