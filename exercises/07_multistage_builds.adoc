@@ -1,12 +1,10 @@
 == Multi-Stage Builds
-
 By the end of this exercise, you should be able to:
 
 * Write a `Dockerfile` that describes multiple images, which can copy files from one image to the next.
 * Enable `BuildKit` for faster build times
 
 === Defining a multi-stage build
-
 Make a new folder named 'multi' to do this exercise in, and cd into it.
 
 Add a file `hello.c` to the multi folder containing Hello World in C:
@@ -21,7 +19,6 @@ int main (void)
     return 0;
 }
 ----
-
 Try compiling and running this right on the host OS:
 
 [source,shell]
@@ -29,7 +26,6 @@ Try compiling and running this right on the host OS:
 [centos@node-0 multi]$ gcc -Wall hello.c -o hello
 [centos@node-0 multi]$ ./hello
 ----
-
 Now let's Dockerize our hello world application. Add a `Dockerfile` to the multi folder with this content:
 
 [source,Dockerfile]
@@ -44,7 +40,6 @@ RUN mkdir bin
 RUN gcc -Wall hello.c -o bin/hello
 CMD /app/bin/hello
 ----
-
 Build the image and note its size:
 
 [source,shell]
@@ -55,14 +50,12 @@ Build the image and note its size:
 REPOSITORY     TAG      IMAGE ID       CREATED         SIZE
 my-app-large   latest   a7d0c6fe0849   3 seconds ago   189MB
 ----
-
 Test the image to confirm it was built successfully:
 
 [source,shell]
 ----
 [centos@node-0 multi]$ docker container run my-app-large
 ----
-
 It should print`hello world`" in the console.
 
 Update your `Dockerfile` to use an AS clause on the first line, and add a second stanza describing a second build stage:
@@ -82,7 +75,6 @@ FROM alpine:3.5
 COPY --from=build /app/bin/hello /app/hello
 CMD /app/hello
 ----
-
 Build the image again and compare the size with the previous version:
 
 [source,shell]
@@ -94,7 +86,6 @@ REPOSITORY     TAG      IMAGE ID       CREATED              SIZE
 my-app-small   latest   f49ec3971aa6   6 seconds ago        4.01MB
 my-app-large   latest   a7d0c6fe0849   About a minute ago   189MB
 ----
-
 As expected, the size of the multi-stage build is much smaller than the large one since it does not contain the Alpine SDK.
 
 Finally, make sure the app works:
@@ -103,11 +94,9 @@ Finally, make sure the app works:
 ----
 [centos@node-0 multi]$ docker container run --rm my-app-small
 ----
-
 You should get the expected `Hello, World!` output from the container with just the required executable.
 
 === Building Intermediate Images
-
 In the previous step, we took our compiled executable from the first build stage, but that image wasn't tagged as a regular image we can use to start containers with; only the final `FROM` statement generated a tagged image. In this step, we'll see how to persist whichever build stage we like.
 
 Build an image from the build stage in your `Dockerfile` using the `--target` flag:
@@ -116,7 +105,6 @@ Build an image from the build stage in your `Dockerfile` using the `--target` fl
 ----
 [centos@node-0 multi]$ docker image build -t my-build-stage --target build .
 ----
-
 Notice all its layers are pulled from the cache; even though the build stage wasn't tagged originally, its layers are nevertheless persisted in the cache.
 
 Run a container from this image and make sure it yields the expected result:
@@ -125,11 +113,9 @@ Run a container from this image and make sure it yields the expected result:
 ----
 [centos@node-0 multi]$ docker container run -it --rm my-build-stage /app/bin/hello
 ----
-
 List your images again to see the size of my-build-stage compared to the small version of the app.
 
 === Optional: Building from Scratch
-
 So far, every image we've built has been based on a pre-existing image, referenced in the `FROM` command. But what if we want to start from nothing, and build a completely original image? For this, we can build `FROM scratch`.
 
 In a new directory ~/scratch, create a file named sleep.c that just launches a sleeping process for an hour:
@@ -146,7 +132,6 @@ int main()
   return 0;
 }
 ----
-
 Create a file named `Dockerfile` to build this sleep program in a build stage, and then copy it to a scratch-based image:
 
 [source,Dockerfile]
@@ -161,10 +146,9 @@ FROM scratch
 COPY --from=build /sleep /sleep
 CMD ["/sleep"]
 ----
-
 This image will contain nothing but our executable and the bare minimum file structure Docker needs to stand up a container filesystem. 
 
-IMPORTANT: Note we're statically linking the sleep.c binary, so it will have everything it needs bundled along with it, not relying on the rest of the container's filesystem for anything.
+NOTE: Note we're statically linking the sleep.c binary, so it will have everything it needs bundled along with it, not relying on the rest of the container's filesystem for anything.
 
 Build your image:
 
@@ -172,7 +156,6 @@ Build your image:
 ----
 [centos@node-0 scratch]$ docker image build -t sleep:scratch .
 ----
-
 List your images, and search for the one you just built:
 
 [source,shell]
@@ -182,7 +165,6 @@ List your images, and search for the one you just built:
 REPOSITORY  TAG       IMAGE ID       CREATED         SIZE
 sleep       scratch   1b68b20a85a8   9 minutes ago   128kB
 ----
-
 This image is only `128 kB`, as tiny as possible.
 
 Run your image, and check out its filesystem; we can't list directly inside the container, since ls isn't installed in this ultra-minimal image, so we have to find where this container's filesystem is mounted on the host. Start by finding the PID of your sleep process after its running:
@@ -195,7 +177,6 @@ Run your image, and check out its filesystem; we can't list directly inside the 
 UID   PID   PPID  C  STIME  TTY  TIME     CMD
 root  1190  1174  0  15:21  ?    00:00:00 /sleep
 ----
-
 In this example, the PID for sleep is 1190.
 
 List your container's filesystem from the host using this PID:
@@ -206,7 +187,6 @@ List your container's filesystem from the host using this PID:
 
 dev  etc  proc  sleep  sys
 ----
-
 We see not only our binary sleep but a bunch of other folders and files. Where does these come from? runC, the tool for spawning and running containers, requires a json config of the container and a root file system. At runtime, Docker Engine adds these minimum requirements to form the most minimal container filesystem possible.
 
 Clean up by deleting your container:
@@ -217,7 +197,6 @@ Clean up by deleting your container:
 ----
 
 === Optional: Enabling BuildKit
-
 In addition to the default builder, `BuildKit` can be enabled to take advantages of some optimizations of the build process.
 
 Back in the `~/multi` directory, turn on `BuildKit`:
@@ -226,7 +205,6 @@ Back in the `~/multi` directory, turn on `BuildKit`:
 ----
 [centos@node-0 multi]$ export DOCKER_BUILDKIT=1
 ----
-
 Add an AS label to the final stage of your Dockerfile (this is not strictly necessary, but will make the output in the next step easier to understand):
 
 [source,Dockerfile]
@@ -238,7 +216,6 @@ RUN apk update
 COPY --from=build /app/bin/hello /app/hello
 CMD /app/hello
 ----
-
 Re-build my-app-small, without the cache:
 
 [source,shell]
@@ -267,7 +244,6 @@ Re-build my-app-small, without the cache:
  => => writing image sha256:22de288...
  => => naming to docker.io/library/my-app-small-bk 
 ----
-
 Notice the lines marked like `[prod 2/3]` and `[build 4/6]`: prod and build in this context are the AS labels you applied to the `FROM` lines in each stage of your build in the `Dockerfile`; from the above output, you can see that the build stages were built in parallel. Every step of the final image was completed while the build environment image was being created; the prod environment image creation was only blocked at the `COPY` instruction since it required a file from the completed build image.
 
 Comment out the `COPY` instruction in the prod image definition in your `Dockerfile`, and rebuild; the build image is skipped. `BuildKit` recognized that the build stage was not necessary for the image being built, and skipped it.

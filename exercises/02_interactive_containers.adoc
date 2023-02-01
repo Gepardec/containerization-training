@@ -1,5 +1,4 @@
 == Interactive containers
-
 By the end of this exercise, you should be able to:
 
 * Launch an interactive shell in a new or existing container
@@ -7,14 +6,12 @@ By the end of this exercise, you should be able to:
 * List containers using more options and filters
 
 === Writing to Containers
-
-Create a container using the centos:7 image. Connect to its bash shell in interactive mode using the `-i` flag and request a TTY connection using the `-t` flag:
+Create a container using the `centos:7` image. Connect to its bash shell in interactive mode using the `-i` flag and request a TTY connection using the `-t` flag:
 
 [source, shell]
 ----
 [centos@node-0 ~]$ docker container run -it centos:7 bash
 ----
-
 Explore your container's filesystem with ls, and then create a new file. Use `ls` again to confirm you have successfully created your file. Use the `-l` option with `ls` to list the files and directories in long list format.
 
 [source, shell]
@@ -23,25 +20,21 @@ Explore your container's filesystem with ls, and then create a new file. Use `ls
 [root@2b8de2ffdf85 /]$ echo 'Hello there...' > test.txt
 [root@2b8de2ffdf85 /]$ ls -l
 ----
-
 Exit the connection to the container:
 
 [source, shell]
 ----
 [root@2b8de2ffdf85 /]# exit
 ----
-
 Run the same command as before to start a container using the `centos:7` image:
 
 [source, shell]
 ----
 [centos@node-0 ~]$ docker container run -it centos:7 bash
 ----
-
 Use `ls` to explore your container. You will see that your previously created test.txt is nowhere to be found in your new container. Exit this container in the same way you did above.
 
 === Reconnecting to Containers
-
 We wish to recover `test.txt` written to our container in the first example, but starting a new container didn't get us there. We need to restart and reconnect to our original container. List all your stopped containers:
 
 [source, shell]
@@ -53,7 +46,6 @@ cc19f7e9aa91  centos:7  "bash"   About a minute ago   Exited (0) About a minute 
 2b8de2ffdf85  centos:7  "bash"   2 minutes ago        Exited (0) About a minute ago
 ...
 ----
-
 We can restart a container via the container ID listed in the first column. Use the container ID for the first centos:7 container you created with bash as its command (see the CREATED column above to make sure you're choosing the first bash container you ran):
 
 [source, shell]
@@ -64,7 +56,6 @@ We can restart a container via the container ID listed in the first column. Use 
 CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
 2b8de2ffdf85  centos:7  "bash"   5 minutes ago   Up 21 seconds  ...
 ----
-
 Your container status has changed from Exited to Up, via docker container start.
 
 Run `ps -ef` inside the container you just restarted using Docker's exec command (exec runs the specified process as a child of the PID 1 process inside the container):
@@ -79,7 +70,6 @@ What process is PID 1 inside the container? Find the PID of that process on the 
 ----
 [centos@node-0 ~]$ docker container top <container ID>
 ----
-
 Launch a bash shell in your running container with docker container exec:
 
 [source, shell]
@@ -89,7 +79,6 @@ Launch a bash shell in your running container with docker container exec:
 List the contents of the container's filesystem with ls -l; your test.txt should be where you left it. Exit the container again by typing exit.
 
 === Using Container Listing Options
-
 In the last step, we saw how to get the short container ID of all our containers using docker container `ls -a`. Try adding the `--no-trunc` flag to see the entire container ID:
 
 [source, shell]
@@ -122,5 +111,4 @@ Clean up with:
 ----
 
 === Conclusion
-
 In this demo, you saw that files added to a container's filesystem do not get added to all containers created from the same image. Changes to a container's filesystem are local to itself, and exist only in that particular container. You also learned how to restart a stopped Docker container using `docker container start`, how to run a command in a running container using `docker container exec`, and also saw some more options for listing containers via `docker container ls`.

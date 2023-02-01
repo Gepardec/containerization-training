@@ -1,12 +1,10 @@
 == Starting a Compose App
-
 By the end of this exercise, you should be able to:
 
 * Read a basic docker compose yaml file and understand what components it is declaring
 * Start, stop, and inspect the logs of an application defined by a docker compose file
 
 === Inspecting a Compose App
-
 Download the Dockercoins app from github:
 
 [source,shell]
@@ -22,7 +20,6 @@ Have a brief look at the source for each component of your application. Each fol
 Have a look in `docker-compose.yml`; especially notice the `services` section. Each block here defines a different Docker service. They each have exactly one image which containers for this service will be started from, as well as other configuration details like network connections and port exposures. Full syntax for Docker Compose files can be found here: link::https://dockr.ly/2iHUpeX[Docker Compose Specification].
 
 === Starting the App
-
 Stand up the app:
 
 [source,shell]
@@ -54,7 +51,6 @@ dockercoins_worker_1   python worker.py                 Up
 Compare this to the usual `docker container ls`; do you notice any differences? If not, start a couple of extra containers using `docker container run...`, and check again.
 
 === Viewing Logs
-
 See logs from a Compose-managed app via:
 
 [source,shell]
@@ -70,5 +66,4 @@ The logging API in Compose follows the main Docker logging API closely. For exam
 Note that when following a log, `CTRL+S` and `CTRL+Q` pauses and resumes live following; `CTRL+C` exits follow mode as usual.
 
 === Conclusion
-
 In this exercise, you saw how to start a pre-defined Compose app, and how to inspect its logs. Application logic was defined in each of the five images we used to create containers for the app, but the manner in which those containers were created was defined in the `docker-compose.yml` file; all runtime configuration for each container is captured in this manifest. Finally, the different elements of Dockercoins communicated with each other via service name; the Docker daemon's internal DNS was able to resolve traffic destined for a service, into the IP or MAC address of the corresponding container.

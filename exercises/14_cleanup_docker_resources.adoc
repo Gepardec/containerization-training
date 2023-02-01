@@ -1,5 +1,4 @@
 == Cleaning up Docker Resources
-
 By the end of this exercise, you should be able to:
 
 * Assess how much disk space docker objects are consuming
@@ -56,6 +55,5 @@ And use the timestamp returned in a prune:
 Note the `-f` flag, to suppress the confirmation step. `label` and `until` filters for pruning are also available for networks and images, while data volumes can only be selectively pruned by `label`; finally, images can also be pruned by the boolean `dangling` key, indicating if the image is untagged.
 
 === Conclusion
-
 In this exercise, we saw some very basic `docker prune` usage - most of the top-level docker objects have a `prune` command (`docker container prune`, `docker volume prune` etc). Most docker objects leave something on disk even after being shut down; consider using these cleanup commands as part of your cluster maintenance and garbage collection plan, to avoid accidentally running out of disk on your Docker hosts.
 

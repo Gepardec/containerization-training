@@ -1,5 +1,4 @@
 == Managing Images
-
 By the end of this exercise, you should be able to:
 
 * Rename and retag an image
@@ -7,28 +6,24 @@ By the end of this exercise, you should be able to:
 * Delete image tags and image layers, and understand the difference between the two operations
 
 === Making an Account on Docker's Hosted Registry
-
 If you don't have one already, head over to link::https://hub.docker.com[https://hub.docker.com] and make an account.
 
 For the rest of this workshop, `<Docker ID>` refers to the username you chose for this account.
 
 === Tagging and Listing Images
-
 Download the centos:7 image from Docker Hub:
 
 [source,shell]
 ----
 [centos@node-0 ~]$ docker image pull centos:7
 ----
-
 Make a new tag of this image:
 
 [source,shell]
 ----
 [centos@node-0 ~]$ docker image tag centos:7 my-centos:dev
 ----
-
-IMPORTANT: Note no new image has been created; `my-centos:dev` is just a pointer pointing to the same image as centos:7.
+NOTE: Note no new image has been created; `my-centos:dev` is just a pointer pointing to the same image as centos:7.
 
 List your images:
 
@@ -36,18 +31,15 @@ List your images:
 ----
 [centos@node-0 ~]$ docker image ls
 ----
-
 You should have `centos:7` and `my-centos:dev` both listed, but they ought to have the same hash under image ID, since they're actually the same image.
 
 === Sharing Images on Docker Hub
-
 Push your image to Docker Hub:
 
 [source,shell]
 ----
 [centos@node-0 ~]$ docker image push my-centos:dev
 ----
-
 You should get a denied: requested access to the resource is denied error.
 
 Login by doing `docker login`, and try pushing again. The push fails again because we haven't namespaced our image correctly for distribution on Docker Hub; all images you want to share on Docker Hub must be named like `<Docker ID>/<repo name>[:<optional tag>]`.
@@ -59,7 +51,6 @@ Retag your image to be namespaced properly, and push again:
 [centos@node-0 ~]$ docker image tag my-centos:dev <Docker ID>/my-centos:dev
 [centos@node-0 ~]$ docker image push <Docker ID>/my-centos:dev
 ----
-
 Search Docker Hub for your new `<Docker ID>/my-centos` repo, and confirm that you can see the `:dev` tag therein.
 
 Next, write a `Dockerfile` that uses `<Docker ID>/my-centos:dev` as its base image, and installs any application you like on top of that. Build the image, and simultaneously tag it as `:1.0`:
@@ -68,7 +59,6 @@ Next, write a `Dockerfile` that uses `<Docker ID>/my-centos:dev` as its base ima
 ----
 [centos@node-0 ~]$ docker image build -t <Docker ID>/my-centos:1.0 .
 ----
-
 Push your `:1.0` tag to Docker Hub, and confirm you can see it in the appropriate repository.
 
 Finally, list the images currently on your node with docker image ls. You should still have the version of your image that wasn't namespaced with your Docker Hub user name; delete this using `docker image rm`:
@@ -77,11 +67,9 @@ Finally, list the images currently on your node with docker image ls. You should
 ----
 [centos@node-0 ~]$ docker image rm my-centos:dev
 ----
-
 Only the tag gets deleted, not the actual image. The image layers are still referenced by another tag.
 
 === Conclusion
-
 In this exercise, we praciced tagging images and exchanging them on the public registry. The namespacing rules for images on registries are mandatory: user-generated images to be exchanged on the public registry must be named like `<Docker ID>/<repo name>[:<optional tag>]`; official images in the Docker registry just have the repo name and tag.
 
-IMPORTANT: Also note that as we saw when building images, image names and tags are just pointers; deleting an image with `docker image rm` just deletes that pointer if the corresponding image layers are still being referenced by another such pointer. Only when the last pointer is deleted are the image layers actually destroyed by docker image rm.
+NOTE: Also note that as we saw when building images, image names and tags are just pointers; deleting an image with `docker image rm` just deletes that pointer if the corresponding image layers are still being referenced by another such pointer. Only when the last pointer is deleted are the image layers actually destroyed by docker image rm.

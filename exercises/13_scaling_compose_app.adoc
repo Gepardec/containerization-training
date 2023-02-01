@@ -1,11 +1,9 @@
 == Scaling a Compose App
-
 By the end of this exercise, you should be able to:
 
 * Scale a service from Docker Compose up or down
 
 === Scaling a Service
-
 Any service defined in our `docker-compose.yml` can be scaled up from the Compose API; in this context, 'scaling' means launching multiple containers for the same service, which Docker Compose can route requests to and from.
 
 Scale up the `worker` service in our Dockercoins app to have two workers generating coin candidates by redeploying the app with the `--scale` flag, while checking the list of running containers before and after:
@@ -30,7 +28,6 @@ A new worker container has appeared in your list of containers.
 Look at the performance graph provided by the web frontend; the coin mining rate should have doubled. Also check the logs using the logging API we learned in the last exercise; you should see a second `worker` instance reporting.
 
 === Investigating Bottlenecks
-
 Try running `top` to inspect the system resource usage; it should still be fairly negligible. So, keep scaling up your workers:
 
 [source,shell]
@@ -57,6 +54,5 @@ For now, shut your app down:
 ----
 
 === Conclusion
-
 In this exercise, we saw how to scale up a service defined in our Compose app using the `--scale` flag. Also, we saw how crucial it is to have detailed monitoring and tooling in a microservices-oriented application, in order to correctly identify bottlenecks and take advantage of the simplicity of scaling with Docker.
 

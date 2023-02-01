@@ -9,7 +9,7 @@ By the end of this exercise, you should be able to:
 
 === Interactive Containers
 
-Create and start a new CentOS 7 container running ping to 8.8.8.8. Docker will downlaod the CentOS 7 image since you do not have it available locally.
+Create and start a new CentOS 7 container running ping to `8.8.8.8`. Docker will downlaod the CentOS 7 image since you do not have it available locally.
 
 [source,shell]
 ----
@@ -61,8 +61,7 @@ CONTAINER ID IMAGE    COMMAND        CREATED       STATUS        PORTS  NAMES
 ----
 
 === Listing all Containers
-
-Now you know that the docker container ls command only shows running containers. You can show all containers that exist (running or stopped) by using `docker container ls --all`. Your container ID and name will vary. Note that you will see two containers: a stopped container and a running container.
+Now you know that the `docker container ls` command only shows running containers. You can show all containers that exist (running or stopped) by using `docker container ls --all`. Your container ID and name will vary. Note that you will see two containers: a stopped container and a running container.
 
 [source,shell]
 ----
@@ -72,11 +71,9 @@ CONTAINER ID  IMAGE     COMMAND         CREATED        STATUS         NAMES
 8aef3d0d411c  centos:7  "ping 8.8.4.4"  2 minutes ago  Up 2 minutes   zen_jang
 00f763b9308d  centos:7  "ping 8.8.8.8"  4 minutes ago  Exited (0)...  inspiring_cheb
 ----
-
 Where did those names come from? All containers have names, which in most Docker CLI commands can be substituted for the container ID as we'll see in later exercises. By default, containers get a randomly generated name of the form `<adjective>_<scientist / technologist>`, but you can choose a name explicitly with the `--name` flag in `docker container run`.
 
 === Naming Containers
-
 Start up another detached container, this time giving it a name "opendnsping".
 
 [source,shell]
@@ -86,7 +83,6 @@ Start up another detached container, this time giving it a name "opendnsping".
 
 3bdc61a95e76fdfe2597ef18aa00321a53dcdc9c36b2db97fbe738f8a623ecad
 ----
-
 List all your containers again. You can see all of the containers, including your new one with your customized name.
 
 [source,shell]
@@ -100,7 +96,6 @@ CONTAINER ID IMAGE    COMMAND               CREATED        STATUS         NAMES
 ----
 
 === Remove exited Containers
-
 Next, remove the exited container. To do this, use `docker container rm <container ID>`. In the example above, the Docker container ID is `00f763b9308d`. You only need as many characters as to uniquely identify this container from all the others.
 
 [source,shell]
@@ -122,7 +117,6 @@ Error response from daemon: You cannot remove a running container
 3bdc61a95e76fdfe2597ef18aa00321a53dcdc9c36b2db97fbe738f8a623ecad. 
 Stop the container before attempting removal or force remove
 ----
-
 You can see that running containers are not removed. You'll have to look for an option to remove a running container. In order to find out the option you need to do a force remove, check the command line help. To do this with the `docker container rm` command, use the `--help` option:
 
 [source,shell]
@@ -138,8 +132,7 @@ Options:
  -l, --link      Remove the specified link
  -v, --volumes   Remove the volumes associated with the container
 ----
-
-*Help works with all Docker commands* Not only can you use `--help` with `docker container rm`, but it works on all levels of docker commands. For example, `docker --help` provides you will all available docker commands, and `docker container --help` provides you with all available container commands.
+NOTE: *Help works with all Docker commands* Not only can you use `--help` with `docker container rm`, but it works on all levels of docker commands. For example, `docker --help` provides you will all available docker commands, and `docker container --help` provides you with all available container commands.
 
 Now, run a force remove on the running container you tried to remove in the two previous steps. This time it works.
 
@@ -149,8 +142,7 @@ Now, run a force remove on the running container you tried to remove in the two 
 
 8aef3d0d411c
 ----
-
-Start another detached container pinging 8.8.8.8, with the name `pinggoogledns`.
+Start another detached container pinging `8.8.8.8`, with the name `pinggoogledns`.
 
 [source,shell]
 ----
@@ -159,7 +151,6 @@ Start another detached container pinging 8.8.8.8, with the name `pinggoogledns`.
 
 38e121e629611daa0726a21d634bc5189400377d82882cc6fd8a3870dc9943a0
 ----
-
 Now that you've finished your testing, you need to remove your containers. In order to remove all of them at once, you want to get only the container IDs. Look at docker container ls --help to get the information you need:
 
 [source,shell]
@@ -179,11 +170,10 @@ Options:
   --format string     Pretty-print containers using a Go template
   -n, --last int      Show n last created containers (includes all states)
   -l, --latest        Show the latest created container (includes all states)
-      --no-trunc      Don't truncate output
+      --no-trunc      Don\'t truncate output
   -q, --quiet         Only display numeric IDs
   -s, --size          Display total file sizes
 ----
-
 To get only the container IDs, use the `--quiet` option. If you want to use only the container IDs of all existing containers to perform an action on, you can use `--quiet` with the `--all` option.
 
 [source,shell]
@@ -193,7 +183,6 @@ To get only the container IDs, use the `--quiet` option. If you want to use only
 3bdc61a95e76     
 38e121e62961
 ----
-
 Since we are done running pings on the public DNS servers, kill the containers. To do this, use the syntax `docker container rm --force <containerID>`. However, this only kills one container at a time. We want to kill all the containers, no matter what state the containers are in. To get this information, you will need to use the output from docker container ls `--quiet` `--all`. To capture this output within the command, use `$(...)` to nest the listing command inside the docker container rm command.
 
 [source,shell]
@@ -206,5 +195,4 @@ Since we are done running pings on the public DNS servers, kill the containers. 
 ----
 
 === Conclusion
-
 This exercise taught you how to start, list, and kill containers. In this exercise you ran your first containers using `docker container run`, and how they are running commands inside the containers. You also learned to how to list your containers, and how to kill the containers using the command `docker container rm`. If you run into trouble, you've learned that the `--help` option can provide you with information that could help get you answers.

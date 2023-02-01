@@ -1,19 +1,16 @@
 == Introduction to Container Networking
-
 By the end of this exercise, you should be able to:
 
 * Create docker bridge networks and attach containers to them
 * Design networks of containers that can successfully resolve each other via DNS and reach each other across a Docker software defined network.
 
 === Inspecting the Default Bridge
-
 In the dropdown menu at the top of the Strigo webpage, click into `node-1`. See what networks are present on your host:
 
 [source,shell]
 ----
 [centos@node-1 ~]$ docker network ls
 ----
-
 You should have entries for `host`, `none`, and `bridge`.
 
 Find some metadata about the default `bridge` network:
@@ -22,8 +19,7 @@ Find some metadata about the default `bridge` network:
 ----
 [centos@node-1 ~]$ docker network inspect bridge
 ----
-
-Note especially the private subnet assigned by Docker's IPAM driver to this network. The first IP in this range is used as the network's gateway, and the rest will be assigned to containers as they join the network.
+NOTE: Note especially the private subnet assigned by Docker's IPAM driver to this network. The first IP in this range is used as the network's gateway, and the rest will be assigned to containers as they join the network.
 
 See similar info from common networking tools:
 
@@ -31,8 +27,7 @@ See similar info from common networking tools:
 ----
 [centos@node-1 ~]$ ip addr
 ----
-
-Note the `bridge` network's gateway corresponds to the IP of the `docker0` device in this list. `docker0` is the linux `bridge` itself, while bridge is the name of the default Docker network that uses that bridge.
+NOTE: Note the `bridge` network's gateway corresponds to the IP of the `docker0` device in this list. `docker0` is the linux `bridge` itself, while bridge is the name of the default Docker network that uses that bridge.
 
 Use `brctl` to see connections to the `docker0` bridge:
 
@@ -43,7 +38,6 @@ Use `brctl` to see connections to the `docker0` bridge:
 bridge name bridge id       STP enabled interfaces
 docker0     8000.02427f12c30b   no
 ----
-
 At the moment, there are no connections to `docker0`.
 
 === Connecting Containers to `docker0`
@@ -67,7 +61,6 @@ Start a container and reexamine the network; the container is listed as connecte
     },
 ...
 ----
-
 Inspect the network interfaces with `ip` and `brctl` again, now that you have a container running:
 
 [source,shell]
@@ -85,7 +78,6 @@ Inspect the network interfaces with `ip` and `brctl` again, now that you have a 
 bridge name bridge id       STP enabled interfaces
 docker0     8000.02427f12c30b   no      veth6f244c3
 ----
-
 `ip addr` indicates a veth endpoint has been created and plugged into the `docker0` bridge, as indicated by `master docker0`, and that it is connected to device index 4 in this case (indicated by the `@if4` suffix to the veth device name above). Similarly, `brctl` now shows this veth connection on `docker0` (notice that the ID for the veth connection matches in both utilities).
 
 Launch a bash shell in your container, and look for the `eth0` device therein:
@@ -103,11 +95,9 @@ Launch a bash shell in your container, and look for the `eth0` device therein:
     inet 172.17.0.2/16 scope global eth0
        valid_lft forever preferred_lft forever
 ----
-
 We see that the `eth0` device in this namespace is in fact the device that the veth connection in the host namespace indicated it was attached to, and vice versa - `eth0@if5` indicates it is plugged into networking interface number 5, which we saw above was the other end of the veth connection. Docker has created a veth connection with one end in the host's `docker0` bridge, and the other providing the `eth0` device in the container.
 
 === Defining Additional Bridge Networks
-
 In the last step, we investigated the default bridge network; now let's try making our own. User defined bridge networks work exactly the same as the default one, but provide DNS lookup by container name, and are firewalled from other networks by default.
 
 Create a bridge network by using the `bridge` driver with `docker network create`:
@@ -116,21 +106,18 @@ Create a bridge network by using the `bridge` driver with `docker network create
 ----
 [centos@node-1 ~]$ docker network create --driver bridge my_bridge
 ----
-
 Launch a container connected to your new network via the `--network` flag:
 
 [source,shell]
 ----
 [centos@node-1 ~]$ docker container run --name=u2 --network=my_bridge -dt centos:7
 ----
-
 Use the `inspect` command to investigate the network settings of this container:
 
 [source,shell]
 ----
 [centos@node-1 ~]$ docker container inspect u2
 ----
-
 `my_bridge` should be listed under the `Networks` key.
 
 Launch another container, this time interactively:
@@ -139,7 +126,6 @@ Launch another container, this time interactively:
 ----
 [centos@node-1 ~]$ docker container run --name=u3 --network=my_bridge -it centos:7
 ----
-
 From inside container `u3`, ping `u2` by name: `ping u2`. The ping succeeds, since Docker is able to resolve container names when they are attached to a custom network.
 
 Try starting a container on the default network, and pinging `u1` by name:
@@ -150,7 +136,6 @@ Try starting a container on the default network, and pinging `u1` by name:
 
 ping: u1: Name or service not known
 ----
-
 The ping fails; even though the containers are both attached to the `bridge` network, Docker does not provide name lookup on this default network. Try the same command again, but using `u1` 's IP instead of name, and you should be successful.
 
 Finally, try pinging `u1` by IP, this time from container `u2`:
@@ -159,7 +144,6 @@ Finally, try pinging `u1` by IP, this time from container `u2`:
 ----
 [centos@node-1 ~]$ docker container exec u2 ping <u1 IP>
 ----
-
 The ping fails, since the containers reside on different networks; all Docker networks are firewalled from each other by default.
 
 Clean up your containers and networks:
@@ -171,7 +155,6 @@ Clean up your containers and networks:
 ----
 
 === Conclusion
-
 In this exercise, you explored the fundamentals of container networking. The key take away is that containers on separate networks are firewalled from each other by default. This should be leveraged as much as possible to harden your applications; if two containers don't need to talk to each other, put them on separate networks.
 
 You also explored a number of API objects:
