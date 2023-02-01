@@ -33,6 +33,9 @@ jobs:
           cache-dependency-path: |
             exercises/package.json
             presentation/package.json
+      - name: Build hello-world
+        id: build_hello_world
+        run: mvn -B -f resources/hello-world/pom.xml package
       - name: Render presentation
         id: render_presentation
         run: |
