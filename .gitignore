@@ -9,3 +9,4 @@ exercises.html
 *.jar
 target/
 .idea/
+package-lock.json
