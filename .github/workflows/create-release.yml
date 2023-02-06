@@ -52,10 +52,11 @@ jobs:
         id: collect_assets
         run: |
           mkdir -p ./release/presentation/assets/node_modules
+          mkdir -p ./release/presentation/node_modules
           mkdir -p ./release/exercises
           mkdir -p ./release/resources
           cp -r presentation/presentation.html presentation/assets ./release/presentation/
-          cp -r presentation/node_modules/reveal.js ./release/presentation/assets/node_modules/
+          cp -r presentation/node_modules/reveal.js ./release/presentation/node_modules/
           cp -r exercises/exercises.html exercises/assets ./release/exercises/
           cp resources/hello-world/target/hello-world-runner.jar ./release/resources/
           cd ./release
