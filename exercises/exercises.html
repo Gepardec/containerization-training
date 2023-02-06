@@ -1,0 +1,3061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="author" content="Thomas Herzog, Clemens Kaserer">
+<title>Container exercises</title>
+<link rel="stylesheet" href="./assets/css/asciidoctor.css">
+<link rel="stylesheet" href="./assets/highlight/styles/base16/ia-light.min.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Container exercises</h1>
+<div class="details">
+<span id="author" class="author">Thomas Herzog</span><br>
+<span id="email" class="email"><a href="mailto:thomas.herzog@gepardec.com">thomas.herzog@gepardec.com</a></span><br>
+<span id="author2" class="author">Clemens Kaserer</span><br>
+<span id="revnumber">version local,</span>
+<span id="revdate">2/6/2023</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_running_inspecting_containers">1. Running &amp; Inspecting Containers</a></li>
+<li><a href="#_interactive_containers_2">2. Interactive containers</a></li>
+<li><a href="#_detached_containers_and_logging">3. Detached containers and Logging</a></li>
+<li><a href="#_starting_stopping_inspecting_and_deleting_containers">4. Starting, Stopping, Inspecting and Deleting Containers</a></li>
+<li><a href="#_interactive_image_creation">5. Interactive Image Creation</a></li>
+<li><a href="#_creating_images_with_dockerfiles_12">6. Creating Images with Dockerfiles (1/2)</a></li>
+<li><a href="#_creating_images_with_dockerfiles_22">7. Creating Images with Dockerfiles (2/2)</a></li>
+<li><a href="#_multi_stage_builds">8. Multi-Stage Builds</a></li>
+<li><a href="#_managing_images">9. Managing Images</a></li>
+<li><a href="#_database_volumes">10. Database Volumes</a></li>
+<li><a href="#_introduction_to_container_networking">11. Introduction to Container Networking</a></li>
+<li><a href="#_container_port_mapping">12. Container Port Mapping</a></li>
+<li><a href="#_starting_a_compose_app">13. Starting a Compose App</a></li>
+<li><a href="#_scaling_a_compose_app">14. Scaling a Compose App</a></li>
+<li><a href="#_cleaning_up_docker_resources">15. Cleaning up Docker Resources</a></li>
+<li><a href="#_inspection_commands">16. Inspection Commands</a></li>
+<li><a href="#_appendix">17. Appendix</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_running_inspecting_containers">1. Running &amp; Inspecting Containers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Start a container</p>
+</li>
+<li>
+<p>List containers in multiple ways</p>
+</li>
+<li>
+<p>Query the docker command line help</p>
+</li>
+<li>
+<p>Remove containers</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_interactive_containers">Interactive Containers</h3>
+<div class="paragraph">
+<p>Create and start a new CentOS 7 container running ping to <code>8.8.8.8</code>. Docker will downlaod the CentOS 7 image since you do not have it available locally.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run centos:7 ping 8.8.8.8
+
+Unable to find image 'centos:7' locally
+7: Pulling from library/centos
+a02a4930cb5d: Pull complete
+Digest: sha256:184e5f35598e333bfa7de10d8fb1cebb5ee4df5bc0f970bf2b1e7c7345136426
+Status: Downloaded newer image for centos:7
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=108 time=7.07 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=108 time=7.11 ms
+64 bytes from 8.8.8.8: icmp_seq=3 ttl=108 time=7.03 ms
+64 bytes from 8.8.8.8: icmp_seq=4 ttl=108 time=7.09 ms
+64 bytes from 8.8.8.8: icmp_seq=5 ttl=108 time=7.01 ms
+64 bytes from 8.8.8.8: icmp_seq=6 ttl=108 time=7.00 ms
+^C
+--- 8.8.8.8 ping statistics ---
+6 packets transmitted, 6 received, 0% packet loss, time 5006ms
+rtt min/avg/max/mdev = 7.008/7.056/7.110/0.039 ms</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Press <code>CTRL+C</code> after a few pings. This stops and exits the container.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_detached_containers">Detached Containers</h3>
+<div class="paragraph">
+<p>This first container sent its STDOUT to your terminal. Create a second container, this time in detached mode:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run --detach centos:7 ping 8.8.4.4
+
+8aef3d0d411c7b02532292ec3267a54f9258eaafb71d3d73a8ad41e702bd35a2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Instead of seeing the executed command (<code>ping 8.8.4.4</code>), Docker engine displays a long hexidecimal number, which is the full container ID of your new container. The container is running detached, which means the container is running as a background process, rather than printing its STDOUT to your terminal.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_listing_running_containers">Listing running Containers</h3>
+<div class="paragraph">
+<p>List the running Docker containers using the <code>docker container ls</code> container command. You will see only one container running.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls
+
+CONTAINER ID IMAGE    COMMAND        CREATED       STATUS        PORTS  NAMES
+8aef3d0d411c centos:7 "ping 8.8.4.4" 3 minutes ago Up 3 minutes         zen_jang</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_listing_all_containers">Listing all Containers</h3>
+<div class="paragraph">
+<p>Now you know that the <code>docker container ls</code> command only shows running containers. You can show all containers that exist (running or stopped) by using <code>docker container ls --all</code>. Your container ID and name will vary. Note that you will see two containers: a stopped container and a running container.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls --all
+
+CONTAINER ID  IMAGE     COMMAND         CREATED        STATUS         NAMES
+8aef3d0d411c  centos:7  "ping 8.8.4.4"  2 minutes ago  Up 2 minutes   zen_jang
+00f763b9308d  centos:7  "ping 8.8.8.8"  4 minutes ago  Exited (0)...  inspiring_cheb</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Where did those names come from? All containers have names, which in most Docker CLI commands can be substituted for the container ID as we&#8217;ll see in later exercises. By default, containers get a randomly generated name of the form <code>&lt;adjective&gt;_&lt;scientist / technologist&gt;</code>, but you can choose a name explicitly with the <code>--name</code> flag in <code>docker container run</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_naming_containers">Naming Containers</h3>
+<div class="paragraph">
+<p>Start up another detached container, this time giving it a name "opendnsping".</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run --detach --name opendnsping \
+                   centos:7 ping 208.67.222.222
+
+3bdc61a95e76fdfe2597ef18aa00321a53dcdc9c36b2db97fbe738f8a623ecad</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>List all your containers again. You can see all of the containers, including your new one with your customized name.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls --all
+
+CONTAINER ID IMAGE    COMMAND               CREATED        STATUS         NAMES
+3bdc61a95e76 centos:7 "ping 208.67.222.222" 23 seconds ago Up 22 seconds  opendnsping
+8aef3d0d411c centos:7 "ping 8.8.4.4"        4 minutes ago  Up 14 minutes  zen_jang
+00f763b9308d centos:7 "ping 8.8.8.8"        9 minutes ago  Exited (0)...  inspirin...</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_remove_exited_containers">Remove exited Containers</h3>
+<div class="paragraph">
+<p>Next, remove the exited container. To do this, use <code>docker container rm &lt;container ID&gt;</code>. In the example above, the Docker container ID is <code>00f763b9308d</code>. You only need as many characters as to uniquely identify this container from all the others.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm &lt;container ID&gt;
+
+00f763b9308d</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_remove_running_containers">Remove running Containers</h3>
+<div class="paragraph">
+<p>Now try to remove one of the other Docker containers using the same command. It does not work. Why?</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm &lt;container ID&gt;
+
+Error response from daemon: You cannot remove a running container
+3bdc61a95e76fdfe2597ef18aa00321a53dcdc9c36b2db97fbe738f8a623ecad.
+Stop the container before attempting removal or force remove</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can see that running containers are not removed. You&#8217;ll have to look for an option to remove a running container. In order to find out the option you need to do a force remove, check the command line help. To do this with the <code>docker container rm</code> command, use the <code>--help</code> option:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm --help
+
+Usage: docker container rm [OPTIONS] CONTAINER [CONTAINER...]
+
+Remove one or more containers
+
+Options:
+ -f, --force     Force the removal of a running container (uses SIGKILL)
+ -l, --link      Remove the specified link
+ -v, --volumes   Remove the volumes associated with the container</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<strong>Help works with all Docker commands</strong> Not only can you use <code>--help</code> with <code>docker container rm</code>, but it works on all levels of docker commands. For example, <code>docker --help</code> provides you will all available docker commands, and <code>docker container --help</code> provides you with all available container commands.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now, run a force remove on the running container you tried to remove in the two previous steps. This time it works.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm --force &lt;container ID&gt;
+
+8aef3d0d411c</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Start another detached container pinging <code>8.8.8.8</code>, with the name <code>pinggoogledns</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run --detach --name pinggoogledns \
+                   centos:7 ping 8.8.8.8
+
+38e121e629611daa0726a21d634bc5189400377d82882cc6fd8a3870dc9943a0</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now that you&#8217;ve finished your testing, you need to remove your containers. In order to remove all of them at once, you want to get only the container IDs. Look at docker container ls --help to get the information you need:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls --help
+
+Usage:    docker container ls [OPTIONS]
+
+List containers
+
+Aliases:
+  ls, ps, list
+
+Options:
+  -a, --all           Show all containers (default shows just running)
+  -f, --filter filter Filter output based on conditions provided
+  --format string     Pretty-print containers using a Go template
+  -n, --last int      Show n last created containers (includes all states)
+  -l, --latest        Show the latest created container (includes all states)
+      --no-trunc      Don\'t truncate output
+  -q, --quiet         Only display numeric IDs
+  -s, --size          Display total file sizes</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To get only the container IDs, use the <code>--quiet</code> option. If you want to use only the container IDs of all existing containers to perform an action on, you can use <code>--quiet</code> with the <code>--all</code> option.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls --all --quiet
+
+3bdc61a95e76
+38e121e62961</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Since we are done running pings on the public DNS servers, kill the containers. To do this, use the syntax <code>docker container rm --force &lt;containerID&gt;</code>. However, this only kills one container at a time. We want to kill all the containers, no matter what state the containers are in. To get this information, you will need to use the output from docker container ls <code>--quiet</code> <code>--all</code>. To capture this output within the command, use <code>$(&#8230;&#8203;)</code> to nest the listing command inside the docker container rm command.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm --force \
+    $(docker container ls --quiet --all)
+
+3bdc61a95e76
+38e121e62961</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion">Conclusion</h3>
+<div class="paragraph">
+<p>This exercise taught you how to start, list, and kill containers. In this exercise you ran your first containers using <code>docker container run</code>, and how they are running commands inside the containers. You also learned to how to list your containers, and how to kill the containers using the command <code>docker container rm</code>. If you run into trouble, you&#8217;ve learned that the <code>--help</code> option can provide you with information that could help get you answers.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interactive_containers_2">2. Interactive containers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Launch an interactive shell in a new or existing container</p>
+</li>
+<li>
+<p>Run a child process inside a running container</p>
+</li>
+<li>
+<p>List containers using more options and filters</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_writing_to_containers">Writing to Containers</h3>
+<div class="paragraph">
+<p>Create a container using the <code>centos:7</code> image. Connect to its bash shell in interactive mode using the <code>-i</code> flag and request a TTY connection using the <code>-t</code> flag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -it centos:7 bash</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Explore your container&#8217;s filesystem with ls, and then create a new file. Use <code>ls</code> again to confirm you have successfully created your file. Use the <code>-l</code> option with <code>ls</code> to list the files and directories in long list format.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[root@2b8de2ffdf85 /]$ ls -l
+[root@2b8de2ffdf85 /]$ echo 'Hello there...' &gt; test.txt
+[root@2b8de2ffdf85 /]$ ls -l</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Exit the connection to the container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[root@2b8de2ffdf85 /]# exit</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run the same command as before to start a container using the <code>centos:7</code> image:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -it centos:7 bash</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use <code>ls</code> to explore your container. You will see that your previously created test.txt is nowhere to be found in your new container. Exit this container in the same way you did above.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_reconnecting_to_containers">Reconnecting to Containers</h3>
+<div class="paragraph">
+<p>We wish to recover <code>test.txt</code> written to our container in the first example, but starting a new container didn&#8217;t get us there. We need to restart and reconnect to our original container. List all your stopped containers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls -a
+
+CONTAINER ID  IMAGE     COMMAND  CREATED              STATUS
+cc19f7e9aa91  centos:7  "bash"   About a minute ago   Exited (0) About a minute ago
+2b8de2ffdf85  centos:7  "bash"   2 minutes ago        Exited (0) About a minute ago
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can restart a container via the container ID listed in the first column. Use the container ID for the first centos:7 container you created with bash as its command (see the CREATED column above to make sure you&#8217;re choosing the first bash container you ran):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container start &lt;container ID&gt;
+[centos@node-0 ~]$ docker container ls
+
+CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
+2b8de2ffdf85  centos:7  "bash"   5 minutes ago   Up 21 seconds  ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your container status has changed from Exited to Up, via docker container start.</p>
+</div>
+<div class="paragraph">
+<p>Run <code>ps -ef</code> inside the container you just restarted using Docker&#8217;s exec command (exec runs the specified process as a child of the PID 1 process inside the container):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container exec &lt;container ID&gt; ps -ef</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>What process is PID 1 inside the container? Find the PID of that process on the host machine by using:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container top &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Launch a bash shell in your running container with docker container exec:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container exec -it &lt;container ID&gt; bash</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>List the contents of the container&#8217;s filesystem with ls -l; your test.txt should be where you left it. Exit the container again by typing exit.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_container_listing_options">Using Container Listing Options</h3>
+<div class="paragraph">
+<p>In the last step, we saw how to get the short container ID of all our containers using docker container <code>ls -a</code>. Try adding the <code>--no-trunc</code> flag to see the entire container ID:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls -a --no-trunc</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This long ID is the same as the string that is returned after starting a container with docker container run.</p>
+</div>
+<div class="paragraph">
+<p>List only the container ID using the -q flag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls -a -q</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>List the last container to have been created using the <code>-l</code> flag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls -l</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Finally, you can also filter results with the <code>--filter</code> flag; for example, try filtering by exit code:</p>
+</div>
+<div class="paragraph">
+<p>[centos@node-0 ~]$ docker container ls -a --filter "exited=0"
+The output of this command will list the containers that have exited successfully.</p>
+</div>
+<div class="paragraph">
+<p>Clean up with:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f $(docker container ls -aq)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_2">Conclusion</h3>
+<div class="paragraph">
+<p>In this demo, you saw that files added to a container&#8217;s filesystem do not get added to all containers created from the same image. Changes to a container&#8217;s filesystem are local to itself, and exist only in that particular container. You also learned how to restart a stopped Docker container using <code>docker container start</code>, how to run a command in a running container using <code>docker container exec</code>, and also saw some more options for listing containers via <code>docker container ls</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_detached_containers_and_logging">3. Detached containers and Logging</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Run a container detached from the terminal</p>
+</li>
+<li>
+<p>Fetch the logs of a container</p>
+</li>
+<li>
+<p>Attach a terminal to the <code>STDOUT</code> of a running container</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_running_a_container_in_the_background">Running a Container in the Background</h3>
+<div class="paragraph">
+<p>First try running a container as usual; the <code>STDOUT</code> and <code>STDERR</code> streams from whatever is <code>PID 1</code> inside the container are directed to the terminal:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run centos:7 ping 127.0.0.1 -c 2
+PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.021 ms
+64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.029 ms
+
+--- 127.0.0.1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1019ms
+rtt min/avg/max/mdev = 0.021/0.025/0.029/0.004 ms</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The same process can be run in the background with the <code>-d</code> flag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -d centos:7 ping 127.0.0.1
+
+d5ef517cc113f36738005295066b271ae604e9552ce4070caffbacdc3893ae04</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This time, we only see the container&#8217;s ID; its <code>STDOUT</code> isn&#8217;t being sent to the terminal.</p>
+</div>
+<div class="paragraph">
+<p>Use this second container&#8217;s ID to inspect the logs it generated:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container logs &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These logs correspond to <code>STDOUT</code> and <code>STDERR</code> from the container&#8217;s <code>PID 1</code>.
+Also note when using container IDs: you don&#8217;t need to specify the entire ID. Just enough characters from the start of the ID to uniquely identify it, often just 2 or 3, is sufficient.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_attaching_to_container_output">Attaching to Container Output</h3>
+<div class="paragraph">
+<p>We can attach a terminal to a container&#8217;s <code>PID 1</code> output with the attach command; try it with the last container you made in the previous step:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container attach &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can leave attached mode by then pressing <code>CTRL+C</code>.
+After doing so, list your running containers; you should see that the container you attached to has been killed, since the <code>CTRL+C</code> issued killed <code>PID 1</code> in the container, and therefore the container itself.</p>
+</div>
+<div class="paragraph">
+<p>Try running the same thing in detached interactive mode:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -d -it centos:7 ping 127.0.0.1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Attach to this container like you did the first one, but this time detach with <code>CTRL+P CTRL+Q</code> (sequential, not simultaneous), and list your running containers.
+In this case, the container should still be happily running in the background after detaching from it.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_logging_options">Using Logging Options</h3>
+<div class="paragraph">
+<p>We saw previously how to read the entire log of a container&#8217;s <code>PID 1</code>;
+we can also use a couple of flags to control what logs are displayed. <code>--tail</code> n limits the display to the last n lines;
+try it with the container that should be running from the last step:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container logs --tail 5 &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see the last 5 pings from this container.</p>
+</div>
+<div class="paragraph">
+<p>We can also follow the logs as they are generated with <code>-f</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container logs -f &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The container&#8217;s logs get piped in real time to the terminal (<code>CTRL+C</code> to break out of following mode - note this doesn&#8217;t kill the process like when we attached to it, since now we&#8217;re tailing the logs, not attaching to the process).</p>
+</div>
+<div class="paragraph">
+<p>Finally, try combining the tail and follow flags to begin following the logs from 10 lines back in history.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_3">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, we saw our first detached containers. Almost all containers you ever run will be running in detached mode; you can use container attach to interact with their <code>PID 1</code> processes, as well as container logs to fetch their logs. Note that both attach and logs interact with the PID 1 process only - if you launch child processes inside a container, it&#8217;s up to you to manage their <code>STDOUT</code> and <code>STDERR</code> streams. Also, be careful when killing processes after attaching to a container; as we saw, it&#8217;s easy to attach to a container and then kill it, by issuing a <code>CTRL+C</code> to the <code>PID 1</code> process you&#8217;ve attached to.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_starting_stopping_inspecting_and_deleting_containers">4. Starting, Stopping, Inspecting and Deleting Containers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Restart containers which have exited</p>
+</li>
+<li>
+<p>Distinguish between stopping and killing a container</p>
+</li>
+<li>
+<p>Fetch container metadata using docker container inspect</p>
+</li>
+<li>
+<p>Delete containers</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_starting_and_restarting_containers">Starting and Restarting Containers</h3>
+<div class="paragraph">
+<p>Start by running a container in the background, and check that it&#8217;s really running:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -d centos:7 ping 8.8.8.8
+[centos@node-0 ~]$ docker container ls</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Stop the container using docker container stop, and check that the container is indeed stopped:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container stop &lt;container ID&gt;
+[centos@node-0 ~]$ docker container ls -a</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Note that the stop command takes a few seconds to complete. docker container stop first sends a <code>SIGTERM</code> to the <code>PID 1</code> process inside a container, asking it to shut down nicely; it then waits 10 seconds before sending a <code>SIGKILL</code> to kill it off, ready or not. The exit code you see (137 in this case) is the exit code returned by the <code>PID 1</code> process (<code>ping</code>) upon being killed by one of these signals.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Start the container again with docker container start, and attach to it at the same time with the <code>-a</code> flag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container start -a &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you saw previously, this brings the container from the Exited to the Up state; in this case, we&#8217;re also attaching to the <code>PID 1</code> process.</p>
+</div>
+<div class="paragraph">
+<p>Detach and stop the container with <code>CTRL+C</code>, then restart the container without attaching and follow the logs starting from 10 lines previous.</p>
+</div>
+<div class="paragraph">
+<p>Finally, stop the container with docker container kill:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container kill &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Unlike docker container stop, container kill just sends the <code>SIGKILL</code> right away - no grace period.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_inspecting_a_container">Inspecting a Container</h3>
+<div class="paragraph">
+<p>Start your ping container again, then inspect the container details using docker container inspect:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container start &lt;container ID&gt;
+[centos@node-0 ~]$ docker container inspect &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You get a JSON object describing the container&#8217;s config, metadata and state.</p>
+</div>
+<div class="paragraph">
+<p>Find the container&#8217;s IP and long ID in the JSON output of inspect. If you know the key name of the property you&#8217;re looking for, try piping to grep:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container inspect &lt;container ID&gt; | grep IPAddress</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output should look similar to this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">"SecondaryIPAddresses": null,
+"IPAddress": "&lt;Your IP Address&gt;"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now try grepping for Cmd, the <code>PID 1</code> command being run by this container. grep&#8217;s simple text search doesn&#8217;t always return helpful results:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container inspect &lt;container ID&gt; | grep Cmd
+
+"Cmd": \[</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A more powerful way to filter this JSON is with the <code>--format</code> flag. Syntax follows Go&#8217;s text/template package: link::http://golang.org/pkg/text/template/[golang text template].
+For example, to find the Cmd value we tried to grep for above, instead try:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container inspect --format='{{.Config.Cmd}}' &lt;container ID&gt;
+
+[ping 8.8.8.8]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This time, we get a the value of the Config.Cmd key from the inspect JSON.</p>
+</div>
+<div class="paragraph">
+<p>Keys nested in the JSON returned by docker container inspect can be chained together in this fashion. Try modifying this example to return the IP address you grepped for previously.</p>
+</div>
+<div class="paragraph">
+<p>Finally, we can extract all the key/value pairs for a given object using the json function:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container inspect --format='{{json .Config}}' &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Try adding <code>| jq</code> to this command to get the same output a little bit easier to read.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_deleting_containers">Deleting Containers</h3>
+<div class="paragraph">
+<p>Start three containers in background mode, then stop the first one.</p>
+</div>
+<div class="paragraph">
+<p>List only exited containers using the <code>--filter</code> flag we learned earlier, and the option <code>status=exited</code>.</p>
+</div>
+<div class="paragraph">
+<p>Delete the container you stopped above with <code>docker container rm</code>, and do the same listing operation as above to confirm that it has been removed:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm &lt;container ID&gt;
+[centos@node-0 ~]$ docker container ls ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now do the same to one of the containers that&#8217;s still running; notice <code>docker container rm</code> won&#8217;t delete a container that&#8217;s still running, unless we pass it the force flag <code>-f</code>. Delete the second container you started above:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Try using the <code>docker container ls</code> flags we learned previously to remove the last container that was run, or all stopped containers.
+Recall that you can pass the output of one shell command cmd-A into a variable of another command cmd-B with syntax like cmd-B $(cmd-A).</p>
+</div>
+<div class="paragraph">
+<p>When done, clean up any containers you may still have:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f $(docker container ls -aq)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_4">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, you explored the lifecycle of a container, particularly in terms of stopping and restarting containers.
+Keep in mind the behavior of <code>docker container stop</code>, which sends a <code>SIGTERM</code>, waits a grace period, and then sends a <code>SIGKILL</code> before forcing a container to stop;
+this two step process is designed to give your containers a chance to shut down 'nicely': dump their state to a log, finish a database transaction, or do whatever your application needs them to do in order to exit without causing additional problems. Make sure you bear this in mind when designing containerized software.</p>
+</div>
+<div class="paragraph">
+<p>Also keep in mind the <code>docker container inspect</code> command we saw, for examining container metadata, state and config; this is often the first place to look when trying to troubleshoot a failed container.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interactive_image_creation">5. Interactive Image Creation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Capture a container&#8217;s filesystem state as a new docker image</p>
+</li>
+<li>
+<p>Read and understand the output of <code>docker container diff</code></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_modifying_a_container">Modifying a Container</h3>
+<div class="paragraph">
+<p>Start a bash terminal in a CentOS container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -it centos:7 bash</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Install a couple pieces of software in this container - there&#8217;s nothing special about wget, any changes to the filesystem will do. Afterwards, exit the container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[root@dfe86ed42be9 /]# yum install -y which wget
+[root@dfe86ed42be9 /]# exit</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Finally, try <code>docker container diff</code> to see what&#8217;s changed about a container relative to its image; you&#8217;ll need to get the container ID via <code>docker container ls -a</code> first:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls -a
+[centos@node-0 ~]$ docker container diff &lt;container ID&gt;
+
+C /root
+A /root/.bash_history
+C /usr
+C /usr/bin
+A /usr/bin/gsoelim
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Those <code>C</code> 's at the beginning of each line stand for files Changed, and <code>A</code> for Added; lines that start with <code>D</code> indicate Deletions.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_capturing_container_state_as_an_image">Capturing Container State as an Image</h3>
+<div class="paragraph">
+<p>Installing which and wget in the last step wrote information to the container&#8217;s read/write layer; now let&#8217;s save that read/write layer as a new read-only image layer in order to create a new image that reflects our additions, via the docker container commit:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container commit &lt;container ID&gt; myapp:1.0</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Check that you can see your new image by listing all your images:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image ls
+
+REPOSITORY  TAG   IMAGE ID       CREATED         SIZE
+myapp       1.0   34f97e0b087b   8 seconds ago   300MB
+centos      7     5182e96772bf   44 hours ago    200MB</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a container running bash using your new image, and check that which and wget are installed:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -it myapp:1.0 bash
+[root@2ecb80c76853 /]# which wget</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The which commands should show the path to the specified executable, indicating they have been installed in the image. Exit your container when done by typing exit.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_5">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, you saw how to inspect the contents of a container&#8217;s read / write layer with <code>docker container diff</code>, and commit those changes to a new image layer with <code>docker container commit</code>.
+Committing a container as an image in this fashion can be useful when developing an environment inside a container, when you want to capture that environment for reproduction elsewhere.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_images_with_dockerfiles_12">6. Creating Images with Dockerfiles (1/2)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Write a <code>Dockerfile</code> using the <code>FROM</code> and <code>RUN</code> commands</p>
+</li>
+<li>
+<p>Build an image from a <code>Dockerfile</code></p>
+</li>
+<li>
+<p>Anticipate which image layers will be fetched from the cache at build time</p>
+</li>
+<li>
+<p>Fetch build history for an image</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_writing_and_building_a_dockerfile">Writing and Building a Dockerfile</h3>
+<div class="paragraph">
+<p>Create a folder called myimage, and a text file called <code>Dockerfile</code> within that folder. In <code>Dockerfile</code>, include the following instructions:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM centos:7
+
+RUN yum update -y
+RUN yum install -y wget</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This serves as a recipe for an image based on <code>centos:7</code>, that has all its default packages updated and wget installed on top.</p>
+</div>
+<div class="paragraph">
+<p>Build your image with the <code>build</code> command. Don&#8217;t miss the <code>.</code> at the end; that&#8217;s the path to your <code>Dockerfile</code>. Since we&#8217;re currently in the directory myimage which contains it, the path is just <code>.</code> (here).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker image build -t myimage .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You&#8217;ll see a long build output - we&#8217;ll go through the meaning of this output in a demo later. For now, your image creation was successful if the output ends with Successfully tagged <code>myimage:latest</code>.</p>
+</div>
+<div class="paragraph">
+<p>Verify that your new image exists with <code>docker image ls</code>, then use your new image to run a container and wget something from within that container, just to confirm that everything worked as expected:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker container run -it myimage bash
+[root@1d86d4093cce /]# wget example.com
+[root@1d86d4093cce /]# cat index.html
+[root@1d86d4093cce /]# exit</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see the HTML from example.com, downloaded by wget from within your container.</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s also possible to pipe a <code>Dockerfile</code> in from <code>STDIN</code>; try rebuilding your image with the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ cat Dockerfile | docker image build -t myimage -f - .</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This is useful when reading a Dockerfile from a remote location with curl, for example.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_the_build_cache">Using the Build Cache</h3>
+<div class="paragraph">
+<p>In the previous step, the second time you built your image should have completed immediately, with each step except the first reporting using cache. Cached build steps will be used until a change in the <code>Dockerfile</code> is found by the builder.</p>
+</div>
+<div class="paragraph">
+<p>Open your <code>Dockerfile</code> and add another <code>RUN</code> step at the end to install <code>vim</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM centos:7
+
+RUN yum update -y
+RUN yum install -y wget
+RUN yum install -y vim</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Build the image again as before; which steps is the cache used for?</p>
+</div>
+<div class="paragraph">
+<p>Build the image again; which steps use the cache this time?</p>
+</div>
+<div class="paragraph">
+<p>Swap the order of the two <code>RUN</code> commands for installing <code>wget</code> and <code>vim</code> in the <code>Dockerfile</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM centos:7
+
+RUN yum update -y
+RUN yum install -y vim
+RUN yum install -y wget</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Build one last time. Which steps are cached this time?</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_the_history_command">Using the <code>history</code> Command</h3>
+<div class="paragraph">
+<p>The <code>docker image history</code> command allows us to inspect the build cache history of an image. Try it with your new image:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker image history myimage:latest
+
+IMAGE          CREATED          CREATED BY                                      SIZE
+f2e85c162453   8 seconds ago    /bin/sh -c yum install -y wget                  87.2MB
+93385ea67464   12 seconds ago   /bin/sh -c yum install -y vim                   142MB
+27ad488e6b79   3 minutes ago    /bin/sh -c yum update -y                        86.5MB
+5182e96772bf   44 hours ago     /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B
+&lt;missing&gt;      44 hours ago     /bin/sh -c #(nop)  LABEL org.label-schema....   0B
+&lt;missing&gt;      44 hours ago     /bin/sh -c #(nop) ADD file:6340c690b08865d...   200MB</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Note the image id of the layer built for the <code>yum update</code> command.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Replace the two <code>RUN</code> commands that installed <code>wget</code> and <code>vim</code> with a single command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM centos:7
+
+RUN yum update -y
+RUN yum install -y wget vim</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Build the image again, and run docker image history on this new image. How has the history changed?</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_6">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, we&#8217;ve seen how to write a basic <code>Dockerfile</code> using <code>FROM</code> and <code>RUN</code> commands, some basics of how image caching works, and seen the <code>docker image history</code> command. Using the build cache effectively is crucial for images that involve lengthy compile or download steps. In general, moving commands that change frequently as late as possible in the <code>Dockerfile</code> will minimize build times. We&#8217;ll see some more specific advice on this later in this lesson.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_images_with_dockerfiles_22">7. Creating Images with Dockerfiles (2/2)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Define a default process for an image to containerize by using the <code>ENTRYPOINT</code> or <code>CMD</code> <code>Dockerfile</code> commands</p>
+</li>
+<li>
+<p>Understand the differences and interactions between <code>ENTRYPOINT</code> and <code>CMD</code></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_setting_default_commands">Setting Default Commands</h3>
+<div class="paragraph">
+<p>Add the following line to the bottom of your <code>Dockerfile</code> from the last exercise:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">CMD ["ping", "127.0.0.1", "-c", "5"]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This sets ping as the default command to run in a container created from this image, and also sets some parameters for that command.</p>
+</div>
+<div class="paragraph">
+<p>Rebuild your image:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker image build -t myimage .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run a container from your new image with no command provided:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker container run myimage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see the command provided by the <code>CMD</code> parameter in the Dockerfile running.</p>
+</div>
+<div class="paragraph">
+<p>Try explicitly providing a command when running a container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker container run myimage echo "hello world"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Providing a command in <code>docker container run</code> overrides the command defined by <code>CMD</code>.</p>
+</div>
+<div class="paragraph">
+<p>Replace the <code>CMD</code> instruction in your <code>Dockerfile</code> with an <code>ENTRYPOINT</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">ENTRYPOINT ["ping"]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Build the image and use it to run a container with no process arguments:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker image build -t myimage .
+[centos@node-0 myimage]$ docker container run myimage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You&#8217;ll get an error. What went wrong?</p>
+</div>
+<div class="paragraph">
+<p>Try running with an argument after the image name:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker container run myimage 127.0.0.1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see a successful ping output. Tokens provided after an image name are sent as arguments to the command specified by <code>ENTRYPOINT</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_combining_default_commands_and_options">Combining Default Commands and Options</h3>
+<div class="paragraph">
+<p>Open your <code>Dockerfile</code> and modify the <code>ENTRYPOINT</code> instruction to include 2 arguments for the ping command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">ENTRYPOINT ["ping", "-c", "3"]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If <code>CMD</code> and <code>ENTRYPOINT</code> are both specified in a <code>Dockerfile</code>, tokens listed in <code>CMD</code> are used as default parameters for the <code>ENTRYPOINT</code> command. Add a <code>CMD</code> with a default IP to ping:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">CMD ["127.0.0.1"]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Build the image and run a container with the defaults:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker image build -t myimage .
+[centos@node-0 myimage]$ docker container run myimage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see it pinging the default IP, 127.0.0.1.</p>
+</div>
+<div class="paragraph">
+<p>Run another container with a custom IP argument:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker container run myimage 8.8.8.8</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This time, you should see a ping to 8.8.8.8. Explain the difference in behavior between these two last containers.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_7">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, we encountered the <code>Dockerfile</code> commands <code>CMD</code> and <code>ENTRYPOINT</code>.
+These are useful for defining the default process to run as <code>PID 1</code> inside the container right in the <code>Dockerfile</code>, making our containers more like executables and adding clarity to exactly what process was meant to run in a given image&#8217;s containers.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multi_stage_builds">8. Multi-Stage Builds</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Write a <code>Dockerfile</code> that describes multiple images, which can copy files from one image to the next.</p>
+</li>
+<li>
+<p>Enable <code>BuildKit</code> for faster build times</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_defining_a_multi_stage_build">Defining a multi-stage build</h3>
+<div class="paragraph">
+<p>Make a new folder named 'multi' to do this exercise in, and cd into it.</p>
+</div>
+<div class="paragraph">
+<p>Add a file <code>hello.c</code> to the multi folder containing Hello World in C:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-c++ hljs" data-lang="c++">#include &lt;stdio.h&gt;
+
+int main (void)
+{
+    printf ("Hello, world!\n");
+    return 0;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Try compiling and running this right on the host OS:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ gcc -Wall hello.c -o hello
+[centos@node-0 multi]$ ./hello</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now let&#8217;s Dockerize our hello world application. Add a <code>Dockerfile</code> to the multi folder with this content:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM alpine:3.5
+RUN apk update &amp;&amp; \
+    apk add --update alpine-sdk
+RUN mkdir /app
+WORKDIR /app
+COPY hello.c /app
+RUN mkdir bin
+RUN gcc -Wall hello.c -o bin/hello
+CMD /app/bin/hello</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Build the image and note its size:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker image build -t my-app-large .
+[centos@node-0 multi]$ docker image ls | grep my-app-large
+
+REPOSITORY     TAG      IMAGE ID       CREATED         SIZE
+my-app-large   latest   a7d0c6fe0849   3 seconds ago   189MB</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Test the image to confirm it was built successfully:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker container run my-app-large</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It should print`hello world`" in the console.</p>
+</div>
+<div class="paragraph">
+<p>Update your <code>Dockerfile</code> to use an AS clause on the first line, and add a second stanza describing a second build stage:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM alpine:3.5 AS build
+RUN apk update &amp;&amp; \
+    apk add --update alpine-sdk
+RUN mkdir /app
+WORKDIR /app
+COPY hello.c /app
+RUN mkdir bin
+RUN gcc -Wall hello.c -o bin/hello
+
+FROM alpine:3.5
+COPY --from=build /app/bin/hello /app/hello
+CMD /app/hello</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Build the image again and compare the size with the previous version:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker image build -t my-app-small .
+[centos@node-0 multi]$ docker image ls | grep 'my-app-'
+
+REPOSITORY     TAG      IMAGE ID       CREATED              SIZE
+my-app-small   latest   f49ec3971aa6   6 seconds ago        4.01MB
+my-app-large   latest   a7d0c6fe0849   About a minute ago   189MB</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As expected, the size of the multi-stage build is much smaller than the large one since it does not contain the Alpine SDK.</p>
+</div>
+<div class="paragraph">
+<p>Finally, make sure the app works:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">[centos@node-0 multi]$ docker container run --rm my-app-small</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should get the expected <code>Hello, World!</code> output from the container with just the required executable.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_building_intermediate_images">Building Intermediate Images</h3>
+<div class="paragraph">
+<p>In the previous step, we took our compiled executable from the first build stage, but that image wasn&#8217;t tagged as a regular image we can use to start containers with; only the final <code>FROM</code> statement generated a tagged image. In this step, we&#8217;ll see how to persist whichever build stage we like.</p>
+</div>
+<div class="paragraph">
+<p>Build an image from the build stage in your <code>Dockerfile</code> using the <code>--target</code> flag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker image build -t my-build-stage --target build .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice all its layers are pulled from the cache; even though the build stage wasn&#8217;t tagged originally, its layers are nevertheless persisted in the cache.</p>
+</div>
+<div class="paragraph">
+<p>Run a container from this image and make sure it yields the expected result:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker container run -it --rm my-build-stage /app/bin/hello</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>List your images again to see the size of my-build-stage compared to the small version of the app.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_optional_building_from_scratch">Optional: Building from Scratch</h3>
+<div class="paragraph">
+<p>So far, every image we&#8217;ve built has been based on a pre-existing image, referenced in the <code>FROM</code> command. But what if we want to start from nothing, and build a completely original image? For this, we can build <code>FROM scratch</code>.</p>
+</div>
+<div class="paragraph">
+<p>In a new directory ~/scratch, create a file named sleep.c that just launches a sleeping process for an hour:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-c++ hljs" data-lang="c++">#include &lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+int main()
+{
+  int delay = 3600; //sleep for 1 hour
+  printf ("Sleeping for %d second(s)...\n", delay);
+  sleep(delay);
+  return 0;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a file named <code>Dockerfile</code> to build this sleep program in a build stage, and then copy it to a scratch-based image:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM alpine:3.8 AS build
+RUN ["apk", "update"]
+RUN ["apk", "add", "--update", "alpine-sdk"]
+COPY sleep.c /
+RUN ["gcc", "-static", "sleep.c", "-o", "sleep"]
+
+FROM scratch
+COPY --from=build /sleep /sleep
+CMD ["/sleep"]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This image will contain nothing but our executable and the bare minimum file structure Docker needs to stand up a container filesystem.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Note we&#8217;re statically linking the sleep.c binary, so it will have everything it needs bundled along with it, not relying on the rest of the container&#8217;s filesystem for anything.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Build your image:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 scratch]$ docker image build -t sleep:scratch .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>List your images, and search for the one you just built:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 scratch]$ docker image ls | grep scratch
+
+REPOSITORY  TAG       IMAGE ID       CREATED         SIZE
+sleep       scratch   1b68b20a85a8   9 minutes ago   128kB</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This image is only <code>128 kB</code>, as tiny as possible.</p>
+</div>
+<div class="paragraph">
+<p>Run your image, and check out its filesystem; we can&#8217;t list directly inside the container, since ls isn&#8217;t installed in this ultra-minimal image, so we have to find where this container&#8217;s filesystem is mounted on the host. Start by finding the PID of your sleep process after its running:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 scratch]$ docker container run --name sleeper -d sleep:scratch
+[centos@node-0 scratch]$ docker container top sleeper
+
+UID   PID   PPID  C  STIME  TTY  TIME     CMD
+root  1190  1174  0  15:21  ?    00:00:00 /sleep</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, the PID for sleep is 1190.</p>
+</div>
+<div class="paragraph">
+<p>List your container&#8217;s filesystem from the host using this PID:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 scratch]$ sudo ls /proc/&lt;PID&gt;/root
+
+dev  etc  proc  sleep  sys</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We see not only our binary sleep but a bunch of other folders and files. Where does these come from? runC, the tool for spawning and running containers, requires a json config of the container and a root file system. At runtime, Docker Engine adds these minimum requirements to form the most minimal container filesystem possible.</p>
+</div>
+<div class="paragraph">
+<p>Clean up by deleting your container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 scratch]$ docker container rm -f sleeper</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_optional_enabling_buildkit">Optional: Enabling BuildKit</h3>
+<div class="paragraph">
+<p>In addition to the default builder, <code>BuildKit</code> can be enabled to take advantages of some optimizations of the build process.</p>
+</div>
+<div class="paragraph">
+<p>Back in the <code>~/multi</code> directory, turn on <code>BuildKit</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ export DOCKER_BUILDKIT=1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Add an AS label to the final stage of your Dockerfile (this is not strictly necessary, but will make the output in the next step easier to understand):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">...
+
+FROM alpine:3.5 AS prod
+RUN apk update
+COPY --from=build /app/bin/hello /app/hello
+CMD /app/hello</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Re-build my-app-small, without the cache:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker image build --no-cache -t my-app-small-bk .
+
+[+] Building 15.5s (14/14) FINISHED
+ =&gt; [internal] load Dockerfile
+ =&gt; =&gt; transferring dockerfile: 97B
+ =&gt; [internal] load .dockerignore
+ =&gt; =&gt; transferring context: 2B
+ =&gt; [internal] load metadata for docker.io/library/alpine:3.5
+ =&gt; CACHED [prod 1/3] FROM docker.io/library/alpine:3.5
+ =&gt; [internal] load build context
+ =&gt; =&gt; transferring context: 87B
+ =&gt; CACHED [internal] helper image for file operations
+ =&gt; [build 2/6] RUN apk update &amp;&amp;     apk add --update alpine-sdk
+ =&gt; [prod 2/3] RUN apk update
+ =&gt; [build 3/6] RUN mkdir /app
+ =&gt; [build 4/6] COPY hello.c /app
+ =&gt; [build 5/6] RUN mkdir bin
+ =&gt; [build 6/6] RUN gcc -Wall hello.c -o bin/hello
+ =&gt; [prod 3/3] COPY --from=build /app/bin/hello /app/hello
+ =&gt; exporting to image
+ =&gt; =&gt; exporting layers
+ =&gt; =&gt; writing image sha256:22de288...
+ =&gt; =&gt; naming to docker.io/library/my-app-small-bk</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice the lines marked like <code>[prod 2/3]</code> and <code>[build 4/6]</code>: prod and build in this context are the AS labels you applied to the <code>FROM</code> lines in each stage of your build in the <code>Dockerfile</code>; from the above output, you can see that the build stages were built in parallel. Every step of the final image was completed while the build environment image was being created; the prod environment image creation was only blocked at the <code>COPY</code> instruction since it required a file from the completed build image.</p>
+</div>
+<div class="paragraph">
+<p>Comment out the <code>COPY</code> instruction in the prod image definition in your <code>Dockerfile</code>, and rebuild; the build image is skipped. <code>BuildKit</code> recognized that the build stage was not necessary for the image being built, and skipped it.</p>
+</div>
+<div class="paragraph">
+<p>Turn off BuildKit:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ export DOCKER_BUILDKIT=0</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_8">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, you created a <code>Dockerfile</code> defining multiple build stages. Being able to take artifacts like compiled binaries from one image and insert them into another allows you to create very lightweight images that do not include developer tools or other unnecessary components in your production-ready images, just like how you currently probably have separate build and run environments for your software. This will result in containers that start faster, and are less vulnerable to attack.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_managing_images">9. Managing Images</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Rename and retag an image</p>
+</li>
+<li>
+<p>Push and pull images from the public registry</p>
+</li>
+<li>
+<p>Delete image tags and image layers, and understand the difference between the two operations</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_making_an_account_on_dockers_hosted_registry">Making an Account on Docker&#8217;s Hosted Registry</h3>
+<div class="paragraph">
+<p>If you don&#8217;t have one already, head over to link::https://hub.docker.com[<a href="https://hub.docker.com" class="bare">https://hub.docker.com</a>] and make an account.</p>
+</div>
+<div class="paragraph">
+<p>For the rest of this workshop, <code>&lt;Docker ID&gt;</code> refers to the username you chose for this account.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_tagging_and_listing_images">Tagging and Listing Images</h3>
+<div class="paragraph">
+<p>Download the centos:7 image from Docker Hub:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image pull centos:7</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Make a new tag of this image:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image tag centos:7 my-centos:dev</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Note no new image has been created; <code>my-centos:dev</code> is just a pointer pointing to the same image as centos:7.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>List your images:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image ls</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should have <code>centos:7</code> and <code>my-centos:dev</code> both listed, but they ought to have the same hash under image ID, since they&#8217;re actually the same image.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sharing_images_on_docker_hub">Sharing Images on Docker Hub</h3>
+<div class="paragraph">
+<p>Push your image to Docker Hub:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image push my-centos:dev</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should get a denied: requested access to the resource is denied error.</p>
+</div>
+<div class="paragraph">
+<p>Login by doing <code>docker login</code>, and try pushing again. The push fails again because we haven&#8217;t namespaced our image correctly for distribution on Docker Hub; all images you want to share on Docker Hub must be named like <code>&lt;Docker ID&gt;/&lt;repo name&gt;[:&lt;optional tag&gt;]</code>.</p>
+</div>
+<div class="paragraph">
+<p>Retag your image to be namespaced properly, and push again:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image tag my-centos:dev &lt;Docker ID&gt;/my-centos:dev
+[centos@node-0 ~]$ docker image push &lt;Docker ID&gt;/my-centos:dev</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Search Docker Hub for your new <code>&lt;Docker ID&gt;/my-centos</code> repo, and confirm that you can see the <code>:dev</code> tag therein.</p>
+</div>
+<div class="paragraph">
+<p>Next, write a <code>Dockerfile</code> that uses <code>&lt;Docker ID&gt;/my-centos:dev</code> as its base image, and installs any application you like on top of that. Build the image, and simultaneously tag it as <code>:1.0</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image build -t &lt;Docker ID&gt;/my-centos:1.0 .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Push your <code>:1.0</code> tag to Docker Hub, and confirm you can see it in the appropriate repository.</p>
+</div>
+<div class="paragraph">
+<p>Finally, list the images currently on your node with docker image ls. You should still have the version of your image that wasn&#8217;t namespaced with your Docker Hub user name; delete this using <code>docker image rm</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image rm my-centos:dev</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Only the tag gets deleted, not the actual image. The image layers are still referenced by another tag.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_9">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, we praciced tagging images and exchanging them on the public registry. The namespacing rules for images on registries are mandatory: user-generated images to be exchanged on the public registry must be named like <code>&lt;Docker ID&gt;/&lt;repo name&gt;[:&lt;optional tag&gt;]</code>; official images in the Docker registry just have the repo name and tag.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Also note that as we saw when building images, image names and tags are just pointers; deleting an image with <code>docker image rm</code> just deletes that pointer if the corresponding image layers are still being referenced by another such pointer. Only when the last pointer is deleted are the image layers actually destroyed by docker image rm.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_database_volumes">10. Database Volumes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Provide a docker volume as a database backing to Postgres</p>
+</li>
+<li>
+<p>Recover a Postgres database from volume contents after destroying the original Postgres container</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_launching_postgres">Launching Postgres</h3>
+<div class="paragraph">
+<p>Download a postgres image, and look at its history to determine its default volume usage:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image pull postgres:9-alpine
+[centos@node-0 ~]$ docker image inspect postgres:9-alpine
+
+...
+"Volumes": {
+    "/var/lib/postgresql/data": {}
+},
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see a <code>Volumes</code> block like the above, indicating that those paths in the container filesystem will get volumes automatically mounted to them when a container is started based on this image.</p>
+</div>
+<div class="paragraph">
+<p>Set up a running instance of this postgres container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run --name some-postgres \
+    -v db_backing:/var/lib/postgresql/data \
+    -e POSTGRES_PASSWORD=password \
+    -d postgres:9-alpine</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice the explicit volume mount, <code>-v db_backing:/var/lib/postgresql/data</code>; if we hadn&#8217;t done this, a randomly named volume would have been mounted to the container&#8217;s <code>/var/lib/postgresql/data</code>. Naming the volume explicitly is a best practice that will become useful when we start mounting this volume in multiple containers.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_writing_to_the_database">Writing to the Database</h3>
+<div class="paragraph">
+<p>The <code>psql</code> command line interface to postgres comes packaged with the postgres image; spawn it as a child process in your postgres container interactively, to create a postgres terminal:</p>
+</div>
+<div class="paragraph">
+<p>[centos@node-0 ~]$ docker container exec \
+    -it some-postgres psql -U postgres
+Create an arbitrary table in the database:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">postgres=# CREATE TABLE PRODUCTS(PRICE FLOAT, NAME TEXT);
+postgres=# INSERT INTO PRODUCTS VALUES('18.95', 'widget');
+postgres=# INSERT INTO PRODUCTS VALUES('1.45', 'sprocket');</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Double check you created the table you expected, and then quit this container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">postgres=# SELECT * FROM PRODUCTS;
+
+  price  |  name
+---------+-----------
+  18.95  | widget
+  1.45   | sprocket
+(2 rows)
+
+postgres=# \q</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Delete the postgres container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f some-postgres</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a new postgres container, mounting the <code>db_backing</code> volume just like last time:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run \
+    --name some-postgres \
+    -v db_backing:/var/lib/postgresql/data \
+    -e POSTGRES_PASSWORD=password \
+    -d postgres:9-alpine</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Reconnect a <code>psql</code> interface to your database, also like before:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container exec \
+    -it some-postgres psql -U postgres</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>List the contents of the <code>PRODUCTS</code> table:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">postgres=# SELECT * FROM PRODUCTS;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The contents of the database have survived the deletion and recreation of the database container; this would not have been true if the database was keeping its data in the writable container layer. As above, use <code>\q</code> to quit from the postgres prompt.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_10">Conclusion</h3>
+<div class="paragraph">
+<p>Whenever data needs to live longer than the lifecycle of a container, it should be pushed out to a volume outside the container&#8217;s filesystem; numerous popular databases are containerized using this pattern.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_introduction_to_container_networking">11. Introduction to Container Networking</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create docker bridge networks and attach containers to them</p>
+</li>
+<li>
+<p>Design networks of containers that can successfully resolve each other via DNS and reach each other across a Docker software defined network.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_inspecting_the_default_bridge">Inspecting the Default Bridge</h3>
+<div class="paragraph">
+<p>In the dropdown menu at the top of the Strigo webpage, click into <code>node-1</code>. See what networks are present on your host:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network ls</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should have entries for <code>host</code>, <code>none</code>, and <code>bridge</code>.</p>
+</div>
+<div class="paragraph">
+<p>Find some metadata about the default <code>bridge</code> network:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network inspect bridge</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Note especially the private subnet assigned by Docker&#8217;s IPAM driver to this network. The first IP in this range is used as the network&#8217;s gateway, and the rest will be assigned to containers as they join the network.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>See similar info from common networking tools:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ ip addr</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Note the <code>bridge</code> network&#8217;s gateway corresponds to the IP of the <code>docker0</code> device in this list. <code>docker0</code> is the linux <code>bridge</code> itself, while bridge is the name of the default Docker network that uses that bridge.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Use <code>brctl</code> to see connections to the <code>docker0</code> bridge:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ brctl show docker0
+
+bridge name bridge id       STP enabled interfaces
+docker0     8000.02427f12c30b   no</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>At the moment, there are no connections to <code>docker0</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_connecting_containers_to_docker0">Connecting Containers to <code>docker0</code></h3>
+<div class="paragraph">
+<p>Start a container and reexamine the network; the container is listed as connected to the network, with an IP assigned to it from the bridge network&#8217;s subnet:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run --name u1 -dt centos:7
+[centos@node-1 ~]$ docker network inspect bridge
+
+...
+    "Containers": {
+        "11da9b7db065f971f78aebf14b706b0b85f07ec10dbf6f0773b1603f48697961": {
+            "Name": "u1",
+            "EndpointID": "670c495...",
+            "MacAddress": "02:42:ac:11:00:02",
+            "IPv4Address": "172.17.0.2/16",
+            "IPv6Address": ""
+        }
+    },
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inspect the network interfaces with <code>ip</code> and <code>brctl</code> again, now that you have a container running:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ ip addr
+
+...
+5: veth6f244c3@if4: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue
+    master docker0 state UP
+    link/ether aa:71:82:6c:f3:88 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet6 fe80::a871:82ff:fe6c:f388/64 scope link
+       valid_lft forever preferred_lft forever
+
+[centos@node-1 ~]$ brctl show docker0
+bridge name bridge id       STP enabled interfaces
+docker0     8000.02427f12c30b   no      veth6f244c3</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>ip addr</code> indicates a veth endpoint has been created and plugged into the <code>docker0</code> bridge, as indicated by <code>master docker0</code>, and that it is connected to device index 4 in this case (indicated by the <code>@if4</code> suffix to the veth device name above). Similarly, <code>brctl</code> now shows this veth connection on <code>docker0</code> (notice that the ID for the veth connection matches in both utilities).</p>
+</div>
+<div class="paragraph">
+<p>Launch a bash shell in your container, and look for the <code>eth0</code> device therein:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec -it u1 bash
+[root@11da9b7db065 /]# yum install -y iproute
+[root@11da9b7db065 /]# ip addr
+
+...
+4: eth0@if5: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue
+    state UP group default
+    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.17.0.2/16 scope global eth0
+       valid_lft forever preferred_lft forever</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We see that the <code>eth0</code> device in this namespace is in fact the device that the veth connection in the host namespace indicated it was attached to, and vice versa - <code>eth0@if5</code> indicates it is plugged into networking interface number 5, which we saw above was the other end of the veth connection. Docker has created a veth connection with one end in the host&#8217;s <code>docker0</code> bridge, and the other providing the <code>eth0</code> device in the container.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_defining_additional_bridge_networks">Defining Additional Bridge Networks</h3>
+<div class="paragraph">
+<p>In the last step, we investigated the default bridge network; now let&#8217;s try making our own. User defined bridge networks work exactly the same as the default one, but provide DNS lookup by container name, and are firewalled from other networks by default.</p>
+</div>
+<div class="paragraph">
+<p>Create a bridge network by using the <code>bridge</code> driver with <code>docker network create</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network create --driver bridge my_bridge</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Launch a container connected to your new network via the <code>--network</code> flag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run --name=u2 --network=my_bridge -dt centos:7</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use the <code>inspect</code> command to investigate the network settings of this container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container inspect u2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>my_bridge</code> should be listed under the <code>Networks</code> key.</p>
+</div>
+<div class="paragraph">
+<p>Launch another container, this time interactively:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run --name=u3 --network=my_bridge -it centos:7</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>From inside container <code>u3</code>, ping <code>u2</code> by name: <code>ping u2</code>. The ping succeeds, since Docker is able to resolve container names when they are attached to a custom network.</p>
+</div>
+<div class="paragraph">
+<p>Try starting a container on the default network, and pinging <code>u1</code> by name:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run centos:7 ping u1
+
+ping: u1: Name or service not known</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ping fails; even though the containers are both attached to the <code>bridge</code> network, Docker does not provide name lookup on this default network. Try the same command again, but using <code>u1</code> 's IP instead of name, and you should be successful.</p>
+</div>
+<div class="paragraph">
+<p>Finally, try pinging <code>u1</code> by IP, this time from container <code>u2</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec u2 ping &lt;u1 IP&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ping fails, since the containers reside on different networks; all Docker networks are firewalled from each other by default.</p>
+</div>
+<div class="paragraph">
+<p>Clean up your containers and networks:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container rm -f $(docker container ls -aq)
+[centos@node-1 ~]$ docker network rm my_bridge</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_11">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, you explored the fundamentals of container networking. The key take away is that containers on separate networks are firewalled from each other by default. This should be leveraged as much as possible to harden your applications; if two containers don&#8217;t need to talk to each other, put them on separate networks.</p>
+</div>
+<div class="paragraph">
+<p>You also explored a number of API objects:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>docker network ls</code> lists all networks on the host</p>
+</li>
+<li>
+<p><code>docker network inspect &lt;network name&gt;</code> gives more detailed info about the named network</p>
+</li>
+<li>
+<p><code>docker network create --driver &lt;driver&gt; &lt;network name&gt;</code> creates a new network using the specified driver; so far, we&#8217;ve only seen the bridge driver, for creating a linux bridge based network.</p>
+</li>
+<li>
+<p><code>docker network connect &lt;network name&gt; &lt;container name or id&gt;</code> connects the specified container to the specified network after the container is running; the <code>--network</code> flag in <code>docker container run</code> achieves the same result at container launch.</p>
+</li>
+<li>
+<p><code>docker container inspect &lt;container name or id&gt;</code> yields, among other things, information about the networks the specified container is connected to.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_container_port_mapping">12. Container Port Mapping</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Forward traffic from a port on the docker host to a port inside a container&#8217;s network namespace</p>
+</li>
+<li>
+<p>Define ports to automatically expose in a Dockerfile</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_port_mapping_at_runtime">Port Mapping at Runtime</h3>
+<div class="paragraph">
+<p>Run an nginx container with no special port mappings:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run -d nginx</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>nginx stands up a landing page at <code>&lt;ip&gt;:80</code>. If you try to visit this at your host or container&#8217;s IP it won&#8217;t be visible; no external traffic can make it past the linux bridge&#8217;s firewall to the nginx container.</p>
+</div>
+<div class="paragraph">
+<p>Now run an nginx container and map port 80 on the container to port 5000 on your host using the <code>-p</code> flag:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run -d -p 5000:80 nginx</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Note that the syntax is: <code>-p [host-port]:[container-port]</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Verify the port mappings with the <code>docker container port</code> command</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container port &lt;container id&gt;
+
+80/tcp -&gt; 0.0.0.0:5000</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Visit your nginx landing page at <code>&lt;host ip&gt;:5000</code>, e.g. using <code>curl -4 localhost:5000</code>, just to confirm it&#8217;s working as expected.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_exposing_ports_from_the_dockerfile">Exposing Ports from the Dockerfile</h3>
+<div class="paragraph">
+<p>In addition to manual port mapping, we can expose some ports for automatic port mapping on container startup using a Dockerfile. In a new directory <code>~/port</code>, create a Dockerfile:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM nginx
+
+EXPOSE 80</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Build your image as <code>my_nginx</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 port]$ docker image build -t my_nginx .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use the <code>-P</code> flag when running to map all ports mentioned in the <code>EXPOSE</code> directive:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 port]$ docker container run -d -P my_nginx</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use <code>docker container ls</code> or <code>docker container port</code> to find out which host ports were used, then visit your nginx landing page in a browser at <code>&lt;node-1 public IP&gt;:&lt;port&gt;</code>.</p>
+</div>
+<div class="paragraph">
+<p>Clean up your containers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 port]$ docker container rm -f $(docker container ls -aq)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_12">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, we saw how to explicitly map ports from our container&#8217;s network stack onto ports of our host at runtime with the <code>-p</code> option to <code>docker container run</code>, or more flexibly in our Dockerfile with <code>EXPOSE</code>, which will result in the listed ports inside our container being mapped to random available ports on our host. In both cases, Docker is writing iptables rules to forward traffic from the host to the appropriate port in the container&#8217;s network namespace.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_starting_a_compose_app">13. Starting a Compose App</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Read a basic docker compose yaml file and understand what components it is declaring</p>
+</li>
+<li>
+<p>Start, stop, and inspect the logs of an application defined by a docker compose file</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_inspecting_a_compose_app">Inspecting a Compose App</h3>
+<div class="paragraph">
+<p>Download the Dockercoins app from github:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ git clone -b ee3.0 \
+    https://github.com/docker-training/orchestration-workshop.git
+[centos@node-0 ~]$ cd orchestration-workshop/dockercoins</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This app consists of 5 services: a random number generator <code>rng</code>, a <code>hasher</code>, a backend <code>worker</code>, a <code>redis</code> queue, and a <code>web</code> frontend; the code you just downloaded has the source code for each process and a Dockerfile to containerize each of them.</p>
+</div>
+<div class="paragraph">
+<p>Have a brief look at the source for each component of your application. Each folder under <code>~/orchestration-workshop/ dockercoins</code> contains the application logic for the component, and a Dockerfile for building that logic into a Docker image. We&#8217;ve pre-built these images as <code>training/dockercoins-rng:1.0</code>, <code>training/dockercoins-worker:1.0</code> et cetera, so no need to build them yourself.</p>
+</div>
+<div class="paragraph">
+<p>Have a look in <code>docker-compose.yml</code>; especially notice the <code>services</code> section. Each block here defines a different Docker service. They each have exactly one image which containers for this service will be started from, as well as other configuration details like network connections and port exposures. Full syntax for Docker Compose files can be found here: link::https://dockr.ly/2iHUpeX[Docker Compose Specification].</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_starting_the_app">Starting the App</h3>
+<div class="paragraph">
+<p>Stand up the app:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose up</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After a moment, your app should be running; visit <code>&lt;node 0 public IP&gt;:8000</code> to see the web frontend visualizing your rate of Dockercoin mining.</p>
+</div>
+<div class="paragraph">
+<p>Logs from all the running services are sent to <code>STDOUT</code>. Let&#8217;s send this to the background instead; kill the app with <code>CTRL+C</code>, sending a <code>SIGTERM</code> to all running processes; some exit immediately, while others wait for a 10s timeout before being killed by a subsequent <code>SIGKILL</code>. Start the app again in the background:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose up -d</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Check out which containers are running thanks to Compose:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose ps
+
+        Name                      Command               State          Ports
+------------------------------------------------------------------------------------
+dockercoins_hasher_1   ruby hasher.rb                   Up      0.0.0.0:8002-&gt;80/tcp
+dockercoins_redis_1    docker-entrypoint.sh redis ...   Up      6379/tcp
+dockercoins_rng_1      python rng.py                    Up      0.0.0.0:8001-&gt;80/tcp
+dockercoins_webui_1    node webui.js                    Up      0.0.0.0:8000-&gt;80/tcp
+dockercoins_worker_1   python worker.py                 Up</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Compare this to the usual <code>docker container ls</code>; do you notice any differences? If not, start a couple of extra containers using <code>docker container run&#8230;&#8203;</code>, and check again.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_viewing_logs">Viewing Logs</h3>
+<div class="paragraph">
+<p>See logs from a Compose-managed app via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose logs</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The logging API in Compose follows the main Docker logging API closely. For example, try following the tail of the logs just like you would for regular container logs:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose logs --tail 10 --follow</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that when following a log, <code>CTRL+S</code> and <code>CTRL+Q</code> pauses and resumes live following; <code>CTRL+C</code> exits follow mode as usual.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_13">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, you saw how to start a pre-defined Compose app, and how to inspect its logs. Application logic was defined in each of the five images we used to create containers for the app, but the manner in which those containers were created was defined in the <code>docker-compose.yml</code> file; all runtime configuration for each container is captured in this manifest. Finally, the different elements of Dockercoins communicated with each other via service name; the Docker daemon&#8217;s internal DNS was able to resolve traffic destined for a service, into the IP or MAC address of the corresponding container.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_scaling_a_compose_app">14. Scaling a Compose App</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Scale a service from Docker Compose up or down</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_scaling_a_service">Scaling a Service</h3>
+<div class="paragraph">
+<p>Any service defined in our <code>docker-compose.yml</code> can be scaled up from the Compose API; in this context, 'scaling' means launching multiple containers for the same service, which Docker Compose can route requests to and from.</p>
+</div>
+<div class="paragraph">
+<p>Scale up the <code>worker</code> service in our Dockercoins app to have two workers generating coin candidates by redeploying the app with the <code>--scale</code> flag, while checking the list of running containers before and after:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose ps
+[centos@node-0 dockercoins]$ docker-compose up -d --scale worker=2
+[centos@node-0 dockercoins]$ docker-compose ps
+
+        Name                       Command               State          Ports
+-------------------------------------------------------------------------------------
+dockercoins_hasher_1    ruby hasher.rb                   Up      0.0.0.0:8002-&gt;80/tcp
+dockercoins_redis_1     docker-entrypoint.sh redis ...   Up      6379/tcp
+dockercoins_rng_1       python rng.py                    Up      0.0.0.0:8001-&gt;80/tcp
+dockercoins_webui_1     node webui.js                    Up      0.0.0.0:8000-&gt;80/tcp
+dockercoins_worker_1    python worker.py                 Up
+dockercoins_worker_2    python worker.py                 Up</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A new worker container has appeared in your list of containers.</p>
+</div>
+<div class="paragraph">
+<p>Look at the performance graph provided by the web frontend; the coin mining rate should have doubled. Also check the logs using the logging API we learned in the last exercise; you should see a second <code>worker</code> instance reporting.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_investigating_bottlenecks">Investigating Bottlenecks</h3>
+<div class="paragraph">
+<p>Try running <code>top</code> to inspect the system resource usage; it should still be fairly negligible. So, keep scaling up your workers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose up -d --scale worker=10
+[centos@node-0 dockercoins]$ docker-compose ps</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Check your web frontend again; has going from 2 to 10 workers provided a 5x performance increase? It seems that something else is bottlenecking our application; any distributed application such as Dockercoins needs tooling to understand where the bottlenecks are, so that the application can be scaled intelligently.</p>
+</div>
+<div class="paragraph">
+<p>Look in <code>docker-compose.yml</code> at the <code>rng</code> and <code>hasher</code> services; they&#8217;re exposed on host ports 8001 and 8002, so we can use <code>httping</code> to probe their latency.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ httping -c 5 localhost:8001
+[centos@node-0 dockercoins]$ httping -c 5 localhost:8002</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>rng</code> on port 8001 has the much higher latency, suggesting that it might be our bottleneck. A random number generator based on entropy won&#8217;t get any better by starting more instances on the same machine; we&#8217;ll need a way to bring more nodes into our application to scale past this, which we&#8217;ll explore in the next unit on Docker Swarm.</p>
+</div>
+<div class="paragraph">
+<p>For now, shut your app down:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose down</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_14">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, we saw how to scale up a service defined in our Compose app using the <code>--scale</code> flag. Also, we saw how crucial it is to have detailed monitoring and tooling in a microservices-oriented application, in order to correctly identify bottlenecks and take advantage of the simplicity of scaling with Docker.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cleaning_up_docker_resources">15. Cleaning up Docker Resources</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Assess how much disk space docker objects are consuming</p>
+</li>
+<li>
+<p>Use <code>docker prune</code> commands to clear out unneeded docker objects</p>
+</li>
+<li>
+<p>Apply label based filters to <code>prune</code> commands to control what gets deleted in a cleanup operation</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Find out how much memory Docker is using by executing:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-3 ~]$ docker system df</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output will show us how much space images, containers and local volumes are occupying and how much of this space can be reclaimed.</p>
+</div>
+<div class="paragraph">
+<p>Reclaim all reclaimable space by using the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-3 ~]$ docker system prune</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Answer with <code>y</code> when asked if we really want to remove all unused networks, containers, images and volumes.</p>
+</div>
+<div class="paragraph">
+<p>Create a couple of containers with labels (these will exit immediately; why?):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-3 ~]$ docker container run --label apple --name fuji -d alpine
+[centos@node-3 ~]$ docker container run --label orange --name clementine -d alpine</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Delete only those stopped containers bearing the <code>apple</code> label:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-3 ~]$ docker container ls -a
+[centos@node-3 ~]$ docker container prune --filter 'label=apple'
+[centos@node-3 ~]$ docker container ls -a</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Only the container named <code>clementine</code> should remain after the targeted prune.</p>
+</div>
+<div class="paragraph">
+<p>Finally, prune containers launched before a given timestamp using the <code>until</code> filter; start by getting the current RFC 3339 time (hlink::ttps://tools.ietf.org/html/rfc3339[RFC3339] - note Docker requires the otherwise optional <code>T</code> separating date and time), then creating a new container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-3 ~]$ TIMESTAMP=$(date --rfc-3339=seconds | sed 's/ /T/')
+[centos@node-3 ~]$ docker container run --label tomato --name beefsteak -d alpine</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And use the timestamp returned in a prune:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-3 ~]$ docker container prune -f --filter "until=$TIMESTAMP"
+[centos@node-3 ~]$ docker container ls -a</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note the <code>-f</code> flag, to suppress the confirmation step. <code>label</code> and <code>until</code> filters for pruning are also available for networks and images, while data volumes can only be selectively pruned by <code>label</code>; finally, images can also be pruned by the boolean <code>dangling</code> key, indicating if the image is untagged.</p>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_15">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, we saw some very basic <code>docker prune</code> usage - most of the top-level docker objects have a <code>prune</code> command (<code>docker container prune</code>, <code>docker volume prune</code> etc). Most docker objects leave something on disk even after being shut down; consider using these cleanup commands as part of your cluster maintenance and garbage collection plan, to avoid accidentally running out of disk on your Docker hosts.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_inspection_commands">16. Inspection Commands</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Gather system level info from the docker engine</p>
+</li>
+<li>
+<p>Consume and format the docker engine&#8217;s event stream for monitoring purposes</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_inspecting_system_information">Inspecting System Information</h3>
+<div class="paragraph">
+<p>We can find the <code>info</code> command under <code>system</code>. Execute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-3 ~]$ docker system info</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This provides some high-level information about the docker deployment on the current node, and the node itself. From this output, identify:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>how many images are cached on your machine?</p>
+</li>
+<li>
+<p>how many containers are running or stopped?</p>
+</li>
+<li>
+<p>what version of containerd are you running?</p>
+</li>
+<li>
+<p>whether Docker is running in swarm mode?</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_monitoring_system_events">Monitoring System Events</h3>
+<div class="paragraph">
+<p>There is another powerful system command that allows us to monitor what&#8217;s happening on the Docker host. Execute the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-3 ~]$ docker system events</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Please note that it looks like the system is hanging, but that is not the case. The system is just waiting for some events to happen.</p>
+</div>
+<div class="paragraph">
+<p>Open a second connection to <code>node-3</code> and execute the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-3 ~]$ docker container run --rm alpine echo 'Hello World!'
+and observe the generated output in the first terminal. It should look similar to this:
+
+2017-01-25T16:57:48.553596179-06:00 container create 30eb63 ...
+2017-01-25T16:57:48.556718161-06:00 container attach 30eb63 ...
+2017-01-25T16:57:48.698190608-06:00 network connect de1b2b ...
+2017-01-25T16:57:49.062631155-06:00 container start 30eb63 ...
+2017-01-25T16:57:49.065552570-06:00 container resize 30eb63 ...
+2017-01-25T16:57:49.164526268-06:00 container die 30eb63 ...
+2017-01-25T16:57:49.613422740-06:00 network disconnect de1b2b ...
+2017-01-25T16:57:49.815845051-06:00 container destroy 30eb63 ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Granular information about every action taken by the Docker engine is presented in the events stream.</p>
+</div>
+<div class="paragraph">
+<p>If you don&#8217;t like the format of the output then we can use the <code>--format</code> parameter to define our own format in the form of a link::https://golang.org/pkg/text/template/[Go template]. Stop the events watch on your first terminal with <code>CTRL+C</code>, and try this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-3 ~]$ docker system events --format '--&gt; {{.Type}}-{{.Action}}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>now the output looks a little bit less cluttered when we run our alpine container on the second terminal as above.</p>
+</div>
+<div class="paragraph">
+<p>Finally we can find out what the event structure looks like by outputting the events in <code>json</code> format (once again after killing the events watcher on the first terminal and restarting it with):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-3 ~]$ docker system events --format '{{json .}}' | jq</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>which should give us for the first event in the series after re-running our alpine container on the other connection to <code>node-3</code> something like this (note, the output has been prettyfied for readability):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+   "status":"create",
+   "id":"95ddb6ed4c87d67fa98c3e63397e573a23786046e00c2c68a5bcb9df4c17635c",
+   "from":"alpine",
+   "Type":"container",
+   "Action":"create",
+   "Actor":{
+      "ID":"95ddb6ed4c87d67fa98c3e63397e573a23786046e00c2c68a5bcb9df4c17635c",
+      "Attributes":{
+         "image":"alpine",
+         "name":"sleepy_roentgen"
+      }
+   },
+   "time":1485385702,
+   "timeNano":1485385702748011034
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_16">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise we have learned how to inspect system wide properties of our Docker host by using the <code>docker system info</code> command; this is one of the first places to look for general config information to include in a bug report. We also saw a simple example of <code>docker system events</code>; the events stream is one of the primary sources of information that should be logged and monitored when running Docker in production. Many commercial as well as open source products (such as Elastic Stack) exist to facilitate aggregating and mining these streams at scale.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_appendix">17. Appendix</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_a_brief_introduction_to_bash">A Brief Introduction to Bash</h3>
+<div class="paragraph">
+<p>If you&#8217;re not familiar with the common Linux commands (<code>cd</code>, <code>ls</code>, <code>ps</code>, <code>sudo</code>, etc.), this exercise is designed to lead you through the common linux commands that we use in the Docker training.</p>
+</div>
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:
+* Manage files and folders using Linux commands
+* Inspect processes running on your machine and use some discovery tools.</p>
+</div>
+<div class="paragraph">
+<p>Pre-requisites:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A Linux machine.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_managing_files_and_folders">Managing Files and Folders</h3>
+<div class="paragraph">
+<p>In this first part we will walk through common commands for creating and manipulating files and folders from the command line.</p>
+</div>
+<div class="paragraph">
+<p>Open a terminal.</p>
+</div>
+<div class="paragraph">
+<p>Terminals work by accepting text-based commands, and retuning text-based responses. Ask the terminal what directory you are currently in; in all our instructions, <code>$</code> represents the terminal prompt, and you should enter what you see after the prompt. Yours might look a bit different; in any case, type <code>pwd</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ pwd</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>pwd</code> stands for Print Working Directory. You should see something like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">/Users/ckaserer</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This means your terminal is currently in the <code>ckaserer</code> folder, which itself is in the <code>/Users</code> folder (yours will have different folder names, but the logic is the same).</p>
+</div>
+<div class="paragraph">
+<p>List the files and folders in your current directory:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ ls
+
+Applications    Documents   Library     Music
+Projects        Desktop</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here we show some typical output below the command; again, you only need to enter what comes after the command prompt, <code>ls</code> in this case. <code>ls</code> lists all the contents of your current directory.</p>
+</div>
+<div class="paragraph">
+<p>Change directory with <code>cd</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ cd Desktop</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Again, your directories might be named differently - that&#8217;s ok. Try to navigate to a directory you recognize the names of; <code>Desktop</code> or <code>Downloads</code> are common.</p>
+</div>
+<div class="paragraph">
+<p>Use <code>ls</code> again to see what&#8217;s in this directory. Compare what you see in your <code>Desktop</code> directory to what you actually see on your machine&#8217;s desktop; the contents are identical. The terminal is just another way to browse the contents of your machine, based on programmatic text rather than visual analogies.</p>
+</div>
+<div class="paragraph">
+<p>Make a new folder on your desktop (or wherever you currently are):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ mkdir demo-dir</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you do <code>ls</code> again, you&#8217;ll see a new directory <code>demo-dir</code> has been made.</p>
+</div>
+<div class="paragraph">
+<p>Change directory to <code>demo-dir</code>, and open a new plain text file called <code>demo.txt</code> using the simple text editor <code>nano</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ cd demo-dir
+$ nano demo.txt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You&#8217;re taken to <code>nano</code> 's text-based interface for creating a plain-text file. There are many other plain-text editors available, the most popular being <code>vim</code>, but <code>nano</code> is probably the simplest if this is your first time using a text editor from the command line.</p>
+</div>
+<div class="paragraph">
+<p>Add any text you want to your file, just by typing something.</p>
+</div>
+<div class="paragraph">
+<p>Save your file by pressing <code>CMD+O</code>, and pressing return when asked for a filename. Exit by typing <code>CMD+X</code>.</p>
+</div>
+<div class="paragraph">
+<p>Dump the contents of your file to the screen:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ cat demo.txt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Make a copy of your file with <code>cp</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ cp demo.txt demo.copy.txt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Move and rename your file with <code>mv</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ mv demo.txt demo.moved.txt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Delete a file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ rm demo.moved.txt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Check what directory you&#8217;re in, then back up one level with the special <code>..</code> path, and check again:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ pwd
+/Users/ckaserer/Desktop/demo-dir
+
+$ cd ..
+$ pwd
+/Users/ckaserer/Desktop</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>cd ..</code> took us one level up in our directory tree, from <code>demo-dir</code> back out to the directory that contains it, <code>Desktop</code> in my example.</p>
+</div>
+<div class="paragraph">
+<p>Delete your <code>demo-dir</code>, again with remove, but this time using the <code>-r</code> flag, which stands for recursive in order to delete the folder and all its contents:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ rm -r demo-dir</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_some_common_tools">Some Common Tools</h4>
+<div class="paragraph">
+<p>In this section we will see the basic usage of different command line tools we&#8217;ll see again when working with Docker.</p>
+</div>
+<div class="sect4">
+<h5 id="_inspecting_processes">Inspecting Processes</h5>
+<div class="paragraph">
+<p>In the next steps we will use <code>ps</code> and <code>top</code>. Check whether these tools are existing in our system:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ which pwd</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>which</code> is a quick way to identify the location of executables and should return something similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">/bin/pwd</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>pwd</code> command we used above is actually a tiny program, and it lives in our filesystem at the path indicated by <code>which</code>. If <code>which</code> returns nothing, that means the requested program probably isn&#8217;t installed on your machine.</p>
+</div>
+<div class="paragraph">
+<p>List all processes running in your system:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ ps -aux</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A long list of processes is returned.</p>
+</div>
+<div class="paragraph">
+<p>We will see later how to filter this output to extract only the information we need.</p>
+</div>
+<div class="paragraph">
+<p>There different other tools to inspect processes. Try for example showing the list of processes with usage details (cpu usage, memory, etc.):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ top</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Exit with <code>CTRL+C</code>.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_the_superuser">The Superuser</h5>
+<div class="paragraph">
+<p>In some cases you want to run commands that require privileges that you don&#8217;t have.</p>
+</div>
+<div class="paragraph">
+<p>Try creating a new user:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ adduser myName</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This should return Permission denied.</p>
+</div>
+<div class="paragraph">
+<p>Run the same command with sudo:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ sudo adduser myName</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Sudo runs the command with the privileges of the super user.</p>
+</div>
+<div class="paragraph">
+<p>List the existing users:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ cat /etc/passwd</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see the user <code>myName</code> in the bottom of the list.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_pinging_of_an_address">Pinging of an address</h5>
+<div class="paragraph">
+<p><code>ping</code> is a tool used to test the reachability of a network address.</p>
+</div>
+<div class="paragraph">
+<p>Send a ping to your <code>localhost</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ ping localhost</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ping should be successful. Interrupt it with <code>CTRL+C</code>.</p>
+</div>
+<div class="paragraph">
+<p>Try pinging an unreachable address:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ ping -c 3 192.168.1.1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The flag <code>-c</code> stands for the count of the sent packets. If no device is plugged to your machine and has this address, the request should timeout after 3 packets with <code>100% packet loss</code>.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_making_http_requests">Making HTTP Requests</h5>
+<div class="paragraph">
+<p>Use the <code>curl</code> command to issue HTTP requests across the network.</p>
+</div>
+<div class="paragraph">
+<p><code>curl</code> an example webpage:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ curl example.com</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You&#8217;ll get some HTML corresponding to a dummy webpage, downloaded directly to your terminal.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_working_with_commands">Working with Commands</h5>
+<div class="sect5">
+<h6 id="_command_piping">Command piping</h6>
+<div class="paragraph">
+<p>So far, every command we&#8217;ve used as accepted text as input, and returned text as output. We can send the text output from one command into the text input of another command using a pipe, <code>|</code>.</p>
+</div>
+<div class="paragraph">
+<p>Earlier we saw the <code>ps</code> command, to write a large table of all the processes running on our machine. We can send that table to grep, which is a text search tool that will pick out lines containing something we&#8217;re interested in:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ ps -aux | grep 'ps'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Rather than getting every process on the system, we can just pick out the ps process by text-searching for it using <code>grep</code>.</p>
+</div>
+<div class="paragraph">
+<p>Another common grep usage is with <code>cat</code>, to find a string in a file. Search your <code>/etc/passwd</code> file for the <code>root</code> user:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ cat /etc/passwd | grep root</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Instead of getting every user on the system, only lines with the string <code>root</code> are printed out, making it easier to findwhat you&#8217;re looking for.</p>
+</div>
+</div>
+<div class="sect5">
+<h6 id="_successive_commands">Successive Commands</h6>
+<div class="paragraph">
+<p>We can run several commands in a one liner using semicolon <code>;</code> or double-ampersand <code>&amp;&amp;</code>.</p>
+</div>
+<div class="paragraph">
+<p>Create a new directory:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ mkdir newDir</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We know that to remove a directory we need to use <code>rm -r</code>. Let&#8217;s simulate a error by forgetting the <code>-r</code> flag, and immediately after removing we&#8217;ll create a new directory with the same name:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ rm newDir ; mkdir newDir</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This should returns:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rm: cannot remove ‘newDir’: Is a directory
+mkdir: cannot create directory ‘newDir’: File exists</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The semicolon <code>;</code> runs the second command even when the first command wasn&#8217;t successful.</p>
+</div>
+<div class="paragraph">
+<p>Combining commands with the double-ampersand <code>&amp;&amp;</code> insures that the second command will run only if the first command was successful. Try the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ rm newDir &amp;&amp; mkdir newDir</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This should return the error for the first command only:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rm: cannot remove ‘newDir’: Is a directory</code></pre>
+</div>
+</div>
+</div>
+<div class="sect5">
+<h6 id="_breaking_long_commands">Breaking long commands</h6>
+<div class="paragraph">
+<p>Some commands get too long, for example because it includes a long file path or it&#8217;s a one liner that combines several commands. For better readability, you can break long commands into several lines using the backslash:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ mkdir aDirectoryWithAVeryLongName ;  \
+    cd aDirectoryWithAVeryLongName ; \
+    echo "this is a test file" &gt; myTestFile ; \
+    cat myTestFile ; cd ..</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This one liner will create a directory, cd into it, create a file, cat the content of the file, and finally change directory a level up.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_conclusion_17">Conclusion</h4>
+<div class="paragraph">
+<p>We saw most of the Linux commands that we will use in the actual Docker training. Feel free to discover more commands in the following cheat sheet: link::https://www.git-tower.com/blog/command-line-cheat-sheet/[Command Line Cheat Sheet]</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version local<br>
+Last updated 2023-02-06 15:39:45 UTC
+</div>
+</div>
+<script src="./assets/highlight/highlight.min.js"></script>
+<script src="./assets/highlight/languages/yaml.min.js"></script>
+<script src="./assets/highlight/languages/bash.min.js"></script>
+<script src="./assets/highlight/languages/shell.min.js"></script>
+<script src="./assets/highlight/languages/shell.min.js"></script>
+<script src="./assets/highlight/languages/dockerfile.min.js"></script>
+<script>
+if (!hljs.initHighlighting.called) {
+  hljs.initHighlighting.called = true
+  ;[].slice.call(document.querySelectorAll('pre.highlight > code')).forEach(function (el) { hljs.highlightBlock(el) })
+}
+</script>
+</body>
+</html>

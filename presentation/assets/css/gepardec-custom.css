@@ -1,0 +1,109 @@
+@charset "utf-8";
+
+/* Fonts */
+@font-face {
+  font-family: Barlow_Regular;
+  src: url(../fonts/Barlow/Barlow-Regular.ttf);
+}
+
+/* Listing */
+ul li ul li {
+  font-size: 24px !important;
+}
+
+img {
+  border: none !important;
+  box-shadow: none !important;
+  background: rgba(0, 0, 0, 0) !important;
+}
+
+.slide_icon {
+  width: 55px;
+  height: 45px;
+  display: inline-block;
+  vertical-align: middle !important;
+  border: none !important;
+  margin-right: 20px !important;
+  margin-top: 6px !important;
+  box-shadow: none !important;
+}
+
+.moby_icon {
+  width: 55px;
+  display: inline-block;
+  vertical-align: middle !important;
+  border: none !important;
+  margin-right: 10px !important;
+  box-shadow: none !important;
+}
+
+/* background styles */
+section.demo.background {
+  background-color: rgb(52, 11, 101);
+}
+
+section.exercise.background {
+  background-color: rgb(0, 162, 161);
+}
+
+.dark_background h2,
+.dark_background h3,
+.dark_background p {
+  color: #FFF !important;
+}
+
+/* span classes */
+span.keyword {
+  color: #F0D200;
+  font-weight: bold !important;
+}
+
+span.comment {
+  font-style: italic;
+  font-size: 0.8em !important;
+  color: darkgrey !important;
+}
+
+span.alert {
+  color: red;
+}
+
+span.header {
+  font-size: 1.1em !important;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+/* Header */
+/* title headers */
+section[data-state='title'] h1,
+section[data-state='title'] h2,
+section[data-state='title'] h3,
+section[data-state='title'] h4,
+section[data-state='title'] h5,
+section[data-state='title'] h6 {
+  color: white !important;
+}
+
+/* Code styles */
+pre code.hljs {
+  padding: 0.5em !important;
+}
+
+.reveal pre {
+  width: initial;
+  min-width: 150px;
+  max-width: 75%;
+}
+
+.reveal code {
+  font-family: monospace;
+}
+
+/* Link styles */
+a,
+a:visited,
+a:active,
+a:hover {
+  color: rgb(240, 210, 0) !important;
+}
