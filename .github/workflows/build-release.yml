@@ -1,13 +1,13 @@
 # This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
 # For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#apache-maven-with-a-settings-path
 
-name: Create a release
+name: Build/Release
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - feature/10-gh-pages-new
+      - main
     tags:
       - 'v\d+.\d+.\d+'
 
@@ -67,7 +67,7 @@ jobs:
           cp -r exercises/exercises.html exercises/assets ./gh-pages-release/exercises/
           cp resources/hello-world/target/hello-world-runner.jar ./gh-pages-release/resources/ 
           cp gh-pages/index.html ./gh-pages-release/ 
-        if: ${{ github.ref_name }} == 'main'
+        if: github.ref_name == 'main'
 
       - name: Push to gh-pages branch
         id: push_to_branch_gh-pages
@@ -78,7 +78,7 @@ jobs:
           FOLDER: gh-pages-release
           GITHUB_TOKEN: ${{ github.token }}
           MESSAGE: "Created gh-pages resources '({ github.sha })'"
-        if: github.ref_name == 'feature/10-gh-pages-new'
+        if: github.ref_name == 'main'
 
       - name: Collect Assets for Release
         id: collect_assets_for_release
