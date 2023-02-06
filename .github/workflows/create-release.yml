@@ -77,7 +77,7 @@ jobs:
           FOLDER: gh-pages-release
           GITHUB_TOKEN: ${{ github.token }}
           MESSAGE: "Created gh-pages resources '({ github.sha })'"
-        if: ${{ github.ref_name }} == 'main'
+        if: github.ref_name == 'main'
 
       - name: Collect Assets for Release
         id: collect_assets_for_release
