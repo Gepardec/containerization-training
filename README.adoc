@@ -65,7 +65,7 @@ scp -r buntu@<PROVIDED_AWS_URI>:<REMOTE_PATH> <LOCAL_DIR_PATH> -i <PROVIDED_PUBL
 
 This section is for trainers only, and documents how to prepare for a training.
 
-=== Render Presentation/Exercies
+=== Render Presentation/Exercises
 
 The presentation and exercises are asciidoc resources whereby the presentation can be rendered to PDF via a http-server and a chromium browser. +
 The exercises can be printed via a browser as any other website.
