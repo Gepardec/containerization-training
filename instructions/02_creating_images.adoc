@@ -1,0 +1,173 @@
+== Creating Images
+In this demo, we'll illustrate:
+
+* How to read each step of the image build output
+* How intermediate image layers behave in the cache and as independent images
+* What the meanings of 'dangling' and `<missing>`` image layers are
+
+=== Understanding Image Build Output
+Make a folder `demo`` for our image demo:
+
+[source,Dockerfile]
+----
+[centos@node-0 ~]$ mkdir demo ; cd demo
+And create a Dockerfile therein with the following content:
+
+FROM centos:7
+RUN yum update -y
+RUN yum install -y which
+RUN yum install -y wget
+RUN yum install -y vim
+----
+Build your image from your Dockerfile, just like we did in the last exercise:
+
+[source,shell]
+----
+[centos@node-0 demo]$ docker image build -t demo .
+----
+Examine the output from the build process. The very first line looks like:
+
+[source,shell]
+----
+Sending build context to Docker daemon  2.048kB
+----
+Here the Docker daemon is archiving everything at the path specified in the `docker image build` command (`.` or the current directory in this example). This is why we made a fresh directory demo to build in, so that nothing extra is included in this process.
+
+The next lines look like:
+
+[source,shell]
+----
+Step 1/5 : FROM centos:7
+ ---> 49f7960eb7e4
+----
+Do an image ls:
+
+[source,shell]
+----
+[centos@node-0 demo]$ docker image ls
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+demo                latest              59e595750dd5        10 seconds ago      645MB
+centos              7                   49f7960eb7e4        2 months ago        200MB
+----
+Notice the Image ID for `centos:7` matches that second line in the build output. The build starts from the base image defined in the `FROM`` command.
+
+The next few lines look like:
+
+[source,shell]
+----
+Step 2/5 : RUN yum update -y
+ ---> Running in 8734b14cf011
+Loaded plugins: fastestmirror, ovl
+...
+----
+This is the output of the `RUN` command, `yum update -y`. The line `Running in 8734b14cf011` specifies a container that this command is running in, which is spun up based on all previous image layers (just the centos:7 base at the moment). Scroll down a bit and you should see something like:
+
+[source,shell]
+----
+ ---> 433e56d735f6
+Removing intermediate container 8734b14cf011
+----
+At the end of this first `RUN` command, the temporary container `8734b14cf011` is saved as an image layer `433e56d735f6`, and the container is removed. This is the exact same process as when you used `docker container commit` to save a container as a new image layer, but now running automatically as part of a Dockerfile build.
+
+Look at the history of your image:
+
+[source,shell]
+----
+[centos@node-0 demo]$ docker image history demo
+
+IMAGE          CREATED         CREATED BY                                      SIZE  
+59e595750dd5   2 minutes ago   /bin/sh -c yum install -y vim                   142MB               
+bba17f8df167   2 minutes ago   /bin/sh -c yum install -y wget                  87MB                
+b9f2efa616de   2 minutes ago   /bin/sh -c yum install -y which                 86.6MB              
+433e56d735f6   2 minutes ago   /bin/sh -c yum update -y                        129MB               
+49f7960eb7e4   2 months ago    /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B                  
+<missing>      2 months ago    /bin/sh -c #(nop)  LABEL org.label-schema....   0B                  
+<missing>      2 months ago    /bin/sh -c #(nop) ADD file:8f4b3be0c1427b1...   200MB    
+----
+As you can see, the different layers of `demo` correspond to a separate line in the Dockerfile and the layers have their own ID. You can see the image layer `433e56d735f6` committed in the second build step in the list of layers for this image.
+
+Look through your build output for where steps 3/5 (installing `which`), 4/5 (installing `wget`), and 5/5 (installing `vim`) occur - the same behavior of starting a temporary container based on the previous image layers, running the `RUN` command, saving the container as a new image layer visible in your `docker iamge history` output, and deleting the temporary container is visible.
+
+Every layer can be used as you would use any image, which means we can inspect a single layer. Let's inspect the wget layer, which in my case is bba17f8df167 (yours will be different, look at your `docker image history` output):
+
+[source,shell]
+----
+[centos@node-0 demo]$ docker image inspect bba17f8df167
+----
+Let's look for the command associated with this image layer by using `--format`:
+
+[source,shell]
+----
+[centos@node-0 demo]$ docker image inspect \
+    --format='{{.ContainerConfig.Cmd}}' bba17f8df167
+
+[/bin/sh -c yum install -y wget]
+----
+We can even start containers based on intermediate image layers; start an interactive container based on the `wget` layer, and look for whether `wget` and `vim` are installed:
+
+[source,shell]
+----
+[centos@node-0 demo]$ docker container run -it bba17f8df167 bash 
+
+[root@a766a3d616b7 /]# which wget
+
+/usr/bin/wget
+
+[root@a766a3d616b7 /]# which vim
+
+/usr/bin/which: no vim in 
+    (/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin)
+----
+`wget` is installed in this layer, but since `vim` didn't arrive until the next layer, it's not available here.
+
+=== Managing Image Layers
+Change the last line in the Dockerfile from the last section to install `nano` instead of `vim`:
+
+[source,Dockerfile]
+----
+FROM centos:7
+RUN yum update -y
+RUN yum install -y which
+RUN yum install -y wget
+RUN yum install -y nano
+----
+Rebuild your image, and list your images again:
+
+[source,shell]
+----
+[centos@node-0 demo]$ docker image build -t demo .
+[centos@node-0 demo]$ docker image ls
+
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+demo                latest              5a6aedc1feab        8 seconds ago       590MB
+<none>              <none>              59e595750dd5        23 minutes ago      645MB
+centos              7                   49f7960eb7e4        2 months ago        200MB
+----
+What is that image named `<none>`? Notice the image ID is the same as the old image ID for `demo:latest` (see your history output above). The name and tag of an image is just a pointer to the stack of layers that make it up; reuse a name and tag, and you are effectively moving that pointer to a new stack of layers, leaving the old one (the one containing the `vim` install in this case) as an untagged or 'dangling' image.
+
+Rewrite your Dockerfile one more time, to combine some of those install steps:
+
+[source,Dockerfile]
+----
+FROM centos:7
+RUN yum update -y
+RUN yum install -y which wget nano
+----
+Rebuild using a `new` tag this time, and list your images one more time:
+
+[source,shell]
+----
+[centos@node-0 demo]$ docker image build -t demo:new .
+...
+[centos@node-0 demo]$ docker image ls
+
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+demo                new                 568b29a0dce9        20 seconds ago      416MB
+demo                latest              5a6aedc1feab        5 minutes ago       590MB
+<none>              <none>              59e595750dd5        28 minutes ago      645MB
+centos              7                   49f7960eb7e4        2 months ago        200MB    
+----
+Image `demo:new` is much smaller in size than `demo:latest`, even though it contains the exact same software - why?
+
+=== Conclusion
+In this demo, we explored the layered structure of images; each layer is built as a distinct image and can be treated as such, on the host where it was built. This information is preserved on the build host for use in the build cache; build another image based on the same lower layers, and they will be reused to speed up the build process. Notice that the same is not true of downloaded images like `centos:7`; intermediate image caches are not downloaded, but rather only the final complete image.

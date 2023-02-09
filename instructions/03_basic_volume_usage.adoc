@@ -1,0 +1,139 @@
+== Basic Volume Usage
+In this demo, we'll illustrate:
+
+* Creating, updating, destroying, and mounting docker named volumes
+* How volumes interact with a container's layered filesystem
+* Usecases for mounting host directories into a container
+
+=== Using Named Volumes
+Create a volume, and inspect its metadata:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker volume create demovol
+[centos@node-0 ~]$ docker volume inspect demovol
+
+[
+    {
+        "CreatedAt": "2018-11-03T19:07:56Z",
+        "Driver": "local",
+        "Labels": {},
+        "Mountpoint": "/var/lib/docker/volumes/demovol/_data",
+        "Name": "demovol",
+        "Options": {},
+        "Scope": "local"
+    }
+]
+----
+We can see that by default, named volumes are created under `/var/lib/docker/volumes/<name>/_data`.
+
+Run a container that mounts this volume, and list the filesystem therein:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container run -it -v demovol:/demo centos:7 bash
+[root@f4aca1b60965 /]# ls
+anaconda-post.log  bin  demo  dev  etc  home ...
+----
+The `demo` directory is created as the mountpoint for our volume, as specified in the flag `-v demovol:/demo`. This should also appear in your container filesystem's list of mountpoints:
+
+[source,shell]
+----
+[root@f4aca1b60965 /]# cat /proc/self/mountinfo | grep demo
+
+1199 1180 202:1 /var/lib/docker/volumes/demovol/_data /demo 
+    rw,relatime - xfs /dev/xvda1 ...
+----
+Put a file in this volume:
+
+[source,shell]
+----
+[root@f4aca1b60965 /]# echo 'dummy file' > /demo/mydata.dat
+----
+Exit the container, and list the contents of your volume on the host:
+
+[source,shell]
+----
+[centos@node-0 ~]$ sudo ls /var/lib/docker/volumes/demovol/_data
+----
+You'll see your `mydata.dat` file present at this point in the host's filesystem. Delete the container:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container rm -f <container ID>
+----
+The volume and its contents will still be present on the host.
+
+Start a new container mounting the same volume, attach a bash shell to it, and show that the old data is present in your new container:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container run -d -v demovol:/demo centos:7 ping 8.8.8.8
+[centos@node-0 ~]$ docker container exec -it <container ID> bash
+[root@11117d3de672 /]# cat /demo/mydata.dat
+----
+Exit this container, and inspect its mount metadata:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container inspect <container ID>
+
+    "Mounts": [
+        {
+            "Type": "volume",
+            "Name": "demovol",
+            "Source": "/var/lib/docker/volumes/demovol/_data",
+            "Destination": "/demo",
+            "Driver": "local",
+            "Mode": "z",
+            "RW": true,
+            "Propagation": ""
+        }
+    ],
+----
+Here too we can see the volumes and host mountpoints for everything mounted into this container.
+
+Build a new image out of this container using `docker container commit`, and start a new container based on that image:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container commit <container ID> demo:snapshot
+[centos@node-0 ~]$ docker container run -it demo:snapshot bash
+[root@ad62f304ba18 /]# cat /demo/mydata.dat 
+cat: /demo/mydata.dat: No such file or directory
+----
+The information mounted into the original container is not part of the container's layered filesystem, and therefore is not captured in the image creation process; volume mounts and the layered filesystem are completely separate.
+
+Clean up by removing that volume:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker volume rm demovol
+----
+You will get an error saying the volume is in use - docker will not delete a volume mounted to any container (even a stopped container) in this way. 
+Remove the offending container first, then remove the volume again.
+
+=== Mounting Host Paths
+Make a directory with some source code in it for your new website:
+
+[source,shell]
+----
+[centos@node-0 ~]$ mkdir /home/centos/myweb
+[centos@node-0 ~]$ cd /home/centos/myweb
+[centos@node-0 myweb]$ echo "<h1>Hello Wrld</h1>" > index.html
+----
+Start up an nginx container that mounts this as a static website:
+
+[source,shell]
+----
+[centos@node-0 myweb]$ docker container run -d \
+    -v /home/centos/myweb:/usr/share/nginx/html \
+    -p 8000:80 nginx
+----
+Visit your website at the public IP of this node, port 8000.
+
+Fix the spelling of 'world' in your HTML, and refresh the webpage; the content served by nginx gets updated without having to restart or replace the nginx container.
+
+=== Conclusion
+In this demo, we saw two key points about volumes: they exist outside the container's layered filesystem, meaning that not only are they not captured on image creation, they don't participate in the usual copy on write procedure when manipulating files in the writable container layer. Second, we saw that manipulating files on the host that have been mounted into a container immediately propagates those changes to the running container; this is a popular technique for developers who containerize their running environment, and mount in their in-development code so they can edit their code using the tools on their host machine that they are familiar with, and have those changes immediately available inside a running container without having to restart or rebuild anything.
+

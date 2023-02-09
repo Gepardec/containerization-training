@@ -1,0 +1,21 @@
+= Instructor demos
+Thomas Herzog <thomas.herzog@gepardec.com>; Clemens Kaserer
+:sectnums:
+:sectnumlevels: 1
+:source-highlighter: highlightjs
+:highlightjsdir: ./assets/highlight
+:highlightjs-theme: base16/ia-light
+:highlightjs-languages: yaml,bash,shell,shell,dockerfile
+:toc: left
+:toclevels: 1
+:stylesheet: ./assets/css/asciidoctor.css
+
+include::01_process_isolation.adoc[]
+
+include::02_creating_images.adoc[]
+
+include::03_basic_volume_usage.adoc[]
+
+include::04_single_host_networks.adoc[]
+
+include::05_docker_compose.adoc[]

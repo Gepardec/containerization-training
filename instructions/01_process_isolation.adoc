@@ -1,0 +1,184 @@
+== Process Isolation
+In this demo, we'll illustrate:
+
+* What containerized process IDs look like inside versus outside of a kernel namespace
+* How to impose control group limitations on CPU and memory consumption of a containerized process.
+
+=== Exploring the PID Kernel Namespace
+Start a simple container we can explore:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container run -d --name pinger centos:7 ping 8.8.8.8
+----
+Use `docker container exec` to launch a child process inside the container's namespaces:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container exec pinger ps -aux
+
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.1  0.0  24860  1884 ?        Ss   02:20   0:00 ping 8.8.8.8
+root         5  0.0  0.0  51720  3504 ?        Rs   02:20   0:00 ps -aux
+----
+Run the same `ps` directly on the host, and search for your ping process:
+
+[source,shell]
+----
+[centos@node-0 ~]$ ps -aux | grep ping
+
+USER      PID %CPU %MEM    VSZ   RSS TTY     STAT START   TIME COMMAND
+root    11622  0.0  0.0  24860  1884 ?       Ss   02:20   0:00 ping 8.8.8.8
+centos  11839  0.0  0.0 112656  2132 pts/0   S+   02:23   0:00 grep --color=auto ping
+----
+The ping process appears as PID 1 inside the container, but as some higher PID (11622 in this example) from outside the container.
+
+List your containers to show this ping container is still running:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container ls
+
+CONTAINER ID  IMAGE     COMMAND         ...  STATUS        ...  NAMES
+bb3a3b1cbb78  centos:7  "ping 8.8.8.8"  ...  Up 6 minutes       pinger
+----
+Kill the ping process by host PID, and show the container has stopped:
+
+[source,shell]
+----
+[centos@node-0 ~]$ sudo kill -9 [host PID of ping]
+[centos@node-0 ~]$ docker container ls
+
+CONTAINER ID  IMAGE     COMMAND         ...  STATUS        ...  NAMES
+----
+Killing the ping process on the host also kills the container - all a running container is is its PID 1 process, and the kernel tooling that isolates it from the host. Note using `kill -9` is just for demonstration purposes here; never stop containers this way.
+
+=== Imposing Resource Limitations With Cgroups
+Start a container that consumes two full CPUs:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container run -d training/stress:3.0 --vm 2
+----
+Here the `--vm` flag starts 2 dummy processes that allocate and free memory as fast as they can, each consuming as many CPU cycles as possible.
+
+Check the CPU consumption of processes in the container:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container top <container ID>
+
+UID     PID     PPID    C   ...   CMD
+root    5806    5789    0   ...   /usr/bin/stress --verbose --vm 2
+root    5828    5806    99  ...   /usr/bin/stress --verbose --vm 2
+root    5829    5806    99  ...   /usr/bin/stress --verbose --vm 2
+----
+That C column represents CPU consumption, in percent; this container is hogging two full CPUs! See the same thing by running `ps -aux` both inside and outside this container, like we did above; the same process and its CPU utilization is visible inside and outside the container:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container exec <container ID> ps -aux
+
+USER       PID %CPU %MEM   ...   COMMAND
+root         1  0.0  0.0   ...   /usr/bin/stress --verbose --vm 2
+root         5 98.9  6.4   ...   /usr/bin/stress --verbose --vm 2
+root         6 99.0  0.4   ...   /usr/bin/stress --verbose --vm 2
+root         7  2.0  0.0   ...   ps -aux
+----
+And on the host directly, via the PIDs we found from `docker container top` above:
+
+[source,shell]
+----
+[centos@node-0 ~]$ ps -aux | grep <PID>
+
+USER       PID %CPU %MEM   ...   COMMAND
+root      5828 99.3  4.9   ...   /usr/bin/stress --verbose --vm 2
+centos    6327  0.0  0.0   ...   grep --color=auto 5828
+----
+Kill off this container:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container rm -f <container ID>
+----
+This is the right way to kill and remove a running container (not `kill -9`).
+
+Run the same container again, but this time with a cgroup limitation on its CPU consumption:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container run -d --cpus="1" training/stress:3.0 --vm 2
+----
+Do `docker container top` and `ps -aux` again, just like above; you'll see the processes taking up half a CPU each, for a total of 1 CPU consumed. The `--cpus="1"` flag has imposed a control group limitation on the processes in this container, constraining them to consume a total of no more than one CPU.
+
+Find the host PID of a process running in this container using `docker container top` again, and then see what cgroups that process lives in on the host:
+
+[source,shell]
+----
+[centos@node-0 ~]$ cat /proc/<host PID of containerized process>/cgroup
+
+12:memory:/docker/31d03...
+11:freezer:/docker/31d03...
+10:hugetlb:/docker/31d03...
+9:perf_event:/docker/31d03...
+8:net_cls,net_prio:/docker/31d03...
+7:cpuset:/docker/31d03...
+6:pids:/docker/31d03...
+5:blkio:/docker/31d03...
+4:rdma:/
+3:devices:/docker/31d03...
+2:cpu,cpuacct:/docker/31d03...
+1:name=systemd:/docker/31d03...
+----
+Get a summary of resources consumed by processes in a control group via `systemd-cgtop`:
+
+[source,shell]
+----
+[centos@node-0 ~]$ systemd-cgtop
+
+Path                Tasks   %CPU     Memory  Input/s    Output/s
+
+/                   68      112.3    1.0G    -          -
+/docker             -       99.3     301.0M  -          -
+/docker/31d03...    3       99.3     300.9M  -          -
+...
+----
+Here again we can see that the processes living in the container's control group (`/docker/31d03...`) are constrained to take up only about 1 CPU.
+
+Remove this container, spin up a new one that creates a lot of memory pressure, and check its resource consumption with `docker stats`:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container rm -f <container ID>
+[centos@node-0 ~]$ docker container run -d training/stress:3.0 --vm 2 --vm-bytes 1024M
+[centos@node-0 ~]$ docker stats
+
+CONTAINER           CPU %               MEM USAGE / LIMIT     MEM %    ...
+b29a6d877343        198.94%             937.2MiB / 3.854GiB   23.75%   ...
+----
+Kill this container off, start it again with a memory constraint, and list your containers:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container rm -f <container ID>
+[centos@node-0 ~]$ docker container run \
+    -d -m 256M training/stress:3.0 --vm 2 --vm-bytes 1024M
+[centos@node-0 ~]$ docker container ls -a
+
+CONTAINER ID        IMAGE                 ...  STATUS                      
+296c8f76af5c        training/stress:3.0   ...  Exited (1) 26 seconds ago
+----
+It exited immediately this time.
+
+Inspect the metadata for this container, and look for the `OOMKilled` key:
+
+[source,shell]
+----
+[centos@node-0 ~]$ docker container inspect <container ID> | grep 'OOMKilled'
+
+        "OOMKilled": true,
+----
+When the containerized process tried to exceed its memory limitation, it gets killed with an Out Of Memory exception.
+
+=== Conclusion
+In this demo, we explored some of the most important technologies that make containerization possible: kernel namespaces and control groups. The core message here is that containerized processes are just processes running on their host, isolated and constrained by these technologies. All the tools and management strategies you would use for conventional processes apply just as well for containerized processes.

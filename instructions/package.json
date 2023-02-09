@@ -1,0 +1,10 @@
+{
+    "name": "containerization-training-exercises",
+    "version": "1.0.0",
+    "description": "The exercises for the containerization training",
+    "author": "Thomas Herzog",
+    "dependencies": {
+      "asciidoctor": "2.2.6"
+    }
+  }
+  

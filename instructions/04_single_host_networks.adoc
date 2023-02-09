@@ -1,0 +1,346 @@
+== Single Host Networks
+In this demo, we'll illustrate:
+
+* Creating docker bridge networks
+* Attaching containers to docker networks
+* Inspecting networking metadata from docker networks and containers
+* How network interfaces appear in different network namespaces
+* What network interfaces are created on the host by docker networking
+* What iptables rules are created by docker to isolate docker software-defined networks and forward network traffic to containers
+
+
+=== Following Default Docker Networking
+Switch to a fresh node you haven't run any containers on yet, list your networks:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker network ls
+
+NETWORK ID          NAME                DRIVER              SCOPE
+7c4e63830cbf        bridge              bridge              local
+c87d2a849036        host                host                local
+902af00d5511        none                null                local
+----
+Get some metadata about the `bridge` network, which is the default network containers attach to when doing `docker container run`:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker network inspect bridge
+----
+Notice the `IPAM` section:
+
+[source,json]
+----
+"IPAM": {
+    "Driver": "default",
+    "Options": null,
+    "Config": [
+        {
+            "Subnet": "172.17.0.0/16",
+            "Gateway": "172.17.0.1"
+        }
+    ]
+}
+----
+Docker's IP address management driver assigns a subnet (`172.17.0.0/16` in this case) to each bridge network, and uses the first IP in that range as the network's gateway.
+
+Also note the `containers` key:
+
+[source,json]
+----
+"Containers": {}
+----
+So far, no containers have been plugged into this network.
+
+Have a look at what network interfaces are present on this host:
+
+[source,shell]
+----
+[centos@node-1 ~]$ ip addr
+
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc mq state UP qlen 1000
+    link/ether 12:eb:dd:4e:07:ec brd ff:ff:ff:ff:ff:ff
+    inet 10.10.17.74/20 brd 10.10.31.255 scope global dynamic eth0
+       valid_lft 2444sec preferred_lft 2444sec
+    inet6 fe80::10eb:ddff:fe4e:7ec/64 scope link 
+       valid_lft forever preferred_lft forever
+3: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN 
+    link/ether 02:42:e2:c5:a4:6b brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 scope global docker0
+       valid_lft forever preferred_lft forever
+----
+We see the usual `eth0` and loopback interfaces, but also the `docker0` linux bridge, which corresponds to the docker software defined network we were inspecting in the previous step; note it has the same gateway IP as we found when `doing docker network inspect`.
+
+Create a docker container without specifying any networking parameters, and do the same `docker network inspect` as above:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container run -d centos:7 ping 8.8.8.8
+[centos@node-1 ~]$ docker network inspect bridge
+
+...
+"Containers": {
+    "f4e8f3f1b918900dd8c9b8867aa3c81e95cf34aba7e366379f2a9ade9987a40b": {
+        "Name": "zealous_kirch",
+        "EndpointID": "f9f246a...",
+        "MacAddress": "02:42:ac:11:00:02",
+        "IPv4Address": "172.17.0.2/16",
+        "IPv6Address": ""
+    }
+}
+...
+----
+The `Containers` key now contains the metadata for the container you just started; it received the next available IP address from the default network's subnet. Also note that the last four digits of the container's MAC address are the same as its IP on this network - this encoding ensures containers get a locally unique MAC address that linux bridges can route traffic to.
+
+Look at your network interfaces again:
+
+[source,shell]
+----
+[centos@node-1 ~]$ ip addr
+
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc mq state UP qlen 1000
+    link/ether 12:eb:dd:4e:07:ec brd ff:ff:ff:ff:ff:ff
+    inet 10.10.17.74/20 brd 10.10.31.255 scope global dynamic eth0
+       valid_lft 2188sec preferred_lft 2188sec
+    inet6 fe80::10eb:ddff:fe4e:7ec/64 scope link 
+       valid_lft forever preferred_lft forever
+3: docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP 
+    link/ether 02:42:e2:c5:a4:6b brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 scope global docker0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::42:e2ff:fec5:a46b/64 scope link 
+       valid_lft forever preferred_lft forever
+5: vethfbd45f0@if4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue 
+    master docker0 state UP 
+    link/ether 6e:3c:e4:21:7b:e2 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet6 fe80::6c3c:e4ff:fe21:7be2/64 scope link 
+       valid_lft forever preferred_lft forever
+----
+A new interface has appeared: interface number 5 is the veth connection connecting the container's network namespace to the host's network namespace. But, what happened to interface number 4? It's been skipped in the list.
+
+Look closely at interface number 5:
+
+[source,shell]
+----
+5: vethfbd45f0@if4
+----
+That `@if4` indicates that interface number 5 is connected to interface 4. In fact, these are the two endpoints of the veth connection mentioned above; each end of the connection appears as a distinct interface, and `ip addr` only lists the interfaces in the current network namespace (the host in the above example).
+
+Look at the interfaces in your container's network namespace (you'll first need to connect to the container and install `iproute`):
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container exec -it <container ID> bash
+[root@f4e8f3f1b918 /]# yum install -y iproute
+...
+[root@f4e8f3f1b918 /]# ip addr
+
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue 
+    state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+4: eth0@if5: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue 
+    state UP group default 
+    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.17.0.2/16 scope global eth0
+       valid_lft forever preferred_lft forever
+----
+Not only does interface number 4 appear inside the container's network namespace connected to interface 5, but we can see that this veth endpoint inside the container is getting treated as the `eth0` interface inside the container.
+
+=== Establishing Custom Docker Networks
+Create a custom bridge network:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker network create my_bridge
+[centos@node-1 ~]$ docker network ls
+
+NETWORK ID          NAME                DRIVER              SCOPE
+7c4e63830cbf        bridge              bridge              local
+c87d2a849036        host                host                local
+a04d46bb85b1        my_bridge           bridge              local
+902af00d5511        none                null                local
+----
+`my_bridge` gets created as another linux bridge-based network by default.
+
+Run a couple of containers named `c2` and `c3` attached to this new network:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container run \
+    --name c2 --network my_bridge -d centos:7 ping 8.8.8.8
+[centos@node-1 ~]$ docker container run \
+    --name c3 --network my_bridge -d centos:7 ping 8.8.8.8
+----
+Inspect your new bridge:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker network inspect my_bridge
+
+...
+"IPAM": {
+    "Driver": "default",
+    "Options": {},
+    "Config": [
+        {
+            "Subnet": "172.18.0.0/16",
+            "Gateway": "172.18.0.1"
+        }
+    ]
+},
+...
+"Containers": {
+    "084caf415784fb4d58dc6fb4601321114b93dc148793fd66c95fc2c9411b085e": {
+        "Name": "c3",
+        "EndpointID": "8046005...",
+        "MacAddress": "02:42:ac:12:00:03",
+        "IPv4Address": "172.18.0.3/16",
+        "IPv6Address": ""
+    },
+    "23d2e307325ec022ce6b08406bfb0f7e307fa533a7a4957a6d476c170d8e8658": {
+        "Name": "c2",
+        "EndpointID": "730ac71...",
+        "MacAddress": "02:42:ac:12:00:02",
+        "IPv4Address": "172.18.0.2/16",
+        "IPv6Address": ""
+    }
+},
+...
+----
+The next subnet in sequence (`172.18.0.0/16` in my case) has been assigned to `my_bridge` by the IPAM driver, and containers attached to this network get IPs from this range exactly as they did with the default bridge network.
+
+Try to contact container `c3` from `c2`:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container exec c2 ping c3
+----
+It works - containers on the same custom network are able to resolve each other via *DNS lookup of container names*. This means that our application logic (`c2 ping c3` in this simple case) doesn't have to do any of its own service discovery; all we need to know are container names, and docker does the rest.
+
+Start another container on `my_bridge`, but don't name it:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container run --network my_bridge -d centos:7 ping 8.8.8.8
+[centos@node-1 ~]$ docker container ls
+
+CONTAINER ID        IMAGE     ... STATUS           PORTS   NAMES
+625cb95b922d        centos:7  ... Up 2 seconds             competent_leavitt
+084caf415784        centos:7  ... Up 5 minutes             c3
+23d2e307325e        centos:7  ... Up 5 minutes             c2
+f4e8f3f1b918        centos:7  ... Up 21 minutes            zealous_kirch
+----
+As usual, it got a default name generated for it (`competent_leavitt` in my case). Try resolving this name by DNS as above:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container exec c2 ping competent_leavitt
+
+ping: competent_leavitt: Name or service not known
+----
+DNS resolution fails. Containers must be explicitly named in order to appear in docker's DNS tables.
+
+Find the IP of your latest container (`competent_leavitt` in my case) via `docker container inspect`, and ping it from `c2` directly by IP:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker network inspect my_bridge
+
+...
+"625cb95b922d2502fd016c6517c51652e84f902f69632d5d399dc38f3f7b2711": {
+    "Name": "competent_leavitt",
+    "EndpointID": "2fdb093d97b23da43023b07338a329180995fc0564ed0762147c8796380c51e7",
+    "MacAddress": "02:42:ac:12:00:04",
+    "IPv4Address": "172.18.0.4/16",
+    "IPv6Address": ""
+}
+...
+
+[centos@node-1 ~]$ docker container exec c2 ping 172.18.0.4
+
+PING 172.18.0.4 (172.18.0.4) 56(84) bytes of data.
+64 bytes from 172.18.0.4: icmp_seq=1 ttl=64 time=0.083 ms
+64 bytes from 172.18.0.4: icmp_seq=2 ttl=64 time=0.060 ms
+----
+The ping succeeds. While the default-named container isn't resolvable by DNS, it is still reachable on the `my_bridge` network.
+
+Finally, create container `c1` attached to the default network:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container run --name c1 -d centos:7 ping 8.8.8.8
+----
+Attempt to ping it from `c2` by name:
+[source,shell]
+----
+[centos@node-1 ~]$ docker container exec c2 ping c1
+ping: c1: Name or service not known
+----
+DNS resolution is scoped to user-defined docker networks. Find `c1` 's IP manually as above (mine is at `172.17.0.3`), and ping this IP directly from `c2`:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container exec c2 ping 172.17.0.3
+----
+The request hangs until it times out (press `CTRL+C` to give up early if you don't want to wait for the timeout). Different docker networks are firewalled from each other by default; dump your iptables rules and look for lines similar to the following:
+[source,shell]
+----
+[centos@node-1 ~]$ sudo iptables-save
+
+...
+-A DOCKER-ISOLATION-STAGE-1 -i br-dfda80f70ea5 
+    ! -o br-dfda80f70ea5 -j DOCKER-ISOLATION-STAGE-2
+-A DOCKER-ISOLATION-STAGE-1 -i docker0 ! -o docker0 -j DOCKER-ISOLATION-STAGE-2
+-A DOCKER-ISOLATION-STAGE-1 -j RETURN
+-A DOCKER-ISOLATION-STAGE-2 -o br-dfda80f70ea5 -j DROP
+-A DOCKER-ISOLATION-STAGE-2 -o docker0 -j DROP
+-A DOCKER-ISOLATION-STAGE-2 -j RETURN
+...
+----
+The first line above forwards traffic originating from `br-dfda80f70ea5` (that's your custom bridge) but destined somewhere else to the stage 2 isolation chain, where if it is destined for the `docker0` bridge, it gets dropped, preventing traffic from going from one bridge to another.
+
+=== Forwarding a Host Port to a Container
+Start an `nginx` container with a port exposure:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container run -d -p 8000:80 nginx
+----
+This syntax asks docker to forward all traffic arriving on port 8000 of the host's network namespace to port 80 of the container's network namespace. Visit the nginx landing page at `<node-1 public IP>:8000`.
+
+Inspect your iptables rules again to see how docker forwarded this traffic:
+
+[source,shell]
+----
+[centos@node-1 ~]$ sudo iptables-save | grep 8000
+
+-A DOCKER ! -i docker0 -p tcp -m tcp --dport 8000 
+    -j DNAT --to-destination 172.17.0.4:80
+----
+Inspect your default bridge network to find the IP of your nginx container; you should find that it matches the IP in the network address translation rule above, which states that any traffic arriving on port tcp/8000 on the host should be network address translated to `172.17.0.4:80` - the IP of our nginx container and the port we exposed with the `-p 8000:80` flag when we created this container.
+
+Clean up your containers and networks:
+
+[source,shell]
+----
+[centos@node-1 ~]$ docker container rm -f $(docker container ls -aq)
+[centos@node-1 ~]$ docker network rm my_bridge
+----
+
+=== Conclusion
+In this demo, we stepped through the basic behavior of docker software defined bridge networks, and looked at the technology underpinning them such as linux bridges, veth connections, and iptables rules. From a practical standpoint, in order for containers to communicate they must be attached to the same docker software defined network (otherwise they'll be firewalled from each other by the cross-network iptables rules we saw), and in order for containers to resolve each other's name by DNS, they must also be explicitly named upon creation.
+

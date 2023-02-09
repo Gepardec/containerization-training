@@ -3,8 +3,9 @@
 generated/
 /aws/containerization-training/
 node_modules/
-presentation.html
-exercises.html
+presentation/*.html
+exercises/*.html
+instructions/*.html
 .vscode
 *.jar
 target/
