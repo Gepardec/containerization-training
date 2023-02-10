@@ -28,7 +28,7 @@ The objective of this training is that trainees understand containerization with
 
 == Training resources
 
-We provide the following resource for this training which can be downloaded from this repositories releases.
+We provide the following resource for this training which can be downloaded from this repositories releases or viewed as link:https://gepardec.github.io/containerization-training/[github pages].
 
 The release archive contains the following resources.
 
@@ -36,6 +36,8 @@ The release archive contains the following resources.
 A asciidoc/revealjs based HMTL presentation
 * `exercises` +
 Asciidoc based HTML with the exercises
+* `instructor` +
+Asciidoc based HTML with the instructor demos
 * `resources` +
 Additional resources for the training such as exmaple applictions
 
