@@ -13,4 +13,4 @@ var options = {
         revdate: revdate
     }
 }
-asciidoctor.convertFile('instructions.adoc', options) 
+asciidoctor.convertFile('instructor.adoc', options) 

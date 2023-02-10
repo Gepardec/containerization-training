@@ -5,7 +5,7 @@ generated/
 node_modules/
 presentation/*.html
 exercises/*.html
-instructions/*.html
+instructor/*.html
 .vscode
 *.jar
 target/

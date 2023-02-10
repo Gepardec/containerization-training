@@ -56,15 +56,24 @@ jobs:
           npm update
           node convert.js revision='${{ github.ref }}'
 
+      - name: Render Instructor
+        id: render_instructor
+        run: |
+          cd instructor
+          npm update
+          node convert.js revision='${{ github.ref }}'
+
       - name: Collect Github Pages resources
         run: |
           mkdir -p gh-pages-release/presentation
           mkdir -p gh-pages-release/presentation/node_modules
           mkdir -p gh-pages-release/exercises
+          mkdir -p gh-pages-release/instructor
           mkdir -p gh-pages-release/resources
           cp -r presentation/presentation.html presentation/assets ./gh-pages-release/presentation/
           cp -r presentation/node_modules/reveal.js ./gh-pages-release/presentation/node_modules/
           cp -r exercises/exercises.html exercises/assets ./gh-pages-release/exercises/
+          cp -r instructor/instructor.html instructor/assets ./gh-pages-release/instructor/
           cp resources/hello-world/target/hello-world-runner.jar ./gh-pages-release/resources/ 
           cp gh-pages/index.html ./gh-pages-release/ 
         if: github.ref_name == 'main'
@@ -90,6 +99,7 @@ jobs:
           cp -r presentation/presentation.html presentation/assets ./release/presentation/
           cp -r presentation/node_modules/reveal.js ./release/presentation/node_modules/
           cp -r exercises/exercises.html exercises/assets ./release/exercises/
+          cp -r instructor/instructor.html instructor/assets ./release/instructor/
           cp resources/hello-world/target/hello-world-runner.jar ./release/resources/
           cd ./release
           zip -r ./containerization-training .
@@ -110,6 +120,8 @@ jobs:
               The rendered HTML presentation and its assets
             * exercises
               The rendered HTML exercises and its assets
+            * instructor
+              The rendered HTML instructor demos and its assets
             * resources
               The additional resources fro the training such as example applications
           draft: false
