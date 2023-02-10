@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="author" content="Thomas Herzog, Clemens Kaserer">
+<title>Instructor demos</title>
+<link rel="stylesheet" href="./assets/css/asciidoctor.css">
+<link rel="stylesheet" href="./assets/highlight/styles/base16/ia-light.min.css">
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Instructor demos</h1>
+<div class="details">
+<span id="author" class="author">Thomas Herzog</span><br>
+<span id="email" class="email"><a href="mailto:thomas.herzog@gepardec.com">thomas.herzog@gepardec.com</a></span><br>
+<span id="author2" class="author">Clemens Kaserer</span><br>
+<span id="revnumber">version local,</span>
+<span id="revdate">2/10/2023</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_process_isolation">1. Process Isolation</a></li>
+<li><a href="#_creating_images">2. Creating Images</a></li>
+<li><a href="#_basic_volume_usage">3. Basic Volume Usage</a></li>
+<li><a href="#_single_host_networks">4. Single Host Networks</a></li>
+<li><a href="#_docker_compose">5. Docker Compose</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_process_isolation">1. Process Isolation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this demo, we&#8217;ll illustrate:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>What containerized process IDs look like inside versus outside of a kernel namespace</p>
+</li>
+<li>
+<p>How to impose control group limitations on CPU and memory consumption of a containerized process.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_exploring_the_pid_kernel_namespace">Exploring the PID Kernel Namespace</h3>
+<div class="paragraph">
+<p>Start a simple container we can explore:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -d --name pinger centos:7 ping 8.8.8.8</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use <code>docker container exec</code> to launch a child process inside the container&#8217;s namespaces:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container exec pinger ps -aux
+
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.1  0.0  24860  1884 ?        Ss   02:20   0:00 ping 8.8.8.8
+root         5  0.0  0.0  51720  3504 ?        Rs   02:20   0:00 ps -aux</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run the same <code>ps</code> directly on the host, and search for your ping process:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ ps -aux | grep ping
+
+USER      PID %CPU %MEM    VSZ   RSS TTY     STAT START   TIME COMMAND
+root    11622  0.0  0.0  24860  1884 ?       Ss   02:20   0:00 ping 8.8.8.8
+centos  11839  0.0  0.0 112656  2132 pts/0   S+   02:23   0:00 grep --color=auto ping</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ping process appears as PID 1 inside the container, but as some higher PID (11622 in this example) from outside the container.</p>
+</div>
+<div class="paragraph">
+<p>List your containers to show this ping container is still running:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls
+
+CONTAINER ID  IMAGE     COMMAND         ...  STATUS        ...  NAMES
+bb3a3b1cbb78  centos:7  "ping 8.8.8.8"  ...  Up 6 minutes       pinger</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Kill the ping process by host PID, and show the container has stopped:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ sudo kill -9 [host PID of ping]
+[centos@node-0 ~]$ docker container ls
+
+CONTAINER ID  IMAGE     COMMAND         ...  STATUS        ...  NAMES</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Killing the ping process on the host also kills the container - all a running container is is its PID 1 process, and the kernel tooling that isolates it from the host. Note using <code>kill -9</code> is just for demonstration purposes here; never stop containers this way.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_imposing_resource_limitations_with_cgroups">Imposing Resource Limitations With Cgroups</h3>
+<div class="paragraph">
+<p>Start a container that consumes two full CPUs:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -d training/stress:3.0 --vm 2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here the <code>--vm</code> flag starts 2 dummy processes that allocate and free memory as fast as they can, each consuming as many CPU cycles as possible.</p>
+</div>
+<div class="paragraph">
+<p>Check the CPU consumption of processes in the container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container top &lt;container ID&gt;
+
+UID     PID     PPID    C   ...   CMD
+root    5806    5789    0   ...   /usr/bin/stress --verbose --vm 2
+root    5828    5806    99  ...   /usr/bin/stress --verbose --vm 2
+root    5829    5806    99  ...   /usr/bin/stress --verbose --vm 2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That C column represents CPU consumption, in percent; this container is hogging two full CPUs! See the same thing by running <code>ps -aux</code> both inside and outside this container, like we did above; the same process and its CPU utilization is visible inside and outside the container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container exec &lt;container ID&gt; ps -aux
+
+USER       PID %CPU %MEM   ...   COMMAND
+root         1  0.0  0.0   ...   /usr/bin/stress --verbose --vm 2
+root         5 98.9  6.4   ...   /usr/bin/stress --verbose --vm 2
+root         6 99.0  0.4   ...   /usr/bin/stress --verbose --vm 2
+root         7  2.0  0.0   ...   ps -aux</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And on the host directly, via the PIDs we found from <code>docker container top</code> above:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ ps -aux | grep &lt;PID&gt;
+
+USER       PID %CPU %MEM   ...   COMMAND
+root      5828 99.3  4.9   ...   /usr/bin/stress --verbose --vm 2
+centos    6327  0.0  0.0   ...   grep --color=auto 5828</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Kill off this container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is the right way to kill and remove a running container (not <code>kill -9</code>).</p>
+</div>
+<div class="paragraph">
+<p>Run the same container again, but this time with a cgroup limitation on its CPU consumption:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -d --cpus="1" training/stress:3.0 --vm 2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Do <code>docker container top</code> and <code>ps -aux</code> again, just like above; you&#8217;ll see the processes taking up half a CPU each, for a total of 1 CPU consumed. The <code>--cpus="1"</code> flag has imposed a control group limitation on the processes in this container, constraining them to consume a total of no more than one CPU.</p>
+</div>
+<div class="paragraph">
+<p>Find the host PID of a process running in this container using <code>docker container top</code> again, and then see what cgroups that process lives in on the host:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ cat /proc/&lt;host PID of containerized process&gt;/cgroup
+
+12:memory:/docker/31d03...
+11:freezer:/docker/31d03...
+10:hugetlb:/docker/31d03...
+9:perf_event:/docker/31d03...
+8:net_cls,net_prio:/docker/31d03...
+7:cpuset:/docker/31d03...
+6:pids:/docker/31d03...
+5:blkio:/docker/31d03...
+4:rdma:/
+3:devices:/docker/31d03...
+2:cpu,cpuacct:/docker/31d03...
+1:name=systemd:/docker/31d03...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Get a summary of resources consumed by processes in a control group via <code>systemd-cgtop</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ systemd-cgtop
+
+Path                Tasks   %CPU     Memory  Input/s    Output/s
+
+/                   68      112.3    1.0G    -          -
+/docker             -       99.3     301.0M  -          -
+/docker/31d03...    3       99.3     300.9M  -          -
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here again we can see that the processes living in the container&#8217;s control group (<code>/docker/31d03&#8230;&#8203;</code>) are constrained to take up only about 1 CPU.</p>
+</div>
+<div class="paragraph">
+<p>Remove this container, spin up a new one that creates a lot of memory pressure, and check its resource consumption with <code>docker stats</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f &lt;container ID&gt;
+[centos@node-0 ~]$ docker container run -d training/stress:3.0 --vm 2 --vm-bytes 1024M
+[centos@node-0 ~]$ docker stats
+
+CONTAINER           CPU %               MEM USAGE / LIMIT     MEM %    ...
+b29a6d877343        198.94%             937.2MiB / 3.854GiB   23.75%   ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Kill this container off, start it again with a memory constraint, and list your containers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f &lt;container ID&gt;
+[centos@node-0 ~]$ docker container run \
+    -d -m 256M training/stress:3.0 --vm 2 --vm-bytes 1024M
+[centos@node-0 ~]$ docker container ls -a
+
+CONTAINER ID        IMAGE                 ...  STATUS
+296c8f76af5c        training/stress:3.0   ...  Exited (1) 26 seconds ago</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It exited immediately this time.</p>
+</div>
+<div class="paragraph">
+<p>Inspect the metadata for this container, and look for the <code>OOMKilled</code> key:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container inspect &lt;container ID&gt; | grep 'OOMKilled'
+
+        "OOMKilled": true,</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When the containerized process tried to exceed its memory limitation, it gets killed with an Out Of Memory exception.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion">Conclusion</h3>
+<div class="paragraph">
+<p>In this demo, we explored some of the most important technologies that make containerization possible: kernel namespaces and control groups. The core message here is that containerized processes are just processes running on their host, isolated and constrained by these technologies. All the tools and management strategies you would use for conventional processes apply just as well for containerized processes.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_images">2. Creating Images</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this demo, we&#8217;ll illustrate:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>How to read each step of the image build output</p>
+</li>
+<li>
+<p>How intermediate image layers behave in the cache and as independent images</p>
+</li>
+<li>
+<p>What the meanings of 'dangling' and <code>&lt;missing&gt;`</code> image layers are</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_understanding_image_build_output">Understanding Image Build Output</h3>
+<div class="paragraph">
+<p>Make a folder <code>demo`</code> for our image demo:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">[centos@node-0 ~]$ mkdir demo ; cd demo
+And create a Dockerfile therein with the following content:
+
+FROM centos:7
+RUN yum update -y
+RUN yum install -y which
+RUN yum install -y wget
+RUN yum install -y vim</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Build your image from your Dockerfile, just like we did in the last exercise:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 demo]$ docker image build -t demo .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Examine the output from the build process. The very first line looks like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Sending build context to Docker daemon  2.048kB</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here the Docker daemon is archiving everything at the path specified in the <code>docker image build</code> command (<code>.</code> or the current directory in this example). This is why we made a fresh directory demo to build in, so that nothing extra is included in this process.</p>
+</div>
+<div class="paragraph">
+<p>The next lines look like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Step 1/5 : FROM centos:7
+ ---&gt; 49f7960eb7e4</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Do an image ls:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 demo]$ docker image ls
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+demo                latest              59e595750dd5        10 seconds ago      645MB
+centos              7                   49f7960eb7e4        2 months ago        200MB</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice the Image ID for <code>centos:7</code> matches that second line in the build output. The build starts from the base image defined in the <code>FROM`</code> command.</p>
+</div>
+<div class="paragraph">
+<p>The next few lines look like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Step 2/5 : RUN yum update -y
+ ---&gt; Running in 8734b14cf011
+Loaded plugins: fastestmirror, ovl
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is the output of the <code>RUN</code> command, <code>yum update -y</code>. The line <code>Running in 8734b14cf011</code> specifies a container that this command is running in, which is spun up based on all previous image layers (just the centos:7 base at the moment). Scroll down a bit and you should see something like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"> ---&gt; 433e56d735f6
+Removing intermediate container 8734b14cf011</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>At the end of this first <code>RUN</code> command, the temporary container <code>8734b14cf011</code> is saved as an image layer <code>433e56d735f6</code>, and the container is removed. This is the exact same process as when you used <code>docker container commit</code> to save a container as a new image layer, but now running automatically as part of a Dockerfile build.</p>
+</div>
+<div class="paragraph">
+<p>Look at the history of your image:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 demo]$ docker image history demo
+
+IMAGE          CREATED         CREATED BY                                      SIZE
+59e595750dd5   2 minutes ago   /bin/sh -c yum install -y vim                   142MB
+bba17f8df167   2 minutes ago   /bin/sh -c yum install -y wget                  87MB
+b9f2efa616de   2 minutes ago   /bin/sh -c yum install -y which                 86.6MB
+433e56d735f6   2 minutes ago   /bin/sh -c yum update -y                        129MB
+49f7960eb7e4   2 months ago    /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B
+&lt;missing&gt;      2 months ago    /bin/sh -c #(nop)  LABEL org.label-schema....   0B
+&lt;missing&gt;      2 months ago    /bin/sh -c #(nop) ADD file:8f4b3be0c1427b1...   200MB</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, the different layers of <code>demo</code> correspond to a separate line in the Dockerfile and the layers have their own ID. You can see the image layer <code>433e56d735f6</code> committed in the second build step in the list of layers for this image.</p>
+</div>
+<div class="paragraph">
+<p>Look through your build output for where steps 3/5 (installing <code>which</code>), 4/5 (installing <code>wget</code>), and 5/5 (installing <code>vim</code>) occur - the same behavior of starting a temporary container based on the previous image layers, running the <code>RUN</code> command, saving the container as a new image layer visible in your <code>docker iamge history</code> output, and deleting the temporary container is visible.</p>
+</div>
+<div class="paragraph">
+<p>Every layer can be used as you would use any image, which means we can inspect a single layer. Let&#8217;s inspect the wget layer, which in my case is bba17f8df167 (yours will be different, look at your <code>docker image history</code> output):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 demo]$ docker image inspect bba17f8df167</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s look for the command associated with this image layer by using <code>--format</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 demo]$ docker image inspect \
+    --format='{{.ContainerConfig.Cmd}}' bba17f8df167
+
+[/bin/sh -c yum install -y wget]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can even start containers based on intermediate image layers; start an interactive container based on the <code>wget</code> layer, and look for whether <code>wget</code> and <code>vim</code> are installed:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 demo]$ docker container run -it bba17f8df167 bash
+
+[root@a766a3d616b7 /]# which wget
+
+/usr/bin/wget
+
+[root@a766a3d616b7 /]# which vim
+
+/usr/bin/which: no vim in
+    (/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>wget</code> is installed in this layer, but since <code>vim</code> didn&#8217;t arrive until the next layer, it&#8217;s not available here.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_managing_image_layers">Managing Image Layers</h3>
+<div class="paragraph">
+<p>Change the last line in the Dockerfile from the last section to install <code>nano</code> instead of <code>vim</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM centos:7
+RUN yum update -y
+RUN yum install -y which
+RUN yum install -y wget
+RUN yum install -y nano</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Rebuild your image, and list your images again:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 demo]$ docker image build -t demo .
+[centos@node-0 demo]$ docker image ls
+
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+demo                latest              5a6aedc1feab        8 seconds ago       590MB
+&lt;none&gt;              &lt;none&gt;              59e595750dd5        23 minutes ago      645MB
+centos              7                   49f7960eb7e4        2 months ago        200MB</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>What is that image named <code>&lt;none&gt;</code>? Notice the image ID is the same as the old image ID for <code>demo:latest</code> (see your history output above). The name and tag of an image is just a pointer to the stack of layers that make it up; reuse a name and tag, and you are effectively moving that pointer to a new stack of layers, leaving the old one (the one containing the <code>vim</code> install in this case) as an untagged or 'dangling' image.</p>
+</div>
+<div class="paragraph">
+<p>Rewrite your Dockerfile one more time, to combine some of those install steps:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM centos:7
+RUN yum update -y
+RUN yum install -y which wget nano</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Rebuild using a <code>new</code> tag this time, and list your images one more time:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 demo]$ docker image build -t demo:new .
+...
+[centos@node-0 demo]$ docker image ls
+
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+demo                new                 568b29a0dce9        20 seconds ago      416MB
+demo                latest              5a6aedc1feab        5 minutes ago       590MB
+&lt;none&gt;              &lt;none&gt;              59e595750dd5        28 minutes ago      645MB
+centos              7                   49f7960eb7e4        2 months ago        200MB</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Image <code>demo:new</code> is much smaller in size than <code>demo:latest</code>, even though it contains the exact same software - why?</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_2">Conclusion</h3>
+<div class="paragraph">
+<p>In this demo, we explored the layered structure of images; each layer is built as a distinct image and can be treated as such, on the host where it was built. This information is preserved on the build host for use in the build cache; build another image based on the same lower layers, and they will be reused to speed up the build process. Notice that the same is not true of downloaded images like <code>centos:7</code>; intermediate image caches are not downloaded, but rather only the final complete image.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basic_volume_usage">3. Basic Volume Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this demo, we&#8217;ll illustrate:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Creating, updating, destroying, and mounting docker named volumes</p>
+</li>
+<li>
+<p>How volumes interact with a container&#8217;s layered filesystem</p>
+</li>
+<li>
+<p>Usecases for mounting host directories into a container</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_using_named_volumes">Using Named Volumes</h3>
+<div class="paragraph">
+<p>Create a volume, and inspect its metadata:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker volume create demovol
+[centos@node-0 ~]$ docker volume inspect demovol
+
+[
+    {
+        "CreatedAt": "2018-11-03T19:07:56Z",
+        "Driver": "local",
+        "Labels": {},
+        "Mountpoint": "/var/lib/docker/volumes/demovol/_data",
+        "Name": "demovol",
+        "Options": {},
+        "Scope": "local"
+    }
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can see that by default, named volumes are created under <code>/var/lib/docker/volumes/&lt;name&gt;/_data</code>.</p>
+</div>
+<div class="paragraph">
+<p>Run a container that mounts this volume, and list the filesystem therein:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -it -v demovol:/demo centos:7 bash
+[root@f4aca1b60965 /]# ls
+anaconda-post.log  bin  demo  dev  etc  home ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>demo</code> directory is created as the mountpoint for our volume, as specified in the flag <code>-v demovol:/demo</code>. This should also appear in your container filesystem&#8217;s list of mountpoints:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[root@f4aca1b60965 /]# cat /proc/self/mountinfo | grep demo
+
+1199 1180 202:1 /var/lib/docker/volumes/demovol/_data /demo
+    rw,relatime - xfs /dev/xvda1 ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Put a file in this volume:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[root@f4aca1b60965 /]# echo 'dummy file' &gt; /demo/mydata.dat</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Exit the container, and list the contents of your volume on the host:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ sudo ls /var/lib/docker/volumes/demovol/_data</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You&#8217;ll see your <code>mydata.dat</code> file present at this point in the host&#8217;s filesystem. Delete the container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f &lt;container ID&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The volume and its contents will still be present on the host.</p>
+</div>
+<div class="paragraph">
+<p>Start a new container mounting the same volume, attach a bash shell to it, and show that the old data is present in your new container:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -d -v demovol:/demo centos:7 ping 8.8.8.8
+[centos@node-0 ~]$ docker container exec -it &lt;container ID&gt; bash
+[root@11117d3de672 /]# cat /demo/mydata.dat</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Exit this container, and inspect its mount metadata:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container inspect &lt;container ID&gt;
+
+    "Mounts": [
+        {
+            "Type": "volume",
+            "Name": "demovol",
+            "Source": "/var/lib/docker/volumes/demovol/_data",
+            "Destination": "/demo",
+            "Driver": "local",
+            "Mode": "z",
+            "RW": true,
+            "Propagation": ""
+        }
+    ],</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here too we can see the volumes and host mountpoints for everything mounted into this container.</p>
+</div>
+<div class="paragraph">
+<p>Build a new image out of this container using <code>docker container commit</code>, and start a new container based on that image:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container commit &lt;container ID&gt; demo:snapshot
+[centos@node-0 ~]$ docker container run -it demo:snapshot bash
+[root@ad62f304ba18 /]# cat /demo/mydata.dat
+cat: /demo/mydata.dat: No such file or directory</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The information mounted into the original container is not part of the container&#8217;s layered filesystem, and therefore is not captured in the image creation process; volume mounts and the layered filesystem are completely separate.</p>
+</div>
+<div class="paragraph">
+<p>Clean up by removing that volume:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker volume rm demovol</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You will get an error saying the volume is in use - docker will not delete a volume mounted to any container (even a stopped container) in this way.
+Remove the offending container first, then remove the volume again.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mounting_host_paths">Mounting Host Paths</h3>
+<div class="paragraph">
+<p>Make a directory with some source code in it for your new website:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ mkdir /home/centos/myweb
+[centos@node-0 ~]$ cd /home/centos/myweb
+[centos@node-0 myweb]$ echo "&lt;h1&gt;Hello Wrld&lt;/h1&gt;" &gt; index.html</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Start up an nginx container that mounts this as a static website:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myweb]$ docker container run -d \
+    -v /home/centos/myweb:/usr/share/nginx/html \
+    -p 8000:80 nginx</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Visit your website at the public IP of this node, port 8000.</p>
+</div>
+<div class="paragraph">
+<p>Fix the spelling of 'world' in your HTML, and refresh the webpage; the content served by nginx gets updated without having to restart or replace the nginx container.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_3">Conclusion</h3>
+<div class="paragraph">
+<p>In this demo, we saw two key points about volumes: they exist outside the container&#8217;s layered filesystem, meaning that not only are they not captured on image creation, they don&#8217;t participate in the usual copy on write procedure when manipulating files in the writable container layer. Second, we saw that manipulating files on the host that have been mounted into a container immediately propagates those changes to the running container; this is a popular technique for developers who containerize their running environment, and mount in their in-development code so they can edit their code using the tools on their host machine that they are familiar with, and have those changes immediately available inside a running container without having to restart or rebuild anything.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_single_host_networks">4. Single Host Networks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this demo, we&#8217;ll illustrate:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Creating docker bridge networks</p>
+</li>
+<li>
+<p>Attaching containers to docker networks</p>
+</li>
+<li>
+<p>Inspecting networking metadata from docker networks and containers</p>
+</li>
+<li>
+<p>How network interfaces appear in different network namespaces</p>
+</li>
+<li>
+<p>What network interfaces are created on the host by docker networking</p>
+</li>
+<li>
+<p>What iptables rules are created by docker to isolate docker software-defined networks and forward network traffic to containers</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_following_default_docker_networking">Following Default Docker Networking</h3>
+<div class="paragraph">
+<p>Switch to a fresh node you haven&#8217;t run any containers on yet, list your networks:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network ls
+
+NETWORK ID          NAME                DRIVER              SCOPE
+7c4e63830cbf        bridge              bridge              local
+c87d2a849036        host                host                local
+902af00d5511        none                null                local</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Get some metadata about the <code>bridge</code> network, which is the default network containers attach to when doing <code>docker container run</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network inspect bridge</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice the <code>IPAM</code> section:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">"IPAM": {
+    "Driver": "default",
+    "Options": null,
+    "Config": [
+        {
+            "Subnet": "172.17.0.0/16",
+            "Gateway": "172.17.0.1"
+        }
+    ]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Docker&#8217;s IP address management driver assigns a subnet (<code>172.17.0.0/16</code> in this case) to each bridge network, and uses the first IP in that range as the network&#8217;s gateway.</p>
+</div>
+<div class="paragraph">
+<p>Also note the <code>containers</code> key:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">"Containers": {}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So far, no containers have been plugged into this network.</p>
+</div>
+<div class="paragraph">
+<p>Have a look at what network interfaces are present on this host:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ ip addr
+
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 9001 qdisc mq state UP qlen 1000
+    link/ether 12:eb:dd:4e:07:ec brd ff:ff:ff:ff:ff:ff
+    inet 10.10.17.74/20 brd 10.10.31.255 scope global dynamic eth0
+       valid_lft 2444sec preferred_lft 2444sec
+    inet6 fe80::10eb:ddff:fe4e:7ec/64 scope link
+       valid_lft forever preferred_lft forever
+3: docker0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state DOWN
+    link/ether 02:42:e2:c5:a4:6b brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 scope global docker0
+       valid_lft forever preferred_lft forever</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We see the usual <code>eth0</code> and loopback interfaces, but also the <code>docker0</code> linux bridge, which corresponds to the docker software defined network we were inspecting in the previous step; note it has the same gateway IP as we found when <code>doing docker network inspect</code>.</p>
+</div>
+<div class="paragraph">
+<p>Create a docker container without specifying any networking parameters, and do the same <code>docker network inspect</code> as above:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run -d centos:7 ping 8.8.8.8
+[centos@node-1 ~]$ docker network inspect bridge
+
+...
+"Containers": {
+    "f4e8f3f1b918900dd8c9b8867aa3c81e95cf34aba7e366379f2a9ade9987a40b": {
+        "Name": "zealous_kirch",
+        "EndpointID": "f9f246a...",
+        "MacAddress": "02:42:ac:11:00:02",
+        "IPv4Address": "172.17.0.2/16",
+        "IPv6Address": ""
+    }
+}
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>Containers</code> key now contains the metadata for the container you just started; it received the next available IP address from the default network&#8217;s subnet. Also note that the last four digits of the container&#8217;s MAC address are the same as its IP on this network - this encoding ensures containers get a locally unique MAC address that linux bridges can route traffic to.</p>
+</div>
+<div class="paragraph">
+<p>Look at your network interfaces again:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ ip addr
+
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 9001 qdisc mq state UP qlen 1000
+    link/ether 12:eb:dd:4e:07:ec brd ff:ff:ff:ff:ff:ff
+    inet 10.10.17.74/20 brd 10.10.31.255 scope global dynamic eth0
+       valid_lft 2188sec preferred_lft 2188sec
+    inet6 fe80::10eb:ddff:fe4e:7ec/64 scope link
+       valid_lft forever preferred_lft forever
+3: docker0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP
+    link/ether 02:42:e2:c5:a4:6b brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 scope global docker0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::42:e2ff:fec5:a46b/64 scope link
+       valid_lft forever preferred_lft forever
+5: vethfbd45f0@if4: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue
+    master docker0 state UP
+    link/ether 6e:3c:e4:21:7b:e2 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet6 fe80::6c3c:e4ff:fe21:7be2/64 scope link
+       valid_lft forever preferred_lft forever</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A new interface has appeared: interface number 5 is the veth connection connecting the container&#8217;s network namespace to the host&#8217;s network namespace. But, what happened to interface number 4? It&#8217;s been skipped in the list.</p>
+</div>
+<div class="paragraph">
+<p>Look closely at interface number 5:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">5: vethfbd45f0@if4</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That <code>@if4</code> indicates that interface number 5 is connected to interface 4. In fact, these are the two endpoints of the veth connection mentioned above; each end of the connection appears as a distinct interface, and <code>ip addr</code> only lists the interfaces in the current network namespace (the host in the above example).</p>
+</div>
+<div class="paragraph">
+<p>Look at the interfaces in your container&#8217;s network namespace (you&#8217;ll first need to connect to the container and install <code>iproute</code>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec -it &lt;container ID&gt; bash
+[root@f4e8f3f1b918 /]# yum install -y iproute
+...
+[root@f4e8f3f1b918 /]# ip addr
+
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue
+    state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+4: eth0@if5: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue
+    state UP group default
+    link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 172.17.0.2/16 scope global eth0
+       valid_lft forever preferred_lft forever</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Not only does interface number 4 appear inside the container&#8217;s network namespace connected to interface 5, but we can see that this veth endpoint inside the container is getting treated as the <code>eth0</code> interface inside the container.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_establishing_custom_docker_networks">Establishing Custom Docker Networks</h3>
+<div class="paragraph">
+<p>Create a custom bridge network:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network create my_bridge
+[centos@node-1 ~]$ docker network ls
+
+NETWORK ID          NAME                DRIVER              SCOPE
+7c4e63830cbf        bridge              bridge              local
+c87d2a849036        host                host                local
+a04d46bb85b1        my_bridge           bridge              local
+902af00d5511        none                null                local</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>my_bridge</code> gets created as another linux bridge-based network by default.</p>
+</div>
+<div class="paragraph">
+<p>Run a couple of containers named <code>c2</code> and <code>c3</code> attached to this new network:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run \
+    --name c2 --network my_bridge -d centos:7 ping 8.8.8.8
+[centos@node-1 ~]$ docker container run \
+    --name c3 --network my_bridge -d centos:7 ping 8.8.8.8</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inspect your new bridge:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network inspect my_bridge
+
+...
+"IPAM": {
+    "Driver": "default",
+    "Options": {},
+    "Config": [
+        {
+            "Subnet": "172.18.0.0/16",
+            "Gateway": "172.18.0.1"
+        }
+    ]
+},
+...
+"Containers": {
+    "084caf415784fb4d58dc6fb4601321114b93dc148793fd66c95fc2c9411b085e": {
+        "Name": "c3",
+        "EndpointID": "8046005...",
+        "MacAddress": "02:42:ac:12:00:03",
+        "IPv4Address": "172.18.0.3/16",
+        "IPv6Address": ""
+    },
+    "23d2e307325ec022ce6b08406bfb0f7e307fa533a7a4957a6d476c170d8e8658": {
+        "Name": "c2",
+        "EndpointID": "730ac71...",
+        "MacAddress": "02:42:ac:12:00:02",
+        "IPv4Address": "172.18.0.2/16",
+        "IPv6Address": ""
+    }
+},
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The next subnet in sequence (<code>172.18.0.0/16</code> in my case) has been assigned to <code>my_bridge</code> by the IPAM driver, and containers attached to this network get IPs from this range exactly as they did with the default bridge network.</p>
+</div>
+<div class="paragraph">
+<p>Try to contact container <code>c3</code> from <code>c2</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec c2 ping c3</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It works - containers on the same custom network are able to resolve each other via <strong>DNS lookup of container names</strong>. This means that our application logic (<code>c2 ping c3</code> in this simple case) doesn&#8217;t have to do any of its own service discovery; all we need to know are container names, and docker does the rest.</p>
+</div>
+<div class="paragraph">
+<p>Start another container on <code>my_bridge</code>, but don&#8217;t name it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run --network my_bridge -d centos:7 ping 8.8.8.8
+[centos@node-1 ~]$ docker container ls
+
+CONTAINER ID        IMAGE     ... STATUS           PORTS   NAMES
+625cb95b922d        centos:7  ... Up 2 seconds             competent_leavitt
+084caf415784        centos:7  ... Up 5 minutes             c3
+23d2e307325e        centos:7  ... Up 5 minutes             c2
+f4e8f3f1b918        centos:7  ... Up 21 minutes            zealous_kirch</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As usual, it got a default name generated for it (<code>competent_leavitt</code> in my case). Try resolving this name by DNS as above:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec c2 ping competent_leavitt
+
+ping: competent_leavitt: Name or service not known</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>DNS resolution fails. Containers must be explicitly named in order to appear in docker&#8217;s DNS tables.</p>
+</div>
+<div class="paragraph">
+<p>Find the IP of your latest container (<code>competent_leavitt</code> in my case) via <code>docker container inspect</code>, and ping it from <code>c2</code> directly by IP:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network inspect my_bridge
+
+...
+"625cb95b922d2502fd016c6517c51652e84f902f69632d5d399dc38f3f7b2711": {
+    "Name": "competent_leavitt",
+    "EndpointID": "2fdb093d97b23da43023b07338a329180995fc0564ed0762147c8796380c51e7",
+    "MacAddress": "02:42:ac:12:00:04",
+    "IPv4Address": "172.18.0.4/16",
+    "IPv6Address": ""
+}
+...
+
+[centos@node-1 ~]$ docker container exec c2 ping 172.18.0.4
+
+PING 172.18.0.4 (172.18.0.4) 56(84) bytes of data.
+64 bytes from 172.18.0.4: icmp_seq=1 ttl=64 time=0.083 ms
+64 bytes from 172.18.0.4: icmp_seq=2 ttl=64 time=0.060 ms</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ping succeeds. While the default-named container isn&#8217;t resolvable by DNS, it is still reachable on the <code>my_bridge</code> network.</p>
+</div>
+<div class="paragraph">
+<p>Finally, create container <code>c1</code> attached to the default network:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run --name c1 -d centos:7 ping 8.8.8.8</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Attempt to ping it from <code>c2</code> by name:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec c2 ping c1
+ping: c1: Name or service not known</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>DNS resolution is scoped to user-defined docker networks. Find <code>c1</code> 's IP manually as above (mine is at <code>172.17.0.3</code>), and ping this IP directly from <code>c2</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec c2 ping 172.17.0.3</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The request hangs until it times out (press <code>CTRL+C</code> to give up early if you don&#8217;t want to wait for the timeout). Different docker networks are firewalled from each other by default; dump your iptables rules and look for lines similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ sudo iptables-save
+
+...
+-A DOCKER-ISOLATION-STAGE-1 -i br-dfda80f70ea5
+    ! -o br-dfda80f70ea5 -j DOCKER-ISOLATION-STAGE-2
+-A DOCKER-ISOLATION-STAGE-1 -i docker0 ! -o docker0 -j DOCKER-ISOLATION-STAGE-2
+-A DOCKER-ISOLATION-STAGE-1 -j RETURN
+-A DOCKER-ISOLATION-STAGE-2 -o br-dfda80f70ea5 -j DROP
+-A DOCKER-ISOLATION-STAGE-2 -o docker0 -j DROP
+-A DOCKER-ISOLATION-STAGE-2 -j RETURN
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The first line above forwards traffic originating from <code>br-dfda80f70ea5</code> (that&#8217;s your custom bridge) but destined somewhere else to the stage 2 isolation chain, where if it is destined for the <code>docker0</code> bridge, it gets dropped, preventing traffic from going from one bridge to another.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_forwarding_a_host_port_to_a_container">Forwarding a Host Port to a Container</h3>
+<div class="paragraph">
+<p>Start an <code>nginx</code> container with a port exposure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run -d -p 8000:80 nginx</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This syntax asks docker to forward all traffic arriving on port 8000 of the host&#8217;s network namespace to port 80 of the container&#8217;s network namespace. Visit the nginx landing page at <code>&lt;node-1 public IP&gt;:8000</code>.</p>
+</div>
+<div class="paragraph">
+<p>Inspect your iptables rules again to see how docker forwarded this traffic:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ sudo iptables-save | grep 8000
+
+-A DOCKER ! -i docker0 -p tcp -m tcp --dport 8000
+    -j DNAT --to-destination 172.17.0.4:80</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inspect your default bridge network to find the IP of your nginx container; you should find that it matches the IP in the network address translation rule above, which states that any traffic arriving on port tcp/8000 on the host should be network address translated to <code>172.17.0.4:80</code> - the IP of our nginx container and the port we exposed with the <code>-p 8000:80</code> flag when we created this container.</p>
+</div>
+<div class="paragraph">
+<p>Clean up your containers and networks:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container rm -f $(docker container ls -aq)
+[centos@node-1 ~]$ docker network rm my_bridge</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_4">Conclusion</h3>
+<div class="paragraph">
+<p>In this demo, we stepped through the basic behavior of docker software defined bridge networks, and looked at the technology underpinning them such as linux bridges, veth connections, and iptables rules. From a practical standpoint, in order for containers to communicate they must be attached to the same docker software defined network (otherwise they&#8217;ll be firewalled from each other by the cross-network iptables rules we saw), and in order for containers to resolve each other&#8217;s name by DNS, they must also be explicitly named upon creation.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_docker_compose">5. Docker Compose</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this demo, we&#8217;ll illustrate:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Starting an app defined in a docker compose file</p>
+</li>
+<li>
+<p>Inter-service communication using DNS resolution of service names</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_exploring_the_compose_file">Exploring the Compose File</h3>
+<div class="paragraph">
+<p>Please download the DockerCoins app from Github and change directory to ~/orchestration-workshop/dockercoins.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ git clone -b ee3.0 \
+    https://github.com/docker-training/orchestration-workshop.git
+[centos@node-0 ~]$ cd ~/orchestration-workshop/dockercoins</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s take a quick look at our Compose file for Dockercoins:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">version: "3.1"
+
+services:
+rng:
+    image: training/dockercoins-rng:1.0
+    networks:
+    - dockercoins
+    ports:
+    - "8001:80"
+
+hasher:
+    image: training/dockercoins-hasher:1.0
+    networks:
+    - dockercoins
+    ports:
+    - "8002:80"
+
+webui:
+    image: training/dockercoins-webui:1.0
+    networks:
+    - dockercoins
+    ports:
+    - "8000:80"
+
+redis:
+    image: redis
+    networks:
+    - dockercoins
+
+worker:
+    image: training/dockercoins-worker:1.0
+    networks:
+    - dockercoins
+
+networks:
+    dockercoins:</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This Compose file contains 5 services, along with a bridge network.</p>
+</div>
+<div class="paragraph">
+<p>When we start the app, we will see the service images getting downloaded one at a time:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose up -d</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After starting, the images required for this app have been downloaded:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker image ls | grep "dockercoins"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Make sure the services are up and running, as is the dedicated network:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose ps
+[centos@node-0 dockercoins]$ docker network ls</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If everyting is up, visit your app at <code>&lt;node-0 public IP&gt;:8000</code> to see Dockercoins in action.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_communicating_between_containers">Communicating Between Containers</h3>
+<div class="paragraph">
+<p>In this section, we&#8217;ll demonstrate that containers created as part of a service in a Compose file are able to communicate with containers belonging to other services using just their service names. Let&#8217;s start by listing our DockerCoins containers:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker container ls | grep 'dockercoins'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, connect into one container; let&#8217;s pick <code>webui</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker container exec -it &lt;Container ID&gt; bash</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>From within the container, ping <code>rng</code> by name:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[root@&lt;Container ID&gt;]# ping rng</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Logs should be outputted resembling this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">PING rng (172.18.0.5) 56(84) bytes of data.
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=1 ttl=64 time=0.108 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=2 ttl=64 time=0.049 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=3 ttl=64 time=0.073 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=4 ttl=64 time=0.067 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=5 ttl=64 time=0.057 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=6 ttl=64 time=0.074 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=7 ttl=64 time=0.052 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=8 ttl=64 time=0.057 ms
+64 bytes from dockercoins_rng_1... (172.18.0.5): icmp_seq=9 ttl=64 time=0.080 ms</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use <code>CTRL+C</code> to terminate the ping. DNS lookup for the services in DockerCoins works because they are all attached to the user-defined <code>dockercoins</code> network.</p>
+</div>
+<div class="paragraph">
+<p>After exiting this container, let&#8217;s navigate to the <code>worker</code> folder and take a look at a section of <code>worker.py</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-c hljs" data-lang="c">[centos@node-0 dockercoins]$ cd worker
+[centos@node-0 worker]$ cat worker.py
+
+import logging
+import os
+from redis import Redis
+import requests
+import time
+
+DEBUG = os.environ.get("DEBUG", "").lower().startswith("y")
+
+log = logging.getLogger(__name__)
+if DEBUG:
+    logging.basicConfig(level=logging.DEBUG)
+else:
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+
+redis = Redis("redis")
+
+def get_random_bytes():
+    r = requests.get("http://rng/32")
+    return r.content
+
+def hash_bytes(data):
+    r = requests.post("http://hasher/",
+                    data=data,
+                    headers={"Content-Type": "application/octet-stream"})
+    hex_hash = r.text
+    return hex_hash</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As we can see in the last two stanzas, we can direct traffic to a service via a DNS name that exactly matches the service name defined in the docker compose file.</p>
+</div>
+<div class="paragraph">
+<p>Shut down Dockercoins and clean up its resources:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose down</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_5">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, we stood up an application using Docker Compose. The most important new idea here is the notion of Docker Services, which are collections of identically configured containers. Docker Service names are resolvable by DNS, so that we can write application logic designed to communicate service to service; all service discovery and load balancing between your application&#8217;s services is abstracted away and handled by Docker.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version local<br>
+Last updated 2023-02-10 09:55:58 UTC
+</div>
+</div>
+<script src="./assets/highlight/highlight.min.js"></script>
+<script src="./assets/highlight/languages/yaml.min.js"></script>
+<script src="./assets/highlight/languages/bash.min.js"></script>
+<script src="./assets/highlight/languages/shell.min.js"></script>
+<script src="./assets/highlight/languages/shell.min.js"></script>
+<script src="./assets/highlight/languages/dockerfile.min.js"></script>
+<script>
+if (!hljs.initHighlighting.called) {
+  hljs.initHighlighting.called = true
+  ;[].slice.call(document.querySelectorAll('pre.highlight > code')).forEach(function (el) { hljs.highlightBlock(el) })
+}
+</script>
+</body>
+</html>
