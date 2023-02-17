@@ -18,7 +18,7 @@
 <span id="email" class="email"><a href="mailto:thomas.herzog@gepardec.com">thomas.herzog@gepardec.com</a></span><br>
 <span id="author2" class="author">Clemens Kaserer</span><br>
 <span id="revnumber">version local,</span>
-<span id="revdate">2/10/2023</span>
+<span id="revdate">2/17/2023</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -73,7 +73,7 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run centos:7 ping 8.8.8.8
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run centos:7 ping 8.8.8.8
 
 Unable to find image 'centos:7' locally
 7: Pulling from library/centos
@@ -104,7 +104,7 @@ rtt min/avg/max/mdev = 7.008/7.056/7.110/0.039 ms</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run --detach centos:7 ping 8.8.4.4
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run --detach centos:7 ping 8.8.4.4
 
 8aef3d0d411c7b02532292ec3267a54f9258eaafb71d3d73a8ad41e702bd35a2</code></pre>
 </div>
@@ -120,7 +120,7 @@ rtt min/avg/max/mdev = 7.008/7.056/7.110/0.039 ms</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container ls
 
 CONTAINER ID IMAGE    COMMAND        CREATED       STATUS        PORTS  NAMES
 8aef3d0d411c centos:7 "ping 8.8.4.4" 3 minutes ago Up 3 minutes         zen_jang</code></pre>
@@ -134,7 +134,7 @@ CONTAINER ID IMAGE    COMMAND        CREATED       STATUS        PORTS  NAMES
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls --all
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container ls --all
 
 CONTAINER ID  IMAGE     COMMAND         CREATED        STATUS         NAMES
 8aef3d0d411c  centos:7  "ping 8.8.4.4"  2 minutes ago  Up 2 minutes   zen_jang
@@ -152,7 +152,7 @@ CONTAINER ID  IMAGE     COMMAND         CREATED        STATUS         NAMES
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run --detach --name opendnsping \
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run --detach --name opendnsping \
                    centos:7 ping 208.67.222.222
 
 3bdc61a95e76fdfe2597ef18aa00321a53dcdc9c36b2db97fbe738f8a623ecad</code></pre>
@@ -163,7 +163,7 @@ CONTAINER ID  IMAGE     COMMAND         CREATED        STATUS         NAMES
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls --all
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container ls --all
 
 CONTAINER ID IMAGE    COMMAND               CREATED        STATUS         NAMES
 3bdc61a95e76 centos:7 "ping 208.67.222.222" 23 seconds ago Up 22 seconds  opendnsping
@@ -179,7 +179,7 @@ CONTAINER ID IMAGE    COMMAND               CREATED        STATUS         NAMES
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm &lt;container ID&gt;
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container rm &lt;container ID&gt;
 
 00f763b9308d</code></pre>
 </div>
@@ -192,7 +192,7 @@ CONTAINER ID IMAGE    COMMAND               CREATED        STATUS         NAMES
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm &lt;container ID&gt;
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container rm &lt;container ID&gt;
 
 Error response from daemon: You cannot remove a running container
 3bdc61a95e76fdfe2597ef18aa00321a53dcdc9c36b2db97fbe738f8a623ecad.
@@ -204,7 +204,7 @@ Stop the container before attempting removal or force remove</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm --help
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container rm --help
 
 Usage: docker container rm [OPTIONS] CONTAINER [CONTAINER...]
 
@@ -233,7 +233,7 @@ Options:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm --force &lt;container ID&gt;
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container rm --force &lt;container ID&gt;
 
 8aef3d0d411c</code></pre>
 </div>
@@ -243,7 +243,7 @@ Options:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run --detach --name pinggoogledns \
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run --detach --name pinggoogledns \
                    centos:7 ping 8.8.8.8
 
 38e121e629611daa0726a21d634bc5189400377d82882cc6fd8a3870dc9943a0</code></pre>
@@ -254,7 +254,7 @@ Options:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls --help
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container ls --help
 
 Usage:    docker container ls [OPTIONS]
 
@@ -279,7 +279,7 @@ Options:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls --all --quiet
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container ls --all --quiet
 
 3bdc61a95e76
 38e121e62961</code></pre>
@@ -290,7 +290,7 @@ Options:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm --force \
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container rm --force \
     $(docker container ls --quiet --all)
 
 3bdc61a95e76
@@ -332,7 +332,7 @@ Options:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -it centos:7 bash</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run -it centos:7 bash</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -340,9 +340,9 @@ Options:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[root@2b8de2ffdf85 /]$ ls -l
-[root@2b8de2ffdf85 /]$ echo 'Hello there...' &gt; test.txt
-[root@2b8de2ffdf85 /]$ ls -l</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ ls -l
+[user@node ~]$ echo 'Hello there...' &gt; test.txt
+[user@node ~]$ ls -l</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -350,7 +350,7 @@ Options:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[root@2b8de2ffdf85 /]# exit</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]# exit</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -358,7 +358,7 @@ Options:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -it centos:7 bash</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run -it centos:7 bash</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -372,7 +372,7 @@ Options:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls -a
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container ls -a
 
 CONTAINER ID  IMAGE     COMMAND  CREATED              STATUS
 cc19f7e9aa91  centos:7  "bash"   About a minute ago   Exited (0) About a minute ago
@@ -385,8 +385,8 @@ cc19f7e9aa91  centos:7  "bash"   About a minute ago   Exited (0) About a minute 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container start &lt;container ID&gt;
-[centos@node-0 ~]$ docker container ls
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container start &lt;container ID&gt;
+[user@node ~]$ docker container ls
 
 CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
 2b8de2ffdf85  centos:7  "bash"   5 minutes ago   Up 21 seconds  ...</code></pre>
@@ -400,7 +400,7 @@ CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container exec &lt;container ID&gt; ps -ef</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container exec &lt;container ID&gt; ps -ef</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -408,7 +408,7 @@ CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container top &lt;container ID&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container top &lt;container ID&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -416,7 +416,7 @@ CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container exec -it &lt;container ID&gt; bash</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container exec -it &lt;container ID&gt; bash</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -430,7 +430,7 @@ CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls -a --no-trunc</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container ls -a --no-trunc</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -441,7 +441,7 @@ CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls -a -q</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container ls -a -q</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -449,14 +449,14 @@ CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container ls -l</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container ls -l</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Finally, you can also filter results with the <code>--filter</code> flag; for example, try filtering by exit code:</p>
 </div>
 <div class="paragraph">
-<p>[centos@node-0 ~]$ docker container ls -a --filter "exited=0"
+<p>[user@node ~]$ docker container ls -a --filter "exited=0"
 The output of this command will list the containers that have exited successfully.</p>
 </div>
 <div class="paragraph">
@@ -464,7 +464,7 @@ The output of this command will list the containers that have exited successfull
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f $(docker container ls -aq)</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container rm -f $(docker container ls -aq)</code></pre>
 </div>
 </div>
 </div>
@@ -502,7 +502,7 @@ The output of this command will list the containers that have exited successfull
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run centos:7 ping 127.0.0.1 -c 2
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run centos:7 ping 127.0.0.1 -c 2
 PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
 64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.021 ms
 64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.029 ms
@@ -517,7 +517,7 @@ rtt min/avg/max/mdev = 0.021/0.025/0.029/0.004 ms</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -d centos:7 ping 127.0.0.1
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run -d centos:7 ping 127.0.0.1
 
 d5ef517cc113f36738005295066b271ae604e9552ce4070caffbacdc3893ae04</code></pre>
 </div>
@@ -530,7 +530,7 @@ d5ef517cc113f36738005295066b271ae604e9552ce4070caffbacdc3893ae04</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container logs &lt;container ID&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container logs &lt;container ID&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -545,7 +545,7 @@ Also note when using container IDs: you don&#8217;t need to specify the entire I
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container attach &lt;container ID&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container attach &lt;container ID&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -557,7 +557,7 @@ After doing so, list your running containers; you should see that the container 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -d -it centos:7 ping 127.0.0.1</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run -d -it centos:7 ping 127.0.0.1</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -574,7 +574,7 @@ try it with the container that should be running from the last step:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container logs --tail 5 &lt;container ID&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container logs --tail 5 &lt;container ID&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -585,7 +585,7 @@ try it with the container that should be running from the last step:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container logs -f &lt;container ID&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container logs -f &lt;container ID&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -632,8 +632,8 @@ try it with the container that should be running from the last step:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run -d centos:7 ping 8.8.8.8
-[centos@node-0 ~]$ docker container ls</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run -d centos:7 ping 8.8.8.8
+[user@node ~]$ docker container ls</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -641,8 +641,8 @@ try it with the container that should be running from the last step:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container stop &lt;container ID&gt;
-[centos@node-0 ~]$ docker container ls -a</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container stop &lt;container ID&gt;
+[user@node ~]$ docker container ls -a</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -662,7 +662,7 @@ Note that the stop command takes a few seconds to complete. docker container sto
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container start -a &lt;container ID&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container start -a &lt;container ID&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -676,7 +676,7 @@ Note that the stop command takes a few seconds to complete. docker container sto
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container kill &lt;container ID&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container kill &lt;container ID&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -690,8 +690,8 @@ Note that the stop command takes a few seconds to complete. docker container sto
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container start &lt;container ID&gt;
-[centos@node-0 ~]$ docker container inspect &lt;container ID&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container start &lt;container ID&gt;
+[user@node ~]$ docker container inspect &lt;container ID&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -702,7 +702,7 @@ Note that the stop command takes a few seconds to complete. docker container sto
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container inspect &lt;container ID&gt; | grep IPAddress</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container inspect &lt;container ID&gt; | grep IPAddress</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -719,7 +719,7 @@ Note that the stop command takes a few seconds to complete. docker container sto
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container inspect &lt;container ID&gt; | grep Cmd
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container inspect &lt;container ID&gt; | grep Cmd
 
 "Cmd": \[</code></pre>
 </div>
@@ -730,7 +730,7 @@ For example, to find the Cmd value we tried to grep for above, instead try:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container inspect --format='{{.Config.Cmd}}' &lt;container ID&gt;
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container inspect --format='{{.Config.Cmd}}' &lt;container ID&gt;
 
 [ping 8.8.8.8]</code></pre>
 </div>
@@ -746,7 +746,7 @@ For example, to find the Cmd value we tried to grep for above, instead try:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container inspect --format='{{json .Config}}' &lt;container ID&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container inspect --format='{{json .Config}}' &lt;container ID&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -766,8 +766,8 @@ For example, to find the Cmd value we tried to grep for above, instead try:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm &lt;container ID&gt;
-[centos@node-0 ~]$ docker container ls ...</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container rm &lt;container ID&gt;
+[user@node ~]$ docker container ls ...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -775,7 +775,7 @@ For example, to find the Cmd value we tried to grep for above, instead try:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f &lt;container ID&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container rm -f &lt;container ID&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -787,7 +787,7 @@ Recall that you can pass the output of one shell command cmd-A into a variable o
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f $(docker container ls -aq)</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container rm -f $(docker container ls -aq)</code></pre>
 </div>
 </div>
 </div>
@@ -946,7 +946,7 @@ RUN yum install -y wget</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker image build -t myimage .</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myimage]$ docker image build -t myimage .</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -957,7 +957,7 @@ RUN yum install -y wget</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker container run -it myimage bash
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myimage]$ docker container run -it myimage bash
 [root@1d86d4093cce /]# wget example.com
 [root@1d86d4093cce /]# cat index.html
 [root@1d86d4093cce /]# exit</code></pre>
@@ -971,7 +971,7 @@ RUN yum install -y wget</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ cat Dockerfile | docker image build -t myimage -f - .</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myimage]$ cat Dockerfile | docker image build -t myimage -f - .</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1033,7 +1033,7 @@ RUN yum install -y wget</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker image history myimage:latest
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myimage]$ docker image history myimage:latest
 
 IMAGE          CREATED          CREATED BY                                      SIZE
 f2e85c162453   8 seconds ago    /bin/sh -c yum install -y wget                  87.2MB
@@ -1113,7 +1113,7 @@ RUN yum install -y wget vim</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker image build -t myimage .</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myimage]$ docker image build -t myimage .</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1121,7 +1121,7 @@ RUN yum install -y wget vim</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker container run myimage</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myimage]$ docker container run myimage</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1132,7 +1132,7 @@ RUN yum install -y wget vim</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker container run myimage echo "hello world"</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myimage]$ docker container run myimage echo "hello world"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1151,8 +1151,8 @@ RUN yum install -y wget vim</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker image build -t myimage .
-[centos@node-0 myimage]$ docker container run myimage</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myimage]$ docker image build -t myimage .
+[user@node myimage]$ docker container run myimage</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1163,7 +1163,7 @@ RUN yum install -y wget vim</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker container run myimage 127.0.0.1</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myimage]$ docker container run myimage 127.0.0.1</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1193,8 +1193,8 @@ RUN yum install -y wget vim</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker image build -t myimage .
-[centos@node-0 myimage]$ docker container run myimage</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myimage]$ docker image build -t myimage .
+[user@node myimage]$ docker container run myimage</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1205,7 +1205,7 @@ RUN yum install -y wget vim</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 myimage]$ docker container run myimage 8.8.8.8</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myimage]$ docker container run myimage 8.8.8.8</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1261,8 +1261,8 @@ int main (void)
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ gcc -Wall hello.c -o hello
-[centos@node-0 multi]$ ./hello</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ gcc -Wall hello.c -o hello
+[user@node multi]$ ./hello</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1286,8 +1286,8 @@ CMD /app/bin/hello</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker image build -t my-app-large .
-[centos@node-0 multi]$ docker image ls | grep my-app-large
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ docker image build -t my-app-large .
+[user@node multi]$ docker image ls | grep my-app-large
 
 REPOSITORY     TAG      IMAGE ID       CREATED         SIZE
 my-app-large   latest   a7d0c6fe0849   3 seconds ago   189MB</code></pre>
@@ -1298,7 +1298,7 @@ my-app-large   latest   a7d0c6fe0849   3 seconds ago   189MB</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker container run my-app-large</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ docker container run my-app-large</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1328,8 +1328,8 @@ CMD /app/hello</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker image build -t my-app-small .
-[centos@node-0 multi]$ docker image ls | grep 'my-app-'
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ docker image build -t my-app-small .
+[user@node multi]$ docker image ls | grep 'my-app-'
 
 REPOSITORY     TAG      IMAGE ID       CREATED              SIZE
 my-app-small   latest   f49ec3971aa6   6 seconds ago        4.01MB
@@ -1344,7 +1344,7 @@ my-app-large   latest   a7d0c6fe0849   About a minute ago   189MB</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">[centos@node-0 multi]$ docker container run --rm my-app-small</code></pre>
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">[user@node multi]$ docker container run --rm my-app-small</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1361,7 +1361,7 @@ my-app-large   latest   a7d0c6fe0849   About a minute ago   189MB</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker image build -t my-build-stage --target build .</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ docker image build -t my-build-stage --target build .</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1372,7 +1372,7 @@ my-app-large   latest   a7d0c6fe0849   About a minute ago   189MB</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker container run -it --rm my-build-stage /app/bin/hello</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ docker container run -it --rm my-build-stage /app/bin/hello</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1436,7 +1436,7 @@ Note we&#8217;re statically linking the sleep.c binary, so it will have everythi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 scratch]$ docker image build -t sleep:scratch .</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node scratch]$ docker image build -t sleep:scratch .</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1444,7 +1444,7 @@ Note we&#8217;re statically linking the sleep.c binary, so it will have everythi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 scratch]$ docker image ls | grep scratch
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node scratch]$ docker image ls | grep scratch
 
 REPOSITORY  TAG       IMAGE ID       CREATED         SIZE
 sleep       scratch   1b68b20a85a8   9 minutes ago   128kB</code></pre>
@@ -1458,8 +1458,8 @@ sleep       scratch   1b68b20a85a8   9 minutes ago   128kB</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 scratch]$ docker container run --name sleeper -d sleep:scratch
-[centos@node-0 scratch]$ docker container top sleeper
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node scratch]$ docker container run --name sleeper -d sleep:scratch
+[user@node scratch]$ docker container top sleeper
 
 UID   PID   PPID  C  STIME  TTY  TIME     CMD
 root  1190  1174  0  15:21  ?    00:00:00 /sleep</code></pre>
@@ -1473,7 +1473,7 @@ root  1190  1174  0  15:21  ?    00:00:00 /sleep</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 scratch]$ sudo ls /proc/&lt;PID&gt;/root
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node scratch]$ sudo ls /proc/&lt;PID&gt;/root
 
 dev  etc  proc  sleep  sys</code></pre>
 </div>
@@ -1486,7 +1486,7 @@ dev  etc  proc  sleep  sys</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 scratch]$ docker container rm -f sleeper</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node scratch]$ docker container rm -f sleeper</code></pre>
 </div>
 </div>
 </div>
@@ -1500,7 +1500,7 @@ dev  etc  proc  sleep  sys</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ export DOCKER_BUILDKIT=1</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ export DOCKER_BUILDKIT=1</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1521,7 +1521,7 @@ CMD /app/hello</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ docker image build --no-cache -t my-app-small-bk .
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ docker image build --no-cache -t my-app-small-bk .
 
 [+] Building 15.5s (14/14) FINISHED
  =&gt; [internal] load Dockerfile
@@ -1557,7 +1557,7 @@ CMD /app/hello</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 multi]$ export DOCKER_BUILDKIT=0</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ export DOCKER_BUILDKIT=0</code></pre>
 </div>
 </div>
 </div>
@@ -1604,7 +1604,7 @@ CMD /app/hello</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image pull centos:7</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image pull centos:7</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1612,7 +1612,7 @@ CMD /app/hello</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image tag centos:7 my-centos:dev</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image tag centos:7 my-centos:dev</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1632,7 +1632,7 @@ Note no new image has been created; <code>my-centos:dev</code> is just a pointer
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image ls</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image ls</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1646,7 +1646,7 @@ Note no new image has been created; <code>my-centos:dev</code> is just a pointer
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image push my-centos:dev</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image push my-centos:dev</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1660,8 +1660,8 @@ Note no new image has been created; <code>my-centos:dev</code> is just a pointer
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image tag my-centos:dev &lt;Docker ID&gt;/my-centos:dev
-[centos@node-0 ~]$ docker image push &lt;Docker ID&gt;/my-centos:dev</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image tag my-centos:dev &lt;Docker ID&gt;/my-centos:dev
+[user@node ~]$ docker image push &lt;Docker ID&gt;/my-centos:dev</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1672,7 +1672,7 @@ Note no new image has been created; <code>my-centos:dev</code> is just a pointer
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image build -t &lt;Docker ID&gt;/my-centos:1.0 .</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image build -t &lt;Docker ID&gt;/my-centos:1.0 .</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1683,7 +1683,7 @@ Note no new image has been created; <code>my-centos:dev</code> is just a pointer
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image rm my-centos:dev</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image rm my-centos:dev</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1733,8 +1733,8 @@ Also note that as we saw when building images, image names and tags are just poi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker image pull postgres:9-alpine
-[centos@node-0 ~]$ docker image inspect postgres:9-alpine
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image pull postgres:9-alpine
+[user@node ~]$ docker image inspect postgres:9-alpine
 
 ...
 "Volumes": {
@@ -1751,7 +1751,7 @@ Also note that as we saw when building images, image names and tags are just poi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run --name some-postgres \
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run --name some-postgres \
     -v db_backing:/var/lib/postgresql/data \
     -e POSTGRES_PASSWORD=password \
     -d postgres:9-alpine</code></pre>
@@ -1767,7 +1767,7 @@ Also note that as we saw when building images, image names and tags are just poi
 <p>The <code>psql</code> command line interface to postgres comes packaged with the postgres image; spawn it as a child process in your postgres container interactively, to create a postgres terminal:</p>
 </div>
 <div class="paragraph">
-<p>[centos@node-0 ~]$ docker container exec \
+<p>[user@node ~]$ docker container exec \
     -it some-postgres psql -U postgres
 Create an arbitrary table in the database:</p>
 </div>
@@ -1799,7 +1799,7 @@ postgres=# \q</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container rm -f some-postgres</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container rm -f some-postgres</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1807,7 +1807,7 @@ postgres=# \q</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container run \
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run \
     --name some-postgres \
     -v db_backing:/var/lib/postgresql/data \
     -e POSTGRES_PASSWORD=password \
@@ -1819,7 +1819,7 @@ postgres=# \q</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ docker container exec \
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container exec \
     -it some-postgres psql -U postgres</code></pre>
 </div>
 </div>
@@ -2234,9 +2234,9 @@ EXPOSE 80</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 ~]$ git clone -b ee3.0 \
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ git clone -b ee3.0 \
     https://github.com/docker-training/orchestration-workshop.git
-[centos@node-0 ~]$ cd orchestration-workshop/dockercoins</code></pre>
+[user@node ~]$ cd orchestration-workshop/dockercoins</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2256,7 +2256,7 @@ EXPOSE 80</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose up</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose up</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2267,7 +2267,7 @@ EXPOSE 80</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose up -d</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose up -d</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2275,7 +2275,7 @@ EXPOSE 80</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose ps
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose ps
 
         Name                      Command               State          Ports
 ------------------------------------------------------------------------------------
@@ -2297,7 +2297,7 @@ dockercoins_worker_1   python worker.py                 Up</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose logs</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose logs</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2305,7 +2305,7 @@ dockercoins_worker_1   python worker.py                 Up</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose logs --tail 10 --follow</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose logs --tail 10 --follow</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2343,9 +2343,9 @@ dockercoins_worker_1   python worker.py                 Up</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose ps
-[centos@node-0 dockercoins]$ docker-compose up -d --scale worker=2
-[centos@node-0 dockercoins]$ docker-compose ps
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose ps
+[user@node dockercoins]$ docker-compose up -d --scale worker=2
+[user@node dockercoins]$ docker-compose ps
 
         Name                       Command               State          Ports
 -------------------------------------------------------------------------------------
@@ -2371,8 +2371,8 @@ dockercoins_worker_2    python worker.py                 Up</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose up -d --scale worker=10
-[centos@node-0 dockercoins]$ docker-compose ps</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose up -d --scale worker=10
+[user@node dockercoins]$ docker-compose ps</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2383,8 +2383,8 @@ dockercoins_worker_2    python worker.py                 Up</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ httping -c 5 localhost:8001
-[centos@node-0 dockercoins]$ httping -c 5 localhost:8002</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ httping -c 5 localhost:8001
+[user@node dockercoins]$ httping -c 5 localhost:8002</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2395,7 +2395,7 @@ dockercoins_worker_2    python worker.py                 Up</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-0 dockercoins]$ docker-compose down</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose down</code></pre>
 </div>
 </div>
 </div>
@@ -3042,7 +3042,7 @@ mkdir: cannot create directory ‘newDir’: File exists</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version local<br>
-Last updated 2023-02-10 10:02:21 UTC
+Last updated 2023-02-17 11:10:38 UTC
 </div>
 </div>
 <script src="./assets/highlight/highlight.min.js"></script>
