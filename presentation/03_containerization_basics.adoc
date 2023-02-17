@@ -44,7 +44,7 @@ By the end of this module, trainees will be able to
 * DEFAULT
 ** Process IDs
 ** Network stacks
-** inter-process communications
+** Inter-process communications
 ** Mount points
 ** Hostnames
 

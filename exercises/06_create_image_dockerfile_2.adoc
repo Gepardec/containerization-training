@@ -17,13 +17,13 @@ Rebuild your image:
 
 [source,shell]
 ----
-[centos@node-0 myimage]$ docker image build -t myimage .
+[user@node myimage]$ docker image build -t myimage .
 ----
 Run a container from your new image with no command provided:
 
 [source,shell]
 ----
-[centos@node-0 myimage]$ docker container run myimage
+[user@node myimage]$ docker container run myimage
 ----
 You should see the command provided by the `CMD` parameter in the Dockerfile running.
 
@@ -31,7 +31,7 @@ Try explicitly providing a command when running a container:
 
 [source,shell]
 ----
-[centos@node-0 myimage]$ docker container run myimage echo "hello world"
+[user@node myimage]$ docker container run myimage echo "hello world"
 ----
 Providing a command in `docker container run` overrides the command defined by `CMD`.
 
@@ -45,8 +45,8 @@ Build the image and use it to run a container with no process arguments:
 
 [source,shell]
 ----
-[centos@node-0 myimage]$ docker image build -t myimage .
-[centos@node-0 myimage]$ docker container run myimage
+[user@node myimage]$ docker image build -t myimage .
+[user@node myimage]$ docker container run myimage
 ----
 You'll get an error. What went wrong?
 
@@ -54,7 +54,7 @@ Try running with an argument after the image name:
 
 [source,shell]
 ----
-[centos@node-0 myimage]$ docker container run myimage 127.0.0.1
+[user@node myimage]$ docker container run myimage 127.0.0.1
 ----
 You should see a successful ping output. Tokens provided after an image name are sent as arguments to the command specified by `ENTRYPOINT`.
 
@@ -75,8 +75,8 @@ Build the image and run a container with the defaults:
 
 [source,shell]
 ----
-[centos@node-0 myimage]$ docker image build -t myimage .
-[centos@node-0 myimage]$ docker container run myimage
+[user@node myimage]$ docker image build -t myimage .
+[user@node myimage]$ docker container run myimage
 ----
 You should see it pinging the default IP, 127.0.0.1.
 
@@ -84,7 +84,7 @@ Run another container with a custom IP argument:
 
 [source,shell]
 ----
-[centos@node-0 myimage]$ docker container run myimage 8.8.8.8
+[user@node myimage]$ docker container run myimage 8.8.8.8
 ----
 This time, you should see a ping to 8.8.8.8. Explain the difference in behavior between these two last containers.
 

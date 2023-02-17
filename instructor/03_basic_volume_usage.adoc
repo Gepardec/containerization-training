@@ -10,8 +10,8 @@ Create a volume, and inspect its metadata:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker volume create demovol
-[centos@node-0 ~]$ docker volume inspect demovol
+[user@node ~]$ docker volume create demovol
+[user@node ~]$ docker volume inspect demovol
 
 [
     {
@@ -31,7 +31,7 @@ Run a container that mounts this volume, and list the filesystem therein:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container run -it -v demovol:/demo centos:7 bash
+[user@node ~]$ docker container run -it -v demovol:/demo centos:7 bash
 [root@f4aca1b60965 /]# ls
 anaconda-post.log  bin  demo  dev  etc  home ...
 ----
@@ -54,13 +54,13 @@ Exit the container, and list the contents of your volume on the host:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ sudo ls /var/lib/docker/volumes/demovol/_data
+[user@node ~]$ sudo ls /var/lib/docker/volumes/demovol/_data
 ----
 You'll see your `mydata.dat` file present at this point in the host's filesystem. Delete the container:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container rm -f <container ID>
+[user@node ~]$ docker container rm -f <container ID>
 ----
 The volume and its contents will still be present on the host.
 
@@ -68,15 +68,15 @@ Start a new container mounting the same volume, attach a bash shell to it, and s
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container run -d -v demovol:/demo centos:7 ping 8.8.8.8
-[centos@node-0 ~]$ docker container exec -it <container ID> bash
+[user@node ~]$ docker container run -d -v demovol:/demo centos:7 ping 8.8.8.8
+[user@node ~]$ docker container exec -it <container ID> bash
 [root@11117d3de672 /]# cat /demo/mydata.dat
 ----
 Exit this container, and inspect its mount metadata:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container inspect <container ID>
+[user@node ~]$ docker container inspect <container ID>
 
     "Mounts": [
         {
@@ -97,8 +97,8 @@ Build a new image out of this container using `docker container commit`, and sta
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container commit <container ID> demo:snapshot
-[centos@node-0 ~]$ docker container run -it demo:snapshot bash
+[user@node ~]$ docker container commit <container ID> demo:snapshot
+[user@node ~]$ docker container run -it demo:snapshot bash
 [root@ad62f304ba18 /]# cat /demo/mydata.dat 
 cat: /demo/mydata.dat: No such file or directory
 ----
@@ -108,7 +108,7 @@ Clean up by removing that volume:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker volume rm demovol
+[user@node ~]$ docker volume rm demovol
 ----
 You will get an error saying the volume is in use - docker will not delete a volume mounted to any container (even a stopped container) in this way. 
 Remove the offending container first, then remove the volume again.
@@ -118,15 +118,15 @@ Make a directory with some source code in it for your new website:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ mkdir /home/centos/myweb
-[centos@node-0 ~]$ cd /home/centos/myweb
-[centos@node-0 myweb]$ echo "<h1>Hello Wrld</h1>" > index.html
+[user@node ~]$ mkdir /home/centos/myweb
+[user@node ~]$ cd /home/centos/myweb
+[user@node myweb]$ echo "<h1>Hello Wrld</h1>" > index.html
 ----
 Start up an nginx container that mounts this as a static website:
 
 [source,shell]
 ----
-[centos@node-0 myweb]$ docker container run -d \
+[user@node myweb]$ docker container run -d \
     -v /home/centos/myweb:/usr/share/nginx/html \
     -p 8000:80 nginx
 ----

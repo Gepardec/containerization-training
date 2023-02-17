@@ -47,7 +47,7 @@ image::01_welcome/team.jpg[width=700px]
 
 === Session Logistics
 
-* 2 days duration
+* 1 days duration
 * Mostly exercises
 * Regular breaks
 

@@ -9,8 +9,8 @@ Download a postgres image, and look at its history to determine its default volu
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker image pull postgres:9-alpine
-[centos@node-0 ~]$ docker image inspect postgres:9-alpine
+[user@node ~]$ docker image pull postgres:9-alpine
+[user@node ~]$ docker image inspect postgres:9-alpine
 
 ...
 "Volumes": {
@@ -24,7 +24,7 @@ Set up a running instance of this postgres container:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container run --name some-postgres \
+[user@node ~]$ docker container run --name some-postgres \
     -v db_backing:/var/lib/postgresql/data \
     -e POSTGRES_PASSWORD=password \
     -d postgres:9-alpine
@@ -34,7 +34,7 @@ Notice the explicit volume mount, `-v db_backing:/var/lib/postgresql/data`; if w
 === Writing to the Database
 The `psql` command line interface to postgres comes packaged with the postgres image; spawn it as a child process in your postgres container interactively, to create a postgres terminal:
 
-[centos@node-0 ~]$ docker container exec \
+[user@node ~]$ docker container exec \
     -it some-postgres psql -U postgres
 Create an arbitrary table in the database:
 
@@ -62,13 +62,13 @@ Delete the postgres container:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container rm -f some-postgres
+[user@node ~]$ docker container rm -f some-postgres
 ----
 Create a new postgres container, mounting the `db_backing` volume just like last time:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container run \
+[user@node ~]$ docker container run \
     --name some-postgres \
     -v db_backing:/var/lib/postgresql/data \
     -e POSTGRES_PASSWORD=password \
@@ -78,7 +78,7 @@ Reconnect a `psql` interface to your database, also like before:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container exec \
+[user@node ~]$ docker container exec \
     -it some-postgres psql -U postgres
 ----
 List the contents of the `PRODUCTS` table:

@@ -10,27 +10,27 @@ Create a container using the `centos:7` image. Connect to its bash shell in inte
 
 [source, shell]
 ----
-[centos@node-0 ~]$ docker container run -it centos:7 bash
+[user@node ~]$ docker container run -it centos:7 bash
 ----
 Explore your container's filesystem with ls, and then create a new file. Use `ls` again to confirm you have successfully created your file. Use the `-l` option with `ls` to list the files and directories in long list format.
 
 [source, shell]
 ----
-[root@2b8de2ffdf85 /]$ ls -l
-[root@2b8de2ffdf85 /]$ echo 'Hello there...' > test.txt
-[root@2b8de2ffdf85 /]$ ls -l
+[user@node ~]$ ls -l
+[user@node ~]$ echo 'Hello there...' > test.txt
+[user@node ~]$ ls -l
 ----
 Exit the connection to the container:
 
 [source, shell]
 ----
-[root@2b8de2ffdf85 /]# exit
+[user@node ~]# exit
 ----
 Run the same command as before to start a container using the `centos:7` image:
 
 [source, shell]
 ----
-[centos@node-0 ~]$ docker container run -it centos:7 bash
+[user@node ~]$ docker container run -it centos:7 bash
 ----
 Use `ls` to explore your container. You will see that your previously created test.txt is nowhere to be found in your new container. Exit this container in the same way you did above.
 
@@ -39,7 +39,7 @@ We wish to recover `test.txt` written to our container in the first example, but
 
 [source, shell]
 ----
-[centos@node-0 ~]$ docker container ls -a
+[user@node ~]$ docker container ls -a
 
 CONTAINER ID  IMAGE     COMMAND  CREATED              STATUS                       
 cc19f7e9aa91  centos:7  "bash"   About a minute ago   Exited (0) About a minute ago
@@ -50,8 +50,8 @@ We can restart a container via the container ID listed in the first column. Use 
 
 [source, shell]
 ----
-[centos@node-0 ~]$ docker container start <container ID>
-[centos@node-0 ~]$ docker container ls
+[user@node ~]$ docker container start <container ID>
+[user@node ~]$ docker container ls
 
 CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
 2b8de2ffdf85  centos:7  "bash"   5 minutes ago   Up 21 seconds  ...
@@ -62,19 +62,19 @@ Run `ps -ef` inside the container you just restarted using Docker's exec command
 
 [source, shell]
 ----
-[centos@node-0 ~]$ docker container exec <container ID> ps -ef
+[user@node ~]$ docker container exec <container ID> ps -ef
 ----
 What process is PID 1 inside the container? Find the PID of that process on the host machine by using:
 
 [source, shell]
 ----
-[centos@node-0 ~]$ docker container top <container ID>
+[user@node ~]$ docker container top <container ID>
 ----
 Launch a bash shell in your running container with docker container exec:
 
 [source, shell]
 ----
-[centos@node-0 ~]$ docker container exec -it <container ID> bash
+[user@node ~]$ docker container exec -it <container ID> bash
 ----
 List the contents of the container's filesystem with ls -l; your test.txt should be where you left it. Exit the container again by typing exit.
 
@@ -83,7 +83,7 @@ In the last step, we saw how to get the short container ID of all our containers
 
 [source, shell]
 ----
-[centos@node-0 ~]$ docker container ls -a --no-trunc
+[user@node ~]$ docker container ls -a --no-trunc
 ----
 This long ID is the same as the string that is returned after starting a container with docker container run.
 
@@ -91,23 +91,23 @@ List only the container ID using the -q flag:
 
 [source, shell]
 ----
-[centos@node-0 ~]$ docker container ls -a -q
+[user@node ~]$ docker container ls -a -q
 ----
 List the last container to have been created using the `-l` flag:
 
 [source, shell]
 ----
-[centos@node-0 ~]$ docker container ls -l
+[user@node ~]$ docker container ls -l
 ----
 Finally, you can also filter results with the `--filter` flag; for example, try filtering by exit code:
 
-[centos@node-0 ~]$ docker container ls -a --filter "exited=0"
+[user@node ~]$ docker container ls -a --filter "exited=0"
 The output of this command will list the containers that have exited successfully.
 
 Clean up with:
 [source, shell]
 ----
-[centos@node-0 ~]$ docker container rm -f $(docker container ls -aq)
+[user@node ~]$ docker container rm -f $(docker container ls -aq)
 ----
 
 === Conclusion

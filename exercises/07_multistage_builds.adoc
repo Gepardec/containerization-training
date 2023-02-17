@@ -23,8 +23,8 @@ Try compiling and running this right on the host OS:
 
 [source,shell]
 ----
-[centos@node-0 multi]$ gcc -Wall hello.c -o hello
-[centos@node-0 multi]$ ./hello
+[user@node multi]$ gcc -Wall hello.c -o hello
+[user@node multi]$ ./hello
 ----
 Now let's Dockerize our hello world application. Add a `Dockerfile` to the multi folder with this content:
 
@@ -44,8 +44,8 @@ Build the image and note its size:
 
 [source,shell]
 ----
-[centos@node-0 multi]$ docker image build -t my-app-large .
-[centos@node-0 multi]$ docker image ls | grep my-app-large
+[user@node multi]$ docker image build -t my-app-large .
+[user@node multi]$ docker image ls | grep my-app-large
 
 REPOSITORY     TAG      IMAGE ID       CREATED         SIZE
 my-app-large   latest   a7d0c6fe0849   3 seconds ago   189MB
@@ -54,7 +54,7 @@ Test the image to confirm it was built successfully:
 
 [source,shell]
 ----
-[centos@node-0 multi]$ docker container run my-app-large
+[user@node multi]$ docker container run my-app-large
 ----
 It should print`hello world`" in the console.
 
@@ -79,8 +79,8 @@ Build the image again and compare the size with the previous version:
 
 [source,shell]
 ----
-[centos@node-0 multi]$ docker image build -t my-app-small .
-[centos@node-0 multi]$ docker image ls | grep 'my-app-'
+[user@node multi]$ docker image build -t my-app-small .
+[user@node multi]$ docker image ls | grep 'my-app-'
 
 REPOSITORY     TAG      IMAGE ID       CREATED              SIZE
 my-app-small   latest   f49ec3971aa6   6 seconds ago        4.01MB
@@ -92,7 +92,7 @@ Finally, make sure the app works:
 
 [source,Dockerfile]
 ----
-[centos@node-0 multi]$ docker container run --rm my-app-small
+[user@node multi]$ docker container run --rm my-app-small
 ----
 You should get the expected `Hello, World!` output from the container with just the required executable.
 
@@ -103,7 +103,7 @@ Build an image from the build stage in your `Dockerfile` using the `--target` fl
 
 [source,shell]
 ----
-[centos@node-0 multi]$ docker image build -t my-build-stage --target build .
+[user@node multi]$ docker image build -t my-build-stage --target build .
 ----
 Notice all its layers are pulled from the cache; even though the build stage wasn't tagged originally, its layers are nevertheless persisted in the cache.
 
@@ -111,7 +111,7 @@ Run a container from this image and make sure it yields the expected result:
 
 [source,shell]
 ----
-[centos@node-0 multi]$ docker container run -it --rm my-build-stage /app/bin/hello
+[user@node multi]$ docker container run -it --rm my-build-stage /app/bin/hello
 ----
 List your images again to see the size of my-build-stage compared to the small version of the app.
 
@@ -154,13 +154,13 @@ Build your image:
 
 [source,shell]
 ----
-[centos@node-0 scratch]$ docker image build -t sleep:scratch .
+[user@node scratch]$ docker image build -t sleep:scratch .
 ----
 List your images, and search for the one you just built:
 
 [source,shell]
 ----
-[centos@node-0 scratch]$ docker image ls | grep scratch
+[user@node scratch]$ docker image ls | grep scratch
 
 REPOSITORY  TAG       IMAGE ID       CREATED         SIZE
 sleep       scratch   1b68b20a85a8   9 minutes ago   128kB
@@ -171,8 +171,8 @@ Run your image, and check out its filesystem; we can't list directly inside the 
 
 [source,shell]
 ----
-[centos@node-0 scratch]$ docker container run --name sleeper -d sleep:scratch
-[centos@node-0 scratch]$ docker container top sleeper
+[user@node scratch]$ docker container run --name sleeper -d sleep:scratch
+[user@node scratch]$ docker container top sleeper
 
 UID   PID   PPID  C  STIME  TTY  TIME     CMD
 root  1190  1174  0  15:21  ?    00:00:00 /sleep
@@ -183,7 +183,7 @@ List your container's filesystem from the host using this PID:
 
 [source,shell]
 ----
-[centos@node-0 scratch]$ sudo ls /proc/<PID>/root
+[user@node scratch]$ sudo ls /proc/<PID>/root
 
 dev  etc  proc  sleep  sys
 ----
@@ -193,7 +193,7 @@ Clean up by deleting your container:
 
 [source,shell]
 ----
-[centos@node-0 scratch]$ docker container rm -f sleeper
+[user@node scratch]$ docker container rm -f sleeper
 ----
 
 === Optional: Enabling BuildKit
@@ -203,7 +203,7 @@ Back in the `~/multi` directory, turn on `BuildKit`:
 
 [source,shell]
 ----
-[centos@node-0 multi]$ export DOCKER_BUILDKIT=1
+[user@node multi]$ export DOCKER_BUILDKIT=1
 ----
 Add an AS label to the final stage of your Dockerfile (this is not strictly necessary, but will make the output in the next step easier to understand):
 
@@ -220,7 +220,7 @@ Re-build my-app-small, without the cache:
 
 [source,shell]
 ----
-[centos@node-0 multi]$ docker image build --no-cache -t my-app-small-bk .
+[user@node multi]$ docker image build --no-cache -t my-app-small-bk .
 
 [+] Building 15.5s (14/14) FINISHED                                       
  => [internal] load Dockerfile
@@ -252,7 +252,7 @@ Turn off BuildKit:
 
 [source,shell]
 ----
-[centos@node-0 multi]$ export DOCKER_BUILDKIT=0
+[user@node multi]$ export DOCKER_BUILDKIT=0
 ----
 
 === Conclusion

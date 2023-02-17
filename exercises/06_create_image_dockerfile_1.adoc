@@ -22,7 +22,7 @@ Build your image with the `build` command. Don't miss the `.` at the end; that's
 
 [source,shell]
 ----
-[centos@node-0 myimage]$ docker image build -t myimage .
+[user@node myimage]$ docker image build -t myimage .
 ----
 You'll see a long build output - we'll go through the meaning of this output in a demo later. For now, your image creation was successful if the output ends with Successfully tagged `myimage:latest`.
 
@@ -30,7 +30,7 @@ Verify that your new image exists with `docker image ls`, then use your new imag
 
 [source,shell]
 ----
-[centos@node-0 myimage]$ docker container run -it myimage bash
+[user@node myimage]$ docker container run -it myimage bash
 [root@1d86d4093cce /]# wget example.com
 [root@1d86d4093cce /]# cat index.html
 [root@1d86d4093cce /]# exit
@@ -41,7 +41,7 @@ It's also possible to pipe a `Dockerfile` in from `STDIN`; try rebuilding your i
 
 [source,shell]
 ----
-[centos@node-0 myimage]$ cat Dockerfile | docker image build -t myimage -f - .
+[user@node myimage]$ cat Dockerfile | docker image build -t myimage -f - .
 ----
 NOTE: This is useful when reading a Dockerfile from a remote location with curl, for example.
 
@@ -79,7 +79,7 @@ The `docker image history` command allows us to inspect the build cache history 
 
 [source,shell]
 ----
-[centos@node-0 myimage]$ docker image history myimage:latest
+[user@node myimage]$ docker image history myimage:latest
 
 IMAGE          CREATED          CREATED BY                                      SIZE      
 f2e85c162453   8 seconds ago    /bin/sh -c yum install -y wget                  87.2MB              

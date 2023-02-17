@@ -11,15 +11,15 @@ Start by running a container in the background, and check that it's really runni
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container run -d centos:7 ping 8.8.8.8
-[centos@node-0 ~]$ docker container ls
+[user@node ~]$ docker container run -d centos:7 ping 8.8.8.8
+[user@node ~]$ docker container ls
 ----
 Stop the container using docker container stop, and check that the container is indeed stopped:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container stop <container ID>
-[centos@node-0 ~]$ docker container ls -a
+[user@node ~]$ docker container stop <container ID>
+[user@node ~]$ docker container ls -a
 ----
 NOTE: Note that the stop command takes a few seconds to complete. docker container stop first sends a `SIGTERM` to the `PID 1` process inside a container, asking it to shut down nicely; it then waits 10 seconds before sending a `SIGKILL` to kill it off, ready or not. The exit code you see (137 in this case) is the exit code returned by the `PID 1` process (`ping`) upon being killed by one of these signals.
 
@@ -27,7 +27,7 @@ Start the container again with docker container start, and attach to it at the s
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container start -a <container ID>
+[user@node ~]$ docker container start -a <container ID>
 ----
 As you saw previously, this brings the container from the Exited to the Up state; in this case, we're also attaching to the `PID 1` process.
 
@@ -37,7 +37,7 @@ Finally, stop the container with docker container kill:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container kill <container ID>
+[user@node ~]$ docker container kill <container ID>
 ----
 Unlike docker container stop, container kill just sends the `SIGKILL` right away - no grace period.
 
@@ -46,8 +46,8 @@ Start your ping container again, then inspect the container details using docker
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container start <container ID>
-[centos@node-0 ~]$ docker container inspect <container ID>
+[user@node ~]$ docker container start <container ID>
+[user@node ~]$ docker container inspect <container ID>
 ----
 You get a JSON object describing the container's config, metadata and state.
 
@@ -55,7 +55,7 @@ Find the container's IP and long ID in the JSON output of inspect. If you know t
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container inspect <container ID> | grep IPAddress
+[user@node ~]$ docker container inspect <container ID> | grep IPAddress
 ----
 The output should look similar to this:
 
@@ -68,7 +68,7 @@ Now try grepping for Cmd, the `PID 1` command being run by this container. grep'
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container inspect <container ID> | grep Cmd
+[user@node ~]$ docker container inspect <container ID> | grep Cmd
 
 "Cmd": \[
 ----
@@ -77,7 +77,7 @@ For example, to find the Cmd value we tried to grep for above, instead try:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container inspect --format='{{.Config.Cmd}}' <container ID>
+[user@node ~]$ docker container inspect --format='{{.Config.Cmd}}' <container ID>
 
 [ping 8.8.8.8]
 ----
@@ -89,7 +89,7 @@ Finally, we can extract all the key/value pairs for a given object using the jso
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container inspect --format='{{json .Config}}' <container ID>
+[user@node ~]$ docker container inspect --format='{{json .Config}}' <container ID>
 ----
 Try adding `| jq` to this command to get the same output a little bit easier to read.
 
@@ -102,14 +102,14 @@ Delete the container you stopped above with `docker container rm`, and do the sa
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container rm <container ID>
-[centos@node-0 ~]$ docker container ls ...
+[user@node ~]$ docker container rm <container ID>
+[user@node ~]$ docker container ls ...
 ----
 Now do the same to one of the containers that's still running; notice `docker container rm` won't delete a container that's still running, unless we pass it the force flag `-f`. Delete the second container you started above:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container rm -f <container ID>
+[user@node ~]$ docker container rm -f <container ID>
 ----
 Try using the `docker container ls` flags we learned previously to remove the last container that was run, or all stopped containers. 
 Recall that you can pass the output of one shell command cmd-A into a variable of another command cmd-B with syntax like cmd-B $(cmd-A).
@@ -118,7 +118,7 @@ When done, clean up any containers you may still have:
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container rm -f $(docker container ls -aq)
+[user@node ~]$ docker container rm -f $(docker container ls -aq)
 ----
 
 === Conclusion

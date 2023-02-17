@@ -13,7 +13,7 @@ Create and start a new CentOS 7 container running ping to `8.8.8.8`. Docker will
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container run centos:7 ping 8.8.8.8
+[user@node ~]$ docker container run centos:7 ping 8.8.8.8
 
 Unable to find image 'centos:7' locally
 7: Pulling from library/centos
@@ -41,7 +41,7 @@ This first container sent its STDOUT to your terminal. Create a second container
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container run --detach centos:7 ping 8.8.4.4
+[user@node ~]$ docker container run --detach centos:7 ping 8.8.4.4
 
 8aef3d0d411c7b02532292ec3267a54f9258eaafb71d3d73a8ad41e702bd35a2
 ----
@@ -54,7 +54,7 @@ List the running Docker containers using the `docker container ls` container com
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container ls
+[user@node ~]$ docker container ls
 
 CONTAINER ID IMAGE    COMMAND        CREATED       STATUS        PORTS  NAMES
 8aef3d0d411c centos:7 "ping 8.8.4.4" 3 minutes ago Up 3 minutes         zen_jang
@@ -65,7 +65,7 @@ Now you know that the `docker container ls` command only shows running container
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container ls --all 
+[user@node ~]$ docker container ls --all 
 
 CONTAINER ID  IMAGE     COMMAND         CREATED        STATUS         NAMES
 8aef3d0d411c  centos:7  "ping 8.8.4.4"  2 minutes ago  Up 2 minutes   zen_jang
@@ -78,7 +78,7 @@ Start up another detached container, this time giving it a name "opendnsping".
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container run --detach --name opendnsping \
+[user@node ~]$ docker container run --detach --name opendnsping \
                    centos:7 ping 208.67.222.222
 
 3bdc61a95e76fdfe2597ef18aa00321a53dcdc9c36b2db97fbe738f8a623ecad
@@ -87,7 +87,7 @@ List all your containers again. You can see all of the containers, including you
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container ls --all
+[user@node ~]$ docker container ls --all
 
 CONTAINER ID IMAGE    COMMAND               CREATED        STATUS         NAMES
 3bdc61a95e76 centos:7 "ping 208.67.222.222" 23 seconds ago Up 22 seconds  opendnsping
@@ -100,7 +100,7 @@ Next, remove the exited container. To do this, use `docker container rm <contain
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container rm <container ID>
+[user@node ~]$ docker container rm <container ID>
 
 00f763b9308d
 ----
@@ -111,7 +111,7 @@ Now try to remove one of the other Docker containers using the same command. It 
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container rm <container ID>
+[user@node ~]$ docker container rm <container ID>
 
 Error response from daemon: You cannot remove a running container 
 3bdc61a95e76fdfe2597ef18aa00321a53dcdc9c36b2db97fbe738f8a623ecad. 
@@ -121,7 +121,7 @@ You can see that running containers are not removed. You'll have to look for an 
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container rm --help
+[user@node ~]$ docker container rm --help
 
 Usage: docker container rm [OPTIONS] CONTAINER [CONTAINER...]
 
@@ -138,7 +138,7 @@ Now, run a force remove on the running container you tried to remove in the two 
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container rm --force <container ID> 
+[user@node ~]$ docker container rm --force <container ID> 
 
 8aef3d0d411c
 ----
@@ -146,7 +146,7 @@ Start another detached container pinging `8.8.8.8`, with the name `pinggoogledns
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container run --detach --name pinggoogledns \
+[user@node ~]$ docker container run --detach --name pinggoogledns \
                    centos:7 ping 8.8.8.8
 
 38e121e629611daa0726a21d634bc5189400377d82882cc6fd8a3870dc9943a0
@@ -155,7 +155,7 @@ Now that you've finished your testing, you need to remove your containers. In or
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container ls --help
+[user@node ~]$ docker container ls --help
 
 Usage:    docker container ls [OPTIONS]
 
@@ -178,7 +178,7 @@ To get only the container IDs, use the `--quiet` option. If you want to use only
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container ls --all --quiet
+[user@node ~]$ docker container ls --all --quiet
 
 3bdc61a95e76     
 38e121e62961
@@ -187,7 +187,7 @@ Since we are done running pings on the public DNS servers, kill the containers. 
 
 [source,shell]
 ----
-[centos@node-0 ~]$ docker container rm --force \
+[user@node ~]$ docker container rm --force \
     $(docker container ls --quiet --all)
 
 3bdc61a95e76     

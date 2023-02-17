@@ -9,9 +9,9 @@ Please download the DockerCoins app from Github and change directory to ~/orches
 
 [source,shell]
 ----
-[centos@node-0 ~]$ git clone -b ee3.0 \
+[user@node ~]$ git clone -b ee3.0 \
     https://github.com/docker-training/orchestration-workshop.git
-[centos@node-0 ~]$ cd ~/orchestration-workshop/dockercoins
+[user@node ~]$ cd ~/orchestration-workshop/dockercoins
 ----
 Let's take a quick look at our Compose file for Dockercoins:
 
@@ -60,20 +60,20 @@ When we start the app, we will see the service images getting downloaded one at 
 
 [source,shell]
 ----
-[centos@node-0 dockercoins]$ docker-compose up -d
+[user@node dockercoins]$ docker-compose up -d
 ----
 After starting, the images required for this app have been downloaded:
 
 [source,shell]
 ----
-[centos@node-0 dockercoins]$ docker image ls | grep "dockercoins"
+[user@node dockercoins]$ docker image ls | grep "dockercoins"
 ----
 Make sure the services are up and running, as is the dedicated network:
 
 [source,shell]
 ----
-[centos@node-0 dockercoins]$ docker-compose ps
-[centos@node-0 dockercoins]$ docker network ls
+[user@node dockercoins]$ docker-compose ps
+[user@node dockercoins]$ docker network ls
 ----
 If everyting is up, visit your app at `<node-0 public IP>:8000` to see Dockercoins in action.
 
@@ -82,13 +82,13 @@ In this section, we'll demonstrate that containers created as part of a service 
 
 [source,shell]
 ----
-[centos@node-0 dockercoins]$ docker container ls | grep 'dockercoins'
+[user@node dockercoins]$ docker container ls | grep 'dockercoins'
 ----
 Now, connect into one container; let's pick `webui`:
 
 [source,shell]
 ----
-[centos@node-0 dockercoins]$ docker container exec -it <Container ID> bash
+[user@node dockercoins]$ docker container exec -it <Container ID> bash
 ----
 From within the container, ping `rng` by name:
 
@@ -117,8 +117,8 @@ After exiting this container, let's navigate to the `worker` folder and take a l
 
 [source,c]
 ----
-[centos@node-0 dockercoins]$ cd worker
-[centos@node-0 worker]$ cat worker.py
+[user@node dockercoins]$ cd worker
+[user@node ~ worker]$ cat worker.py
 
 import logging
 import os
@@ -154,7 +154,7 @@ Shut down Dockercoins and clean up its resources:
 
 [source,shell]
 ----
-[centos@node-0 dockercoins]$ docker-compose down
+[user@node dockercoins]$ docker-compose down
 ----
 
 === Conclusion

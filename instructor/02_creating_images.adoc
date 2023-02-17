@@ -10,7 +10,7 @@ Make a folder `demo`` for our image demo:
 
 [source,Dockerfile]
 ----
-[centos@node-0 ~]$ mkdir demo ; cd demo
+[user@node ~]$ mkdir demo ; cd demo
 And create a Dockerfile therein with the following content:
 
 FROM centos:7
@@ -23,7 +23,7 @@ Build your image from your Dockerfile, just like we did in the last exercise:
 
 [source,shell]
 ----
-[centos@node-0 demo]$ docker image build -t demo .
+[user@node demo]$ docker image build -t demo .
 ----
 Examine the output from the build process. The very first line looks like:
 
@@ -44,7 +44,7 @@ Do an image ls:
 
 [source,shell]
 ----
-[centos@node-0 demo]$ docker image ls
+[user@node demo]$ docker image ls
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
 demo                latest              59e595750dd5        10 seconds ago      645MB
 centos              7                   49f7960eb7e4        2 months ago        200MB
@@ -73,7 +73,7 @@ Look at the history of your image:
 
 [source,shell]
 ----
-[centos@node-0 demo]$ docker image history demo
+[user@node demo]$ docker image history demo
 
 IMAGE          CREATED         CREATED BY                                      SIZE  
 59e595750dd5   2 minutes ago   /bin/sh -c yum install -y vim                   142MB               
@@ -92,13 +92,13 @@ Every layer can be used as you would use any image, which means we can inspect a
 
 [source,shell]
 ----
-[centos@node-0 demo]$ docker image inspect bba17f8df167
+[user@node demo]$ docker image inspect bba17f8df167
 ----
 Let's look for the command associated with this image layer by using `--format`:
 
 [source,shell]
 ----
-[centos@node-0 demo]$ docker image inspect \
+[user@node demo]$ docker image inspect \
     --format='{{.ContainerConfig.Cmd}}' bba17f8df167
 
 [/bin/sh -c yum install -y wget]
@@ -107,7 +107,7 @@ We can even start containers based on intermediate image layers; start an intera
 
 [source,shell]
 ----
-[centos@node-0 demo]$ docker container run -it bba17f8df167 bash 
+[user@node demo]$ docker container run -it bba17f8df167 bash 
 
 [root@a766a3d616b7 /]# which wget
 
@@ -135,8 +135,8 @@ Rebuild your image, and list your images again:
 
 [source,shell]
 ----
-[centos@node-0 demo]$ docker image build -t demo .
-[centos@node-0 demo]$ docker image ls
+[user@node demo]$ docker image build -t demo .
+[user@node demo]$ docker image ls
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
 demo                latest              5a6aedc1feab        8 seconds ago       590MB
@@ -157,9 +157,9 @@ Rebuild using a `new` tag this time, and list your images one more time:
 
 [source,shell]
 ----
-[centos@node-0 demo]$ docker image build -t demo:new .
+[user@node demo]$ docker image build -t demo:new .
 ...
-[centos@node-0 demo]$ docker image ls
+[user@node demo]$ docker image ls
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
 demo                new                 568b29a0dce9        20 seconds ago      416MB

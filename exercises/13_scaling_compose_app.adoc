@@ -10,9 +10,9 @@ Scale up the `worker` service in our Dockercoins app to have two workers generat
 
 [source,shell]
 ----
-[centos@node-0 dockercoins]$ docker-compose ps
-[centos@node-0 dockercoins]$ docker-compose up -d --scale worker=2
-[centos@node-0 dockercoins]$ docker-compose ps
+[user@node dockercoins]$ docker-compose ps
+[user@node dockercoins]$ docker-compose up -d --scale worker=2
+[user@node dockercoins]$ docker-compose ps
 
         Name                       Command               State          Ports         
 -------------------------------------------------------------------------------------
@@ -32,8 +32,8 @@ Try running `top` to inspect the system resource usage; it should still be fairl
 
 [source,shell]
 ----
-[centos@node-0 dockercoins]$ docker-compose up -d --scale worker=10
-[centos@node-0 dockercoins]$ docker-compose ps
+[user@node dockercoins]$ docker-compose up -d --scale worker=10
+[user@node dockercoins]$ docker-compose ps
 ----
 Check your web frontend again; has going from 2 to 10 workers provided a 5x performance increase? It seems that something else is bottlenecking our application; any distributed application such as Dockercoins needs tooling to understand where the bottlenecks are, so that the application can be scaled intelligently.
 
@@ -41,8 +41,8 @@ Look in `docker-compose.yml` at the `rng` and `hasher` services; they're exposed
 
 [source,shell]
 ----
-[centos@node-0 dockercoins]$ httping -c 5 localhost:8001
-[centos@node-0 dockercoins]$ httping -c 5 localhost:8002
+[user@node dockercoins]$ httping -c 5 localhost:8001
+[user@node dockercoins]$ httping -c 5 localhost:8002
 ----
 `rng` on port 8001 has the much higher latency, suggesting that it might be our bottleneck. A random number generator based on entropy won't get any better by starting more instances on the same machine; we'll need a way to bring more nodes into our application to scale past this, which we'll explore in the next unit on Docker Swarm.
 
@@ -50,7 +50,7 @@ For now, shut your app down:
 
 [source,shell]
 ----
-[centos@node-0 dockercoins]$ docker-compose down
+[user@node dockercoins]$ docker-compose down
 ----
 
 === Conclusion
