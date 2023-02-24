@@ -1,18 +1,5 @@
 == Container Volumes
 
-=== Discussion: Managing data
-
-If a container generates at lot of data, where should it be stored? +
-What if you need to provision data to a container?
-
-[.notes]
---
-* Guide the class to thinking about the fact that so far, containers and images don't provide a practical way to manage data that lives longer than the lifetime of a container.
-* Hint questions if the class is stuck:
-* Should you write a lot of data to the container layer? That's currently the only place we've learned about in this workshop where you can write data to at container run time. Why wouldn't you want to do this?
-* Should you provision data to a container by including that data in the underlying image? Again, this is the only option we've seen so far. Why wouldn't you want to do this? 
---
-
 === Learning objectives
 
 By the end of this module, trainees will be able to

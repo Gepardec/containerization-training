@@ -1,12 +1,5 @@
 == Containerization basics
 
-=== Discussion running containers
-
-What assurances would you need to run a process on an arbitrary host? Consider
-
-* Hostile environments
-* Required resources
-
 [.notes]
 --
 * Guide the class to thinking about the need for process isolation (via kernel namespaces etc), filesystem provisioning (via Docker images), and resource consumption limitations (via cgroups)

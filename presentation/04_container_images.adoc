@@ -7,21 +7,6 @@
 * In this module, we'll explore images in-depth, including a focus on creating and modifying images.         
 --
 
-=== Discussion: provisioning filesystems
-
-What are some potential difficulties with provisioning entire filesystems for containers? +
-How can we avoid these problems?
-
-[.notes]
---
-* Guide the class to thinking about some of the non-obvious nuances around building and sharing images
-* Obvious answer: disk and bandwidth usage
-* Hint questions if the class is stuck:
-* Are all container filesystems necessarily unique? If two containers share a filesystem, how will they remain independent? (leads to layer sharing and read-only images)
-* What's a simple way to minimize the risk of vulnerable components making it onto your production servers via a Docker image? (answer: don't install any component you don't absolutely need, indicates the logic of minimal images)
-* If containers and their filesystems are meant to move across environments like dev, testing, staging and prod without needing to be modified, how can they reflect the important differences between those environments? (leads to motivating multi-stage builds)
---
-
 === Learning objectives
 
 By the end of this module, trainess will be able to 
