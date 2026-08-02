@@ -167,7 +167,7 @@ After completion, the resulting container images layer is labeled with a hash of
 
 * Recall all container run a process as their PID 1
 * [.keyword]#CMD# and [.keyword]#ENTRYPOINT# allow us to specify default processes
-* [.keyword]#CMD# alone: default command ans list of parameters.
+* [.keyword]#CMD# alone: default command as list of parameters.
 * [.keyword]#CMD# & [.keyword]#ENTRYPOINT# provides command, [.keyword]#CMD# provides default parameters.
 * [.keyword]#CMD# overridden by command argument to `docker container run`
 * [.keyword]#ENTRYPOINT# overriden via `--entrypoint` flag to `docker container run`. 
@@ -244,7 +244,7 @@ COPY <src> <dest>
 
 === Containerfile command roundup
 
-* [.keyword]#FROM#: base image to start fron (usually OS)
+* [.keyword]#FROM#: base image to start from (usually OS)
 * [.keyword]#RUN#: run a command in the environment defined so far
 * [.keyword]#CMD# & [.keyword]#ENTRYPOINT#: define default behaviour
 * [.keyword]#COPY# & [.keyword]#ADD#: copy files into container
@@ -466,28 +466,6 @@ COPY /mypy /app/
 --
 * A common best practice during development is to split up oft-changing and rarely-changing elements into different layers. Move the rarely-changing parts as high as possible in the Dockerfile, so they don't have to be redone when the frequently changing parts are changed.
 * In this case, we save ourselves from redoing the `pip install` when anything other than the requirements file changes.
---
-
-=== Production: Less layers
-
-* To collapse ALL image layer:
-
-[source,shell]
-----
-$ docker container run -d --name demo mytallimage:1.0
-$ docker container export demo > image.tar
-$ cat image.tar | docker image import - myflatimage:1.0
-----
-
-* Or build with `--squash` flag (experimental): compress all non-base-layers
-* Use `container export --squash` for one shareable base layer & one application layer
-
-[.notes]
---
-* Once it's time to go to production (or even to start CI/CD), we don't care so much about build times and caching. The image is nominally built - what matters is performance.
-* One way to compress everything into a single layer is to export a container as a tarball, and reimport it as a new, single layer image. This completely destroys the ability of containers to share layers, though
-* Another method is the experimental squash flag, which combines all non-base layers into a single layer. Now the base layer remains sharable, and our production image is only two layers.
-* One technique for getting the best of both worlds when layer sharing is important is to use the first method to collapse all widely shared layers into a common base image, and then use the --squash flag on subsequent builds to squash the application-unique layers into a single application layer.
 --
 
 === Best practices: Patching & Updates
