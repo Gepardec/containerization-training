@@ -9,7 +9,7 @@
 * we do what we love..
 ** custom software solution
 ** cloud transformation
-** devOps automation
+** DevOps automation
 
 [.column.is-vcentered]
 image::01_welcome/team.jpg[width=700px]
@@ -25,7 +25,7 @@ image::01_welcome/team.jpg[width=700px]
 [.notes]
 --
 * Wir sind eine kleine Firma bestehend aus knapp 40 Mitarbeitern in Wien und Linz.
-* Wir sind auf custom software entwicklung spezialisiert mit einem zusätlichen Focus auf cloud transformation und devOps Automatisierung
+* Wir sind auf custom software entwicklung spezialisiert mit einem zusätlichen Focus auf cloud transformation und DevOps Automatisierung
 * Ich bin sehr stolz darauf, sagen zu können, dass wir im Beruf das machen, was uns begeistert.
 * Das macht uns zu einem ausgezeichneten Partner.
 --

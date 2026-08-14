@@ -1,17 +1,17 @@
-== Wrapup Dontainer Compose - Sonarqube
+== Wrap-up Container Compose - SonarQube
 
-=== Sonarqube
+=== SonarQube
 
 image::11_compose_wrap_up/sonarqube.png[width=50%]
 
 [.dark_background.exercise.background]
 === icon:task[role=moby_icon] Exercise: Instructions
 
-* Setup a Sonarqube server that listens on port 9000
+* Set up a SonarQube server that listens on port 9000
 * Connect it to a persistent database
-* Use postgresql and persist it‘s data on the host filesystem using volumes
+* Use PostgreSQL and persist its data on the host filesystem using volumes
 * Verify that the data is persistent (create user and delete the container)
-* Hint: use docker-compose
+* Hint: use Docker Compose
 
 ++++
 <h2 id="exercise_compose_app" class="timer"></h2>
@@ -19,12 +19,12 @@ image::11_compose_wrap_up/sonarqube.png[width=50%]
 
 [.notes]
 --
-heck that Sonarqube is really using your postgresql database: 
-* login to postgres container
+Check that SonarQube is really using your PostgreSQL database:
+* Log in to postgres container
 * psql sonar sonar
 * \l - list all existing databases
 * \dt - list all tables of databases
-* *Hint*: Postgresql tips at link:http://www.unixwitch.de/de/sysadmin/tools/postgres[http://www.unixwitch.de/de/sysadmin/tools/postgres]
+* *Hint*: PostgreSQL tips at link:http://www.unixwitch.de/de/sysadmin/tools/postgres[http://www.unixwitch.de/de/sysadmin/tools/postgres]
 --
 
 === Solution

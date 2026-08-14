@@ -5,9 +5,9 @@
 By the end of this module, trainees will be able to
 
 * Define a volume and identify its primary use cases
-* Describe advantages and potential secuity risks of mounting volumes and host directories
+* Describe advantages and potential security risks of mounting volumes and host directories
 
-=== Volume usecases
+=== Volume use cases
 
 Volumes provide a R/W path [.keyword]#separate from the layered filesystem#.
 
@@ -48,7 +48,7 @@ in the exercise book.
 
 === Volumes in Containerfile
 
-* [.keyword]#VOLUME# instructions creates a mount point
+* [.keyword]#VOLUME# instruction creates a mount point
 * Can specify arguments in a JSON array or string
 * Cannot map volumes to host directories
 * Volumes are initialized when the container is executed
@@ -86,11 +86,11 @@ VOLUME ["myvol1", "myvol2"]
 --
 * Volumes are the first thing we've seen so far that pierce the isolation we carefully crafted between containers, the host, and other containers. A malicious actor can inject files from one container to another, and to the host, if care is not taken.
 * Mount volumes and directories only as needed, and use the :ro flag when a container is only a passive consumer of data. Better yet, ask if there's a way to separate out reader and writer containers, to keep write access to volumes as tightly restricted as possible.
-* Also for those running linux hosts, it's also possible to mount purely in-memory volumes to a container; anything written here will never be written to disk, and will be released when the container is deleted. This is a good option for persisting sensitive data while a container is running.
+* Also for those running Linux hosts, it's possible to mount purely in-memory volumes to a container; anything written here will never be written to disk and will be released when the container is deleted. This is a good option for persisting sensitive data while a container is running.
 --
 
 [.dark_background.exercise.background]
-=== icon:task[role=moby_icon] Exercise: Volumes usecases
+=== icon:task[role=moby_icon] Exercise: Volume use cases
 
 Work through
 

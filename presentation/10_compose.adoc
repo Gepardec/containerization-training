@@ -5,7 +5,7 @@
 By the end of this module, trainees will be able to
 
 * Design scalable Docker services
-* Leverage Docker's built in service discovery mechanism
+* Leverage Docker's built-in service discovery mechanism
 * Write a compose file describing an application
 
 === Distributed application architecture
@@ -16,7 +16,7 @@ By the end of this module, trainees will be able to
 [.notes]
 --
 * At this point, we've seen that Docker can provide adequately portable and isolated containers, and we've seen some basic nuts and bolts regarding how those containers can be networked together; we're now ready to start exploring our first orchestration tool for making a true distributed application.
-* Ultimately, we'll want to be able to completely decentralize our application, be networking many containers together across many hosts; for now, we'll just solve half the problem, by making an application out of many containers, still all on the same host. We'll relax the single-host constraint in the next chapter.
+* Ultimately, we'll want to be able to completely decentralize our application, networking many containers together across many hosts; for now, we'll just solve half the problem, by making an application out of many containers, still all on the same host. We'll relax the single-host constraint in the next chapter.
 --
 
 === Container services
@@ -24,13 +24,13 @@ By the end of this module, trainees will be able to
 * Goal: declare and (re)configure many similar containers all at once
 * Goal: scale apps by adding containers seamlessly
 * A service defines the desired state of a group of identically configured containers
-* Docker provides transparent service discovery for Services
+* Docker provides transparent service discovery for services
 
 [.notes]
 --
 * So far, we've declared containers one at a time with `docker container run...`, and we've seen how to network individual containers together. This all works, but doesn't scale conveniently.
 * Since we're going to start designing apps to consist of potentially many containers, we'd like to be able to create and reconfigure containers en masse.
-* Furthermore, we need to put some thought into how discovery will work in this paradigm; if we scale up an app by declaring more containers, how will they all find out about each other and network themselves together
+* Furthermore, we need to put some thought into how discovery will work in this paradigm; if we scale up an app by declaring more containers, how will they all find out about each other and network themselves together?
 * To address this problem, Docker orchestration introduces the idea of services. A service defines the desired state of a collection of identically configured containers, allowing us to declare a batch of containers all at once, and reconfigure them later by updating the service definition.
 * Furthermore, Docker provides out-of-the-box service discovery for services, automatically providing and configuring the networking necessary for these groups of containers to interact.
 --
@@ -76,7 +76,7 @@ in the exercise book.
 Work through
 
 * Starting a Compose App
-* Scaling s Compose App
+* Scaling a Compose App
 
 in the exercise book.
 
@@ -87,7 +87,7 @@ in the exercise book.
 === Container Compose takeaways
 
 * Docker Compose makes single node orchestration easy
-* Compose services makes scaling applications easy
+* Compose services make scaling applications easy
 * Bottleneck identification important
 * Syntactically: [.keyword]#docker-compose.yml# + API
 
@@ -99,12 +99,12 @@ in the exercise book.
 
 === Further reading
 
-* Docker compose examples: link:http://dockr.ly/1FL2VQ6[http://dockr.ly/1FL2VQ6]
+* Docker Compose examples: link:http://dockr.ly/1FL2VQ6[http://dockr.ly/1FL2VQ6]
 * Overview of docker-compose CLI: link:http://dockr.ly/2wtQlZT[http://dockr.ly/2wtQlZT]
 * docker-compose.yaml reference: link:http://dockr.ly/2iHUpeX[http://dockr.ly/2iHUpeX]
 * Docker Compose and Windows: link:http://bit.ly/2watrqk[http://bit.ly/2watrqk]
 
 [.notes]
 --
-additional resources about Docker compose
+additional resources about Docker Compose
 --

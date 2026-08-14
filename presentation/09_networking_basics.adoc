@@ -20,11 +20,11 @@ image::09_networking_basics/container-networking-model.svg[]
 
 [.notes]
 --
-* At high level, docker thinks about networking with an abstraction called the Container Network Model (CNM) that consists of 3 parts:
+* At high level, Docker thinks about networking with an abstraction called the Container Network Model (CNM) that consists of 3 parts:
 * The container (network) sandbox, which firewalls containers by default.
 * The network endpoint, which serves as a controlled port in and out of the container sandbox
 * The network itself, which is any device that facilitates inter-container communication.
-* If you think about it for a moment, the CNM is in some sense very vague; anything that satisfies these requirements is a valid implementation option. Just like we saw with containerization itself, Docker leverages battle-tested kernel features and linux tools to realize the CNM in practice.
+* If you think about it for a moment, the CNM is in some sense very vague; anything that satisfies these requirements is a valid implementation option. Just like we saw with containerization itself, Docker leverages battle-tested kernel features and Linux tools to realize the CNM in practice.
 --
 
 === Linux: Default single-host network
@@ -33,7 +33,7 @@ image::09_networking_basics/linux-single-host-network.svg[]
 
 [.notes]
 --
-* When Docker is started on the host, a linux bridge is created by default, and assigned an unused private subnet from 172.[17-31].0.0/16 or 192.168.[0-240].0/20. A linux bridge is an in-software switch, that routes packets by MAC address.
+* When Docker is started on the host, a Linux bridge is created by default, and assigned an unused private subnet from 172.[17-31].0.0/16 or 192.168.[0-240].0/20. A Linux bridge is an in-software switch that routes packets by MAC address.
 --
 
 === Linux: Default container networking
@@ -43,7 +43,7 @@ image:09_networking_basics/linux-default-container-networking.svg[]
 [.notes]
 --
 * When a container is created, the container networking model must be satisfied. Containers run in their own network namespace, satisfying the sandboxing requirement; inside the namespace, processes won't be able to access host networking devices unless explicitly connected to them.
-* In order to connect a container to the rest of the system, a virtual ethernet (veth) pair is created, with one endpoint connected to the default docker bridge, and the other presented as an ethX port inside the container with a private IP taken from the bridge's subnet. Veth connections operate as a pipe, forwarding all traffic in one end to the other, even across network namespaces.
+* In order to connect a container to the rest of the system, a virtual ethernet (veth) pair is created, with one endpoint connected to the default Docker bridge, and the other presented as an ethX port inside the container with a private IP taken from the bridge's subnet. Veth connections operate as a pipe, forwarding all traffic in one end to the other, even across network namespaces.
 --
 
 === Linux: User-defined bridges & firewalls
@@ -52,8 +52,8 @@ image:09_networking_basics/linux-custom-container-networking.svg[]
 
 [.notes]
 --
-* Users can optionally create their own linux bridges, and plug containers into them for communicating on the same host.
-* Containers on user-created bridge networks can resolve each other by container name; containers names are registered in the Docker daemon's DNS table for resolution.
+* Users can optionally create their own Linux bridges, and plug containers into them for communicating on the same host.
+* Containers on user-created bridge networks can resolve each other by container name; container names are registered in the Docker daemon's DNS table for resolution.
 * You'll build something like this in the next exercise.
 --
 
@@ -78,7 +78,7 @@ image:09_networking_basics/linux-custom-container-networking.svg[]
 
 See the demo
 
-* Single host netowrks
+* Single host networks
 
 in the exercise book.
 
@@ -100,8 +100,8 @@ in the exercise book.
 
 * Single host networks follow the container networking model:
 ** Sandbox: Network namespaces
-** Endpoint: veth (linux)
-** Network: bridge (linux)
+** Endpoint: veth (Linux)
+** Network: bridge (Linux)
 * Containers resolve each other by DNS lookup when named and attached to custom networks
 * Docker software defined networks are firewalled from each other by default
 
