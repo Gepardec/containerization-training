@@ -80,7 +80,7 @@ VOLUME ["myvol1", "myvol2"]
 * Point of ingress to the host and other containers
 * Don't mount things unnecessarily
 * Use the [.keyword]#:ro# flag whenever possible
-* Linu: in-memory [.keyword]#tmpfs# mounts available
+* Linux: in-memory [.keyword]#tmpfs# mounts available
 
 [.notes]
 --
@@ -106,7 +106,7 @@ in the exercise book.
 === Container volumes takeaways
 
 * Volumes persist data beyond the container lifecycle
-* Volumes bypass the copy-ob-write system (better for write-heavy containers)
+* Volumes bypass the copy-on-write system (better for write-heavy containers)
 
 [.notes]
 --

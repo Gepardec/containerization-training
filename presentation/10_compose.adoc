@@ -1,19 +1,5 @@
 == Introduction to container compose
 
-=== Discussion: Processes vs. applications
-
-Containers and images describe individual processes. +
-What will we need to describe entire applications?
-
-[.notes]
---
-* Lead class to the simple answer (some sort of manifest file that describes the application, in the spirit of deploy scripts or infrastructure-as-code), as well as the more substantial answer of some way to manage a living application, where 'manage' in this context means scale, route traffic, deploy and upgrade.
-* Hint questions if the class is stuck:
-* It's not enough just to 'describe' an application - we need to make the deployment of those applications reproducible and portable. How? (someone should think of some sort of script).
-* Are applications static after they're launched? What if load changes? (leads to thinking about scaling).
-* After scaling an application, how do we make sure traffic gets to the new instances of our app? Re-do service discovery? Reconfigure load balancers? We'd rather have something a little more transparent.
---
-
 === Learning objectives
 
 By the end of this module, trainees will be able to

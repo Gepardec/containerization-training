@@ -6,6 +6,29 @@
   src: url(../fonts/Barlow/Barlow-Regular.ttf);
 }
 
+@font-face {
+  font-family: Barlow_Medium;
+  src: url(../fonts/Barlow/Barlow-Medium.ttf);
+}
+
+@font-face {
+  font-family: BarlowSC_SemiBold;
+  src: url(../fonts/Barlow_Semi_Condensed/BarlowSemiCondensed-SemiBoldItalic.ttf);
+}
+
+:root {
+  --gp-ink: #f3f4f6;
+  --gp-yellow: #f0d200;
+  --gp-exercise: #00a2a1;
+  --gp-demo: #340b65;
+  --gp-code-bg: #0f141b;
+  --gp-code-bg-soft: #141b24;
+  --gp-code-line: #2d3643;
+  --gp-code-ink: #e6edf3;
+  --gp-code-muted: #8b9bb0;
+  --gp-code-accent: #7cc7ff;
+}
+
 /* Listing */
 ul li ul li {
   font-size: 24px !important;
@@ -39,11 +62,28 @@ img {
 
 /* background styles */
 section.demo.background {
-  background-color: rgb(52, 11, 101);
+  background:
+    linear-gradient(140deg, rgba(52, 11, 101, 0.96), rgba(78, 24, 130, 0.94)),
+    radial-gradient(circle at 85% 15%, rgba(240, 210, 0, 0.22), transparent 40%);
 }
 
 section.exercise.background {
-  background-color: rgb(0, 162, 161);
+  background:
+    linear-gradient(140deg, rgba(0, 162, 161, 0.95), rgba(0, 128, 142, 0.94)),
+    radial-gradient(circle at 12% 20%, rgba(240, 210, 0, 0.18), transparent 40%);
+}
+
+/* Apply slide background to the full viewport when these slides are active. */
+body:has(.reveal .slides section.demo.background.present) {
+  background:
+    linear-gradient(140deg, rgba(52, 11, 101, 0.96), rgba(78, 24, 130, 0.94)),
+    radial-gradient(circle at 85% 15%, rgba(240, 210, 0, 0.22), transparent 40%);
+}
+
+body:has(.reveal .slides section.exercise.background.present) {
+  background:
+    linear-gradient(140deg, rgba(0, 162, 161, 0.95), rgba(0, 128, 142, 0.94)),
+    radial-gradient(circle at 12% 20%, rgba(240, 210, 0, 0.18), transparent 40%);
 }
 
 .dark_background h2,
@@ -52,16 +92,36 @@ section.exercise.background {
   color: #FFF !important;
 }
 
+.dark_background h1,
+.dark_background h4,
+.dark_background h5,
+.dark_background h6,
+.dark_background td,
+.dark_background th,
+.dark_background a,
+.dark_background strong,
+.dark_background em {
+  color: #ffffff !important;
+}
+
+.dark_background li {
+  color: #ffffff !important;
+}
+
+.dark_background li:before {
+  color: #ffffff !important;
+}
+
 /* span classes */
 span.keyword {
-  color: #F0D200;
+  color: var(--gp-yellow);
   font-weight: bold !important;
 }
 
 span.comment {
   font-style: italic;
   font-size: 0.8em !important;
-  color: darkgrey !important;
+  color: #e2e5ea !important;
 }
 
 span.alert {
@@ -86,18 +146,131 @@ section[data-state='title'] h6 {
 }
 
 /* Code styles */
-pre code.hljs {
-  padding: 0.5em !important;
+.reveal .listingblock {
+  width: clamp(360px, 72vw, 1100px);
+  max-width: 100%;
+  margin: 18px auto !important;
 }
 
-.reveal pre {
-  width: initial;
-  min-width: 150px;
-  max-width: 75%;
+@media (max-width: 900px) {
+  .reveal .listingblock {
+    width: min(94vw, 100%);
+  }
+}
+
+.reveal .listingblock .content {
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid var(--gp-code-line);
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--gp-code-bg-soft) 0%, var(--gp-code-bg) 100%);
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+}
+
+/* Editor top bar with traffic-light buttons. */
+.reveal .listingblock .content::before {
+  content: "";
+  display: block;
+  height: 34px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at 18px 50%, #ff5f57 5px, transparent 6px),
+    radial-gradient(circle at 36px 50%, #febc2e 5px, transparent 6px),
+    radial-gradient(circle at 54px 50%, #28c840 5px, transparent 6px),
+    linear-gradient(180deg, #1a2330 0%, #131a24 100%);
+}
+
+.reveal .listingblock .content > pre,
+.reveal pre.highlight,
+.reveal pre.highlightjs {
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  font-size: 0.44em !important;
+  line-height: 1.45 !important;
+  padding: 0 !important;
+}
+
+.reveal .listingblock .content > pre > code.hljs {
+  display: block;
+  padding: 16px 20px 18px 20px !important;
+  overflow: auto;
+  color: var(--gp-code-ink) !important;
+  background: transparent !important;
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
 }
 
 .reveal code {
-  font-family: monospace;
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.reveal :not(pre) > code {
+  background: rgba(124, 199, 255, 0.14);
+  color: #d7eeff;
+  border: 1px solid rgba(124, 199, 255, 0.25);
+  border-radius: 6px;
+  padding: 0.1em 0.38em;
+}
+
+/* Line numbers (highlightjs-line-numbers plugin). */
+.reveal code.hljs .hljs-ln-numbers {
+  width: 42px;
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--gp-code-muted);
+  text-align: right;
+  padding-right: 10px !important;
+}
+
+.reveal code.hljs .hljs-ln-code {
+  padding-left: 14px !important;
+}
+
+/* Token palette tuned for dark editor background. */
+.reveal code.hljs .hljs-comment,
+.reveal code.hljs .hljs-quote {
+  color: #7f8c9d !important;
+}
+
+.reveal code.hljs .hljs-keyword,
+.reveal code.hljs .hljs-selector-tag,
+.reveal code.hljs .hljs-literal,
+.reveal code.hljs .hljs-name,
+.reveal code.hljs .hljs-section,
+.reveal code.hljs .hljs-link {
+  color: #ff7ab2 !important;
+}
+
+.reveal code.hljs .hljs-string,
+.reveal code.hljs .hljs-attr,
+.reveal code.hljs .hljs-selector-attr,
+.reveal code.hljs .hljs-selector-pseudo,
+.reveal code.hljs .hljs-template-tag,
+.reveal code.hljs .hljs-template-variable {
+  color: #a5d6ff !important;
+}
+
+.reveal code.hljs .hljs-number,
+.reveal code.hljs .hljs-symbol,
+.reveal code.hljs .hljs-bullet,
+.reveal code.hljs .hljs-meta,
+.reveal code.hljs .hljs-variable,
+.reveal code.hljs .hljs-selector-id {
+  color: #f7c06a !important;
+}
+
+.reveal code.hljs .hljs-title,
+.reveal code.hljs .hljs-function,
+.reveal code.hljs .hljs-built_in,
+.reveal code.hljs .hljs-type,
+.reveal code.hljs .hljs-class .hljs-title {
+  color: #7cc7ff !important;
 }
 
 /* Link styles */
@@ -105,5 +278,5 @@ a,
 a:visited,
 a:active,
 a:hover {
-  color: rgb(240, 210, 0) !important;
+  color: var(--gp-yellow) !important;
 }

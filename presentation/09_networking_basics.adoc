@@ -6,19 +6,6 @@
 * To begin our exploration of orchestration, we first need to examine the basics of how two containers can be networked together on a single host.
 --
 
-=== Disciussion: Portable networks
-
-Network traffic must by efinition traverse a network outside its origination container. +
-How can we make inter-container communication as portable and secure as containers themselves?
-
-[.notes]
---
-* Lead the class to think about the need for networking abstractions, both software defined networks and DNS-resolvable container names.
-* Hint questions if the class is stuck:
-* Can we rely on a container having the same IP or mac address every time it is created, no matter what host it is created on? (obviously not, a given private IP could already be taken on a destination host, and any global public identifier like a public IP or mac address couldn't be practically registered at container run time). Therefore, we must need some sort of networking layer that abstracts away the host network. That also might give us the opportunity to impose some security on our networks, since we control this extra networking layer.
-* How will service discovery work in our containerized application logic? We'd like to avoid having a lot of boilerplate that exposes the networking underlay to our application logic; Docker should provide some portable addressing mechanism. (leads to thinking about DNS).
---
-
 === Learning objectives
 
 By the end of this module, trainees will be able to
@@ -52,8 +39,6 @@ image::09_networking_basics/linux-single-host-network.svg[]
 === Linux: Default container networking
 
 image:09_networking_basics/linux-default-container-networking.svg[]
-
-[.keyword]#Quiz:# identify the sandbox, endpoint and network corresponding to the container networking model objects in this diagram.
 
 [.notes]
 --

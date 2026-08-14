@@ -1,14 +1,14 @@
 = Container exercises
-Thomas Herzog <thomas.herzog@gepardec.com>; Clemens Kaserer
+Marko Gattringer <marko.gattringer@gepardec.com>;
 :sectnums:
 :sectnumlevels: 1
 :source-highlighter: highlightjs
 :highlightjsdir: ./assets/highlight
-:highlightjs-theme: base16/ia-light
+:highlightjs-theme: base16/ia-dark
 :highlightjs-languages: yaml,bash,shell,shell,dockerfile
 :toc: left
 :toclevels: 1
-:stylesheet: ./assets/css/asciidoctor.css
+:stylesheet: ./assets/css/exercises-modern.css
 
 include::01_running_inspecting_containers.adoc[]
 

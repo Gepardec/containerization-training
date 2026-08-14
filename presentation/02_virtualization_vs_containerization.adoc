@@ -28,7 +28,6 @@ Ideal software should
 --
 
 === Virtualization
-
 image::02_virtualization_vs_containerization/pre-container.svg[]
 
 [.notes]
@@ -74,7 +73,7 @@ Containers carry their environment and dependencies with them, simplifying and m
 * In this way, not only will a container that runs in dev likely run in prod, it will run the same way; containerized software passing tests in one environment has a better chance of passing tests in all environments, since environment matters comparatively little once we containerize our applications.
 --
 
-=== Simple sclae & mainenance
+=== Simple scale & maintenance
 
 image::02_virtualization_vs_containerization/component-scalability.svg[]
 
