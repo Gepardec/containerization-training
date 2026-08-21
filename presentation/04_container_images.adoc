@@ -17,17 +17,17 @@ By the end of this module, trainees will be able to:
 * Apply production-ready image practices for security and operability
 * Correctly tag, namespace, and publish images to registries
 
-[.columns]
+[.columns.image-text-balance]
 === What are container images?
 
-[.column]
+[.column.image-text]
 * A container image is a packaged filesystem plus metadata
 * Built from a stack of immutable layers
 * Starts from a base image
 * Each build instruction can create a new layer
 
-[.column]
-image::04_container_images/image-layered-fs.svg[]
+[.column.image-visual]
+image::04_container_images/image-layered-fs.svg[width=100%]
 
 [.notes]
 --
@@ -157,23 +157,31 @@ Cache reuse depends on:
 --
 * Once cache is invalidated at one step, subsequent steps usually rebuild.
 * Cache behavior is deterministic and digest-based.
+
+The instruction itself
+If the command text changes, cache is invalid.
+Example: changing RUN apk add wget to RUN apk add wget curl creates a different fingerprint.
+
+Build arguments and environment that affect the instruction
+If ARG/ENV values used by that step change, cache is invalid.
+Example: ARG APP_VERSION=1.0 to 1.1, and a RUN that uses APP_VERSION.
+
+Files from the build context used by that instruction
+For COPY/ADD (and anything depending on copied files), Docker hashes file contents/metadata.
+If those files change, cache is invalid.
+Example: changing package.json invalidates COPY package.json and usually the following dependency install step.
+
+The parent layer digest
+Each step builds on the previous step’s result.
+If an earlier layer changed, its digest changes, so later steps usually cannot reuse cache even if their own text is unchanged.
+
+Practical rule:
+
+Change early step -> many later steps rebuild.
+Keep stable/heavy steps early (only if inputs rarely change).
+Copy dependency manifests first, install deps, then copy app source.
+That layout gives much better cache reuse during normal development.
 --
-
-=== BuildKit-first caching
-
-Modern builds use BuildKit for better performance and features.
-
-[source,shell]
-----
-# Enable BuildKit (if not default)
-DOCKER_BUILDKIT=1 docker image build -t myapp:dev .
-----
-
-BuildKit supports:
-
-* Persistent package-manager caches (`RUN --mount=type=cache,...`)
-* Build-time secrets (`RUN --mount=type=secret,...`)
-* Better parallelization and cache export/import
 
 === CMD and ENTRYPOINT
 
@@ -264,6 +272,25 @@ node_modules
 target
 dist
 ----
+
+[.notes]
+---
+.dockerignore improves cache stability because it keeps noisy files out of the build context hash.
+
+When Docker evaluates cache for steps like COPY . ., it fingerprints the files that are sent as build context.
+If that context includes frequently changing files (logs, temp files, .git, build artifacts), the fingerprint changes all the time, and cache gets invalidated even though your real app inputs did not change.
+
+With .dockerignore:
+
+those irrelevant files are excluded from context
+fewer accidental hash changes happen
+COPY and downstream layers keep hitting cache more consistently
+Simple example:
+
+Without .dockerignore: updating app.log can invalidate COPY . . and force dependency/install steps to rebuild.
+With .dockerignore containing *.log: changing app.log does not affect context hash, so cache can still be reused.
+So “cache stability” means: same meaningful inputs -> same cache result, with less random cache busting from unrelated files.
+---
 
 === Dockerfile command roundup
 
@@ -450,6 +477,7 @@ Cache-aware development pattern:
 ----
 FROM python:3.12-slim
 WORKDIR /app
+# Copying dependency manifests first avoids re-installing dependencies on every code change.
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .

@@ -1,14 +1,16 @@
 = Instructor demos
-Thomas Herzog <thomas.herzog@gepardec.com>; Clemens Kaserer
+Marko Gattringer <marko.gattringer@gepardec.com>
 :sectnums:
 :sectnumlevels: 1
 :source-highlighter: highlightjs
 :highlightjsdir: ./assets/highlight
-:highlightjs-theme: base16/ia-light
+:highlightjs-theme: base16/ia-dark
 :highlightjs-languages: yaml,bash,shell,shell,dockerfile
 :toc: left
 :toclevels: 1
-:stylesheet: ./assets/css/asciidoctor.css
+:stylesheet: ./assets/css/instructor-modern.css
+
+NOTE: Command examples use a unified host prompt style: `[user@node-<n> ...]$`.
 
 include::01_process_isolation.adoc[]
 
@@ -19,3 +21,5 @@ include::03_basic_volume_usage.adoc[]
 include::04_single_host_networks.adoc[]
 
 include::05_docker_compose.adoc[]
+
+include::06_kubernetes_basics.adoc[]

@@ -48,21 +48,13 @@ Services are assigned a [.keyword]#Virtual IP# which spreads traffic out across 
 * In this way, we can change the number of containers provisioned by a service without needing to do any explicit service discovery in our applications; the application logic sends traffic to the service regardless of how many containers it has provisioned, and Docker does the rest.
 --
 
-[.columns]
 === Our application: Dockercoins
 
-[.column]
-image:10_compose/dockercoins.png[width=50%] +
-(DockerCoins 2016 logo courtesy of [.keyword]#@XtlCnslt# and [.keyword]#@ndeloof#. Thanks!)
-
-[.column]
-It is a Dockercoin miner! +
-💰🐳📦🚢 +
-with 5 services: 
 image:10_compose/dockercoins-flow.svg[]
 
+
 [.dark_background.demo.background]
-=== icon:task[role=moby_icon] Instructor demo: Docker-Compose
+=== icon:task[role=moby_icon] Instructor demo: Docker Compose
 
 See the demo
 
@@ -89,7 +81,7 @@ in the exercise book.
 * Docker Compose makes single node orchestration easy
 * Compose services make scaling applications easy
 * Bottleneck identification important
-* Syntactically: [.keyword]#docker-compose.yml# + API
+* Syntactically: [.keyword]#compose.yaml# (or [.keyword]#docker-compose.yml#) + API
 
 [.notes]
 --
@@ -100,8 +92,8 @@ in the exercise book.
 === Further reading
 
 * Docker Compose examples: link:http://dockr.ly/1FL2VQ6[http://dockr.ly/1FL2VQ6]
-* Overview of docker-compose CLI: link:http://dockr.ly/2wtQlZT[http://dockr.ly/2wtQlZT]
-* docker-compose.yaml reference: link:http://dockr.ly/2iHUpeX[http://dockr.ly/2iHUpeX]
+* Overview of Docker Compose CLI (`docker compose`): link:http://dockr.ly/2wtQlZT[http://dockr.ly/2wtQlZT]
+* Docker Compose file reference: link:http://dockr.ly/2iHUpeX[http://dockr.ly/2iHUpeX]
 * Docker Compose and Windows: link:http://bit.ly/2watrqk[http://bit.ly/2watrqk]
 
 [.notes]

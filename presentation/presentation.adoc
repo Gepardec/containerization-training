@@ -44,4 +44,6 @@ include::10_compose.adoc[]
 
 include::11_compose_wrap_up.adoc[]
 
-include::12_end.adoc[]
+include::12_kubernetes.adoc[]
+
+include::13_end.adoc[]

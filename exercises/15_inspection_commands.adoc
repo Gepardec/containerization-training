@@ -9,7 +9,7 @@ We can find the `info` command under `system`. Execute:
 
 [source,shell]
 ----
-[centos@node-3 ~]$ docker system info
+[user@node-3 ~]$ docker system info
 ----
 This provides some high-level information about the docker deployment on the current node, and the node itself. From this output, identify:
 
@@ -23,7 +23,7 @@ There is another powerful system command that allows us to monitor what's happen
 
 [source,shell]
 ----
-[centos@node-3 ~]$ docker system events
+[user@node-3 ~]$ docker system events
 ----
 Please note that it looks like the system is hanging, but that is not the case. The system is just waiting for some events to happen.
 
@@ -31,7 +31,9 @@ Open a second connection to `node-3` and execute the following command:
 
 [source,shell]
 ----
-[centos@node-3 ~]$ docker container run --rm alpine echo 'Hello World!'
+[user@node-3 ~]$ docker container run --rm alpine echo 'Hello World!'
+----
+
 and observe the generated output in the first terminal. It should look similar to this:
 
 2017-01-25T16:57:48.553596179-06:00 container create 30eb63 ...
@@ -49,17 +51,17 @@ If you don't like the format of the output then we can use the `--format` parame
 
 [source,shell]
 ----
-[centos@node-3 ~]$ docker system events --format '--> {{.Type}}-{{.Action}}'
+[user@node-3 ~]$ docker system events --format '--> {{.Type}}-{{.Action}}'
 ----
-now the output looks a little bit less cluttered when we run our alpine container on the second terminal as above.
+Now the output looks a little less cluttered when we run our Alpine container on the second terminal as above.
 
-Finally we can find out what the event structure looks like by outputting the events in `json` format (once again after killing the events watcher on the first terminal and restarting it with):
+Finally, we can find out what the event structure looks like by outputting the events in `json` format (once again after stopping the events watcher on the first terminal and restarting it with):
 
 [source,shell]
 ----
-[centos@node-3 ~]$ docker system events --format '{{json .}}' | jq
+[user@node-3 ~]$ docker system events --format '{{json .}}' | jq
 ----
-which should give us for the first event in the series after re-running our alpine container on the other connection to `node-3` something like this (note, the output has been prettyfied for readability):
+This should give us, for the first event in the series after re-running our Alpine container on the other connection to `node-3`, something like this (note: the output has been prettified for readability):
 
 [source,json]
 ----

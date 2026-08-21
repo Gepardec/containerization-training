@@ -1,12 +1,11 @@
 == Single Host Networks
-In this demo, we'll illustrate:
+By the end of this exercise, you should be able to:
 
-* Creating docker bridge networks
-* Attaching containers to docker networks
-* Inspecting networking metadata from docker networks and containers
-* How network interfaces appear in different network namespaces
-* What network interfaces are created on the host by docker networking
-* What iptables rules are created by docker to isolate docker software-defined networks and forward network traffic to containers
+* Create and inspect Docker bridge networks
+* Attach containers to networks and validate service reachability
+* Read network metadata from containers and network objects
+* Explain veth pairs and namespace-scoped interfaces
+* Identify host-side interfaces and iptables rules created by Docker
 
 
 === Following Default Docker Networking
@@ -14,7 +13,7 @@ Switch to a fresh node you haven't run any containers on yet, list your networks
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker network ls
+[user@node-1 ~]$ docker network ls
 
 NETWORK ID          NAME                DRIVER              SCOPE
 7c4e63830cbf        bridge              bridge              local
@@ -25,7 +24,7 @@ Get some metadata about the `bridge` network, which is the default network conta
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker network inspect bridge
+[user@node-1 ~]$ docker network inspect bridge
 ----
 Notice the `IPAM` section:
 
@@ -56,7 +55,7 @@ Have a look at what network interfaces are present on this host:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ ip addr
+[user@node-1 ~]$ ip addr
 
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -81,8 +80,8 @@ Create a docker container without specifying any networking parameters, and do t
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container run -d centos:7 ping 8.8.8.8
-[centos@node-1 ~]$ docker network inspect bridge
+[user@node-1 ~]$ docker container run -d alpine:3.20 ping 8.8.8.8
+[user@node-1 ~]$ docker network inspect bridge
 
 ...
 "Containers": {
@@ -102,7 +101,7 @@ Look at your network interfaces again:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ ip addr
+[user@node-1 ~]$ ip addr
 
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -142,8 +141,8 @@ Look at the interfaces in your container's network namespace (you'll first need 
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container exec -it <container ID> bash
-[root@f4e8f3f1b918 /]# yum install -y iproute
+[user@node-1 ~]$ docker container exec -it <container ID> sh
+[root@f4e8f3f1b918 /]# apk add --no-cache iproute2
 ...
 [root@f4e8f3f1b918 /]# ip addr
 
@@ -165,8 +164,8 @@ Create a custom bridge network:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker network create my_bridge
-[centos@node-1 ~]$ docker network ls
+[user@node-1 ~]$ docker network create my_bridge
+[user@node-1 ~]$ docker network ls
 
 NETWORK ID          NAME                DRIVER              SCOPE
 7c4e63830cbf        bridge              bridge              local
@@ -180,16 +179,16 @@ Run a couple of containers named `c2` and `c3` attached to this new network:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container run \
-    --name c2 --network my_bridge -d centos:7 ping 8.8.8.8
-[centos@node-1 ~]$ docker container run \
-    --name c3 --network my_bridge -d centos:7 ping 8.8.8.8
+[user@node-1 ~]$ docker container run \
+    --name c2 --network my_bridge -d alpine:3.20 ping 8.8.8.8
+[user@node-1 ~]$ docker container run \
+    --name c3 --network my_bridge -d alpine:3.20 ping 8.8.8.8
 ----
 Inspect your new bridge:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker network inspect my_bridge
+[user@node-1 ~]$ docker network inspect my_bridge
 
 ...
 "IPAM": {
@@ -227,7 +226,7 @@ Try to contact container `c3` from `c2`:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container exec c2 ping c3
+[user@node-1 ~]$ docker container exec c2 ping c3
 ----
 It works - containers on the same custom network are able to resolve each other via *DNS lookup of container names*. This means that our application logic (`c2 ping c3` in this simple case) doesn't have to do any of its own service discovery; all we need to know are container names, and docker does the rest.
 
@@ -235,20 +234,20 @@ Start another container on `my_bridge`, but don't name it:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container run --network my_bridge -d centos:7 ping 8.8.8.8
-[centos@node-1 ~]$ docker container ls
+[user@node-1 ~]$ docker container run --network my_bridge -d alpine:3.20 ping 8.8.8.8
+[user@node-1 ~]$ docker container ls
 
 CONTAINER ID        IMAGE     ... STATUS           PORTS   NAMES
-625cb95b922d        centos:7  ... Up 2 seconds             competent_leavitt
-084caf415784        centos:7  ... Up 5 minutes             c3
-23d2e307325e        centos:7  ... Up 5 minutes             c2
-f4e8f3f1b918        centos:7  ... Up 21 minutes            zealous_kirch
+625cb95b922d        alpine:3.20  ... Up 2 seconds             competent_leavitt
+084caf415784        alpine:3.20  ... Up 5 minutes             c3
+23d2e307325e        alpine:3.20  ... Up 5 minutes             c2
+f4e8f3f1b918        alpine:3.20  ... Up 21 minutes            zealous_kirch
 ----
 As usual, it got a default name generated for it (`competent_leavitt` in my case). Try resolving this name by DNS as above:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container exec c2 ping competent_leavitt
+[user@node-1 ~]$ docker container exec c2 ping competent_leavitt
 
 ping: competent_leavitt: Name or service not known
 ----
@@ -258,7 +257,7 @@ Find the IP of your latest container (`competent_leavitt` in my case) via `docke
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker network inspect my_bridge
+[user@node-1 ~]$ docker network inspect my_bridge
 
 ...
 "625cb95b922d2502fd016c6517c51652e84f902f69632d5d399dc38f3f7b2711": {
@@ -270,7 +269,7 @@ Find the IP of your latest container (`competent_leavitt` in my case) via `docke
 }
 ...
 
-[centos@node-1 ~]$ docker container exec c2 ping 172.18.0.4
+[user@node-1 ~]$ docker container exec c2 ping 172.18.0.4
 
 PING 172.18.0.4 (172.18.0.4) 56(84) bytes of data.
 64 bytes from 172.18.0.4: icmp_seq=1 ttl=64 time=0.083 ms
@@ -282,24 +281,24 @@ Finally, create container `c1` attached to the default network:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container run --name c1 -d centos:7 ping 8.8.8.8
+[user@node-1 ~]$ docker container run --name c1 -d alpine:3.20 ping 8.8.8.8
 ----
 Attempt to ping it from `c2` by name:
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container exec c2 ping c1
+[user@node-1 ~]$ docker container exec c2 ping c1
 ping: c1: Name or service not known
 ----
 DNS resolution is scoped to user-defined docker networks. Find `c1` 's IP manually as above (mine is at `172.17.0.3`), and ping this IP directly from `c2`:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container exec c2 ping 172.17.0.3
+[user@node-1 ~]$ docker container exec c2 ping 172.17.0.3
 ----
 The request hangs until it times out (press `CTRL+C` to give up early if you don't want to wait for the timeout). Different docker networks are firewalled from each other by default; dump your iptables rules and look for lines similar to the following:
 [source,shell]
 ----
-[centos@node-1 ~]$ sudo iptables-save
+[user@node-1 ~]$ sudo iptables-save
 
 ...
 -A DOCKER-ISOLATION-STAGE-1 -i br-dfda80f70ea5 
@@ -318,7 +317,7 @@ Start an `nginx` container with a port exposure:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container run -d -p 8000:80 nginx
+[user@node-1 ~]$ docker container run -d -p 8000:80 nginx
 ----
 This syntax asks docker to forward all traffic arriving on port 8000 of the host's network namespace to port 80 of the container's network namespace. Visit the nginx landing page at `<node-1 public IP>:8000`.
 
@@ -326,7 +325,7 @@ Inspect your iptables rules again to see how docker forwarded this traffic:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ sudo iptables-save | grep 8000
+[user@node-1 ~]$ sudo iptables-save | grep 8000
 
 -A DOCKER ! -i docker0 -p tcp -m tcp --dport 8000 
     -j DNAT --to-destination 172.17.0.4:80
@@ -337,10 +336,11 @@ Clean up your containers and networks:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container rm -f $(docker container ls -aq)
-[centos@node-1 ~]$ docker network rm my_bridge
+[user@node-1 ~]$ ids="$(docker container ls -aq)"
+[user@node-1 ~]$ if [ -n "$ids" ]; then docker container rm -f $ids; fi
+[user@node-1 ~]$ docker network rm my_bridge
 ----
 
 === Conclusion
-In this demo, we stepped through the basic behavior of docker software defined bridge networks, and looked at the technology underpinning them such as linux bridges, veth connections, and iptables rules. From a practical standpoint, in order for containers to communicate they must be attached to the same docker software defined network (otherwise they'll be firewalled from each other by the cross-network iptables rules we saw), and in order for containers to resolve each other's name by DNS, they must also be explicitly named upon creation.
+In this exercise, you stepped through Docker bridge networking from both operational and kernel-level perspectives, including Linux bridges, veth links, and iptables forwarding/isolation rules. In practice, containers need to share the same user-defined network to communicate directly, and explicit container names are required for predictable DNS-based service discovery.
 

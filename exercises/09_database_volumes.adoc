@@ -9,8 +9,8 @@ Download a postgres image, and look at its history to determine its default volu
 
 [source,shell]
 ----
-[user@node ~]$ docker image pull postgres:9-alpine
-[user@node ~]$ docker image inspect postgres:9-alpine
+[user@node ~]$ docker image pull postgres:16-alpine
+[user@node ~]$ docker image inspect postgres:16-alpine
 
 ...
 "Volumes": {
@@ -27,7 +27,7 @@ Set up a running instance of this postgres container:
 [user@node ~]$ docker container run --name some-postgres \
     -v db_backing:/var/lib/postgresql/data \
     -e POSTGRES_PASSWORD=password \
-    -d postgres:9-alpine
+    -d postgres:16-alpine
 ----
 Notice the explicit volume mount, `-v db_backing:/var/lib/postgresql/data`; if we hadn't done this, a randomly named volume would have been mounted to the container's `/var/lib/postgresql/data`. Naming the volume explicitly is a best practice that will become useful when we start mounting this volume in multiple containers.
 
@@ -72,7 +72,7 @@ Create a new postgres container, mounting the `db_backing` volume just like last
     --name some-postgres \
     -v db_backing:/var/lib/postgresql/data \
     -e POSTGRES_PASSWORD=password \
-    -d postgres:9-alpine
+    -d postgres:16-alpine
 ----
 Reconnect a `psql` interface to your database, also like before:
 

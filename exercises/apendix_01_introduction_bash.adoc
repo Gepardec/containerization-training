@@ -271,7 +271,7 @@ rm: cannot remove ‘newDir’: Is a directory
 ----
 
 ====== Breaking long commands
-Some commands get too long, for example because it includes a long file path or it's a one liner that combines several commands. For better readability, you can break long commands into several lines using the backslash:
+Some commands get too long, for example because they include a long file path or because they are one-liners that combine several commands. For better readability, you can break long commands into several lines using a backslash:
 
 
 [source,shell]

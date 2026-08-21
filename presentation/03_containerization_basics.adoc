@@ -87,7 +87,7 @@ image::03_containerization_basics/pid-tree.svg[width=50%]
             
 --
 
-=== Optional Linux isolation features
+=== Linux isolation features
 
 * Control groups: limit memory & CPU
 * Root privilege management: allowlist Linux capabilities

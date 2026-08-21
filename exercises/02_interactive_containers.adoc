@@ -6,11 +6,11 @@ By the end of this exercise, you should be able to:
 * List containers using more options and filters
 
 === Writing to Containers
-Create a container using the `centos:7` image. Connect to its bash shell in interactive mode using the `-i` flag and request a TTY connection using the `-t` flag:
+Create a container using the `alpine:3.20` image. Connect to its shell in interactive mode using the `-i` flag and request a TTY connection using the `-t` flag:
 
 [source, shell]
 ----
-[user@node ~]$ docker container run -it centos:7 bash
+[user@node ~]$ docker container run -it --pull=always alpine:3.20 sh
 ----
 Explore your container's filesystem with ls, and then create a new file. Use `ls` again to confirm you have successfully created your file. Use the `-l` option with `ls` to list the files and directories in long list format.
 
@@ -26,11 +26,11 @@ Exit the connection to the container:
 ----
 [user@node ~]# exit
 ----
-Run the same command as before to start a container using the `centos:7` image:
+Run the same command as before to start a container using the `alpine:3.20` image:
 
 [source, shell]
 ----
-[user@node ~]$ docker container run -it centos:7 bash
+[user@node ~]$ docker container run -it alpine:3.20 sh
 ----
 Use `ls` to explore your container. You will see that your previously created test.txt is nowhere to be found in your new container. Exit this container in the same way you did above.
 
@@ -42,11 +42,11 @@ We wish to recover `test.txt` written to our container in the first example, but
 [user@node ~]$ docker container ls -a
 
 CONTAINER ID  IMAGE     COMMAND  CREATED              STATUS                       
-cc19f7e9aa91  centos:7  "bash"   About a minute ago   Exited (0) About a minute ago
-2b8de2ffdf85  centos:7  "bash"   2 minutes ago        Exited (0) About a minute ago
+cc19f7e9aa91  alpine:3.20  "sh"     About a minute ago   Exited (0) About a minute ago
+2b8de2ffdf85  alpine:3.20  "sh"     2 minutes ago        Exited (0) About a minute ago
 ...
 ----
-We can restart a container via the container ID listed in the first column. Use the container ID for the first centos:7 container you created with bash as its command (see the CREATED column above to make sure you're choosing the first bash container you ran):
+We can restart a container via the container ID listed in the first column. Use the container ID for the first `alpine:3.20` container you created with `sh` as its command (see the CREATED column above to make sure you're choosing the first `sh` container you ran):
 
 [source, shell]
 ----
@@ -54,7 +54,7 @@ We can restart a container via the container ID listed in the first column. Use 
 [user@node ~]$ docker container ls
 
 CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
-2b8de2ffdf85  centos:7  "bash"   5 minutes ago   Up 21 seconds  ...
+2b8de2ffdf85  alpine:3.20  "sh"     5 minutes ago   Up 21 seconds  ...
 ----
 Your container status has changed from Exited to Up, via docker container start.
 
@@ -70,11 +70,11 @@ What process is PID 1 inside the container? Find the PID of that process on the 
 ----
 [user@node ~]$ docker container top <container ID>
 ----
-Launch a bash shell in your running container with docker container exec:
+Launch a shell in your running container with docker container exec:
 
 [source, shell]
 ----
-[user@node ~]$ docker container exec -it <container ID> bash
+[user@node ~]$ docker container exec -it <container ID> sh
 ----
 List the contents of the container's filesystem with ls -l; your test.txt should be where you left it. Exit the container again by typing exit.
 
@@ -107,7 +107,8 @@ The output of this command will list the containers that have exited successfull
 Clean up with:
 [source, shell]
 ----
-[user@node ~]$ docker container rm -f $(docker container ls -aq)
+[user@node ~]$ ids="$(docker container ls -aq)"
+[user@node ~]$ if [ -n "$ids" ]; then docker container rm -f $ids; fi
 ----
 
 === Conclusion

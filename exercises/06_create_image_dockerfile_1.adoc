@@ -7,30 +7,29 @@ By the end of this exercise, you should be able to:
 * Fetch build history for an image
 
 === Writing and Building a Dockerfile
-Create a folder called myimage, and a text file called `Dockerfile` within that folder. In `Dockerfile`, include the following instructions:
+Create a folder called my-image, and a text file called `Dockerfile` within that folder. In `Dockerfile`, include the following instructions:
 
 [source,Dockerfile]
 ----
-FROM centos:7
+FROM alpine:3.20
 
-RUN yum update -y
-RUN yum install -y wget
+RUN apk add --no-cache wget
 ----
-This serves as a recipe for an image based on `centos:7`, that has all its default packages updated and wget installed on top.
+This serves as a recipe for an image based on `alpine:3.20`, with `wget` installed.
 
-Build your image with the `build` command. Don't miss the `.` at the end; that's the path to your `Dockerfile`. Since we're currently in the directory myimage which contains it, the path is just `.` (here).
+Build your image with the `build` command. Don't miss the `.` at the end; that's the path to your `Dockerfile`. Since we're currently in the directory my-image which contains it, the path is just `.` (here).
 
 [source,shell]
 ----
-[user@node myimage]$ docker image build -t myimage .
+[user@node my-image]$ docker image build -t my-image .
 ----
-You'll see a long build output - we'll go through the meaning of this output in a demo later. For now, your image creation was successful if the output ends with Successfully tagged `myimage:latest`.
+You'll see a long build output - we'll go through the meaning of this output in a demo later. For now, your image creation was successful if the output ends with Successfully tagged `my-image:latest`.
 
 Verify that your new image exists with `docker image ls`, then use your new image to run a container and wget something from within that container, just to confirm that everything worked as expected:
 
 [source,shell]
 ----
-[user@node myimage]$ docker container run -it myimage bash
+[user@node my-image]$ docker container run -it my-image sh
 [root@1d86d4093cce /]# wget example.com
 [root@1d86d4093cce /]# cat index.html
 [root@1d86d4093cce /]# exit
@@ -41,7 +40,7 @@ It's also possible to pipe a `Dockerfile` in from `STDIN`; try rebuilding your i
 
 [source,shell]
 ----
-[user@node myimage]$ cat Dockerfile | docker image build -t myimage -f - .
+[user@node my-image]$ cat Dockerfile | docker image build -t my-image -f - .
 ----
 NOTE: This is useful when reading a Dockerfile from a remote location with curl, for example.
 
@@ -52,11 +51,10 @@ Open your `Dockerfile` and add another `RUN` step at the end to install `vim`:
 
 [source,Dockerfile]
 ----
-FROM centos:7
+FROM alpine:3.20
 
-RUN yum update -y
-RUN yum install -y wget
-RUN yum install -y vim
+RUN apk add --no-cache wget
+RUN apk add --no-cache vim
 ----
 Build the image again as before; which steps is the cache used for?
 
@@ -66,11 +64,10 @@ Swap the order of the two `RUN` commands for installing `wget` and `vim` in the 
 
 [source,Dockerfile]
 ----
-FROM centos:7
+FROM alpine:3.20
 
-RUN yum update -y
-RUN yum install -y vim
-RUN yum install -y wget
+RUN apk add --no-cache vim
+RUN apk add --no-cache wget
 ----
 Build one last time. Which steps are cached this time?
 
@@ -79,26 +76,23 @@ The `docker image history` command allows us to inspect the build cache history 
 
 [source,shell]
 ----
-[user@node myimage]$ docker image history myimage:latest
+[user@node my-image]$ docker image history my-image:latest
 
 IMAGE          CREATED          CREATED BY                                      SIZE      
-f2e85c162453   8 seconds ago    /bin/sh -c yum install -y wget                  87.2MB              
-93385ea67464   12 seconds ago   /bin/sh -c yum install -y vim                   142MB               
-27ad488e6b79   3 minutes ago    /bin/sh -c yum update -y                        86.5MB              
-5182e96772bf   44 hours ago     /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B                  
-<missing>      44 hours ago     /bin/sh -c #(nop)  LABEL org.label-schema....   0B                  
-<missing>      44 hours ago     /bin/sh -c #(nop) ADD file:6340c690b08865d...   200MB 
+4b532e3f7f9a   8 seconds ago    /bin/sh -c apk add --no-cache wget              2MB
+26bb7c4fdb8d   12 seconds ago   /bin/sh -c apk add --no-cache vim               35MB
+8f5f28191f2d   3 minutes ago    /bin/sh -c #(nop)  CMD ["/bin/sh"]              0B
+e34f9f...      2 days ago       /bin/sh -c #(nop)  ADD file:... in /            8MB
 ----
-NOTE: Note the image id of the layer built for the `yum update` command.
+NOTE: Note the image ID of the layers built for each `apk add` command.
 
 Replace the two `RUN` commands that installed `wget` and `vim` with a single command:
 
 [source,Dockerfile]
 ----
-FROM centos:7
+FROM alpine:3.20
 
-RUN yum update -y
-RUN yum install -y wget vim
+RUN apk add --no-cache wget vim
 ----
 Build the image again, and run docker image history on this new image. How has the history changed?
 

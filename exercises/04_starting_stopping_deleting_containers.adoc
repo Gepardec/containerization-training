@@ -11,7 +11,7 @@ Start by running a container in the background, and check that it's really runni
 
 [source,shell]
 ----
-[user@node ~]$ docker container run -d centos:7 ping 8.8.8.8
+[user@node ~]$ docker container run -d --pull=always alpine:3.20 ping 8.8.8.8
 [user@node ~]$ docker container ls
 ----
 Stop the container using docker container stop, and check that the container is indeed stopped:
@@ -91,7 +91,7 @@ Finally, we can extract all the key/value pairs for a given object using the jso
 ----
 [user@node ~]$ docker container inspect --format='{{json .Config}}' <container ID>
 ----
-Try adding `| jq` to this command to get the same output a little bit easier to read.
+If `jq` is installed on your host, try adding `| jq` to this command to make the output easier to read.
 
 === Deleting Containers
 Start three containers in background mode, then stop the first one.
@@ -118,7 +118,8 @@ When done, clean up any containers you may still have:
 
 [source,shell]
 ----
-[user@node ~]$ docker container rm -f $(docker container ls -aq)
+[user@node ~]$ ids="$(docker container ls -aq)"
+[user@node ~]$ if [ -n "$ids" ]; then docker container rm -f $ids; fi
 ----
 
 === Conclusion

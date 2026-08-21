@@ -11,19 +11,19 @@ If you don't have one already, head over to link::https://hub.docker.com[https:/
 For the rest of this workshop, `<Docker ID>` refers to the username you chose for this account.
 
 === Tagging and Listing Images
-Download the centos:7 image from Docker Hub:
+Download the `alpine:3.20` image from Docker Hub:
 
 [source,shell]
 ----
-[user@node ~]$ docker image pull centos:7
+[user@node ~]$ docker image pull alpine:3.20
 ----
 Make a new tag of this image:
 
 [source,shell]
 ----
-[user@node ~]$ docker image tag centos:7 my-centos:dev
+[user@node ~]$ docker image tag alpine:3.20 my-alpine:dev
 ----
-NOTE: Note no new image has been created; `my-centos:dev` is just a pointer pointing to the same image as centos:7.
+NOTE: No new image has been created; `my-alpine:dev` is just a pointer to the same image as `alpine:3.20`.
 
 List your images:
 
@@ -31,14 +31,14 @@ List your images:
 ----
 [user@node ~]$ docker image ls
 ----
-You should have `centos:7` and `my-centos:dev` both listed, but they ought to have the same hash under image ID, since they're actually the same image.
+You should have `alpine:3.20` and `my-alpine:dev` both listed, and they should have the same image ID since they are the same image.
 
 === Sharing Images on Docker Hub
 Push your image to Docker Hub:
 
 [source,shell]
 ----
-[user@node ~]$ docker image push my-centos:dev
+[user@node ~]$ docker image push my-alpine:dev
 ----
 You should get a denied: requested access to the resource is denied error.
 
@@ -48,16 +48,16 @@ Retag your image to be namespaced properly, and push again:
 
 [source,shell]
 ----
-[user@node ~]$ docker image tag my-centos:dev <Docker ID>/my-centos:dev
-[user@node ~]$ docker image push <Docker ID>/my-centos:dev
+[user@node ~]$ docker image tag my-alpine:dev <Docker ID>/my-alpine:dev
+[user@node ~]$ docker image push <Docker ID>/my-alpine:dev
 ----
-Search Docker Hub for your new `<Docker ID>/my-centos` repo, and confirm that you can see the `:dev` tag therein.
+Search Docker Hub for your new `<Docker ID>/my-alpine` repo, and confirm that you can see the `:dev` tag there.
 
-Next, write a `Dockerfile` that uses `<Docker ID>/my-centos:dev` as its base image, and installs any application you like on top of that. Build the image, and simultaneously tag it as `:1.0`:
+Next, write a `Dockerfile` that uses `<Docker ID>/my-alpine:dev` as its base image, and installs any application you like on top of that. Build the image, and simultaneously tag it as `:1.0`:
 
 [source,shell]
 ----
-[user@node ~]$ docker image build -t <Docker ID>/my-centos:1.0 .
+[user@node ~]$ docker image build -t <Docker ID>/my-alpine:1.0 .
 ----
 Push your `:1.0` tag to Docker Hub, and confirm you can see it in the appropriate repository.
 
@@ -65,11 +65,11 @@ Finally, list the images currently on your node with docker image ls. You should
 
 [source,shell]
 ----
-[user@node ~]$ docker image rm my-centos:dev
+[user@node ~]$ docker image rm my-alpine:dev
 ----
 Only the tag gets deleted, not the actual image. The image layers are still referenced by another tag.
 
 === Conclusion
-In this exercise, we praciced tagging images and exchanging them on the public registry. The namespacing rules for images on registries are mandatory: user-generated images to be exchanged on the public registry must be named like `<Docker ID>/<repo name>[:<optional tag>]`; official images in the Docker registry just have the repo name and tag.
+In this exercise, we practiced tagging images and exchanging them on the public registry. The namespacing rules for images on registries are mandatory: user-generated images to be exchanged on the public registry must be named like `<Docker ID>/<repo name>[:<optional tag>]`; official images in the Docker registry just have the repo name and tag.
 
 NOTE: Also note that as we saw when building images, image names and tags are just pointers; deleting an image with `docker image rm` just deletes that pointer if the corresponding image layers are still being referenced by another such pointer. Only when the last pointer is deleted are the image layers actually destroyed by docker image rm.

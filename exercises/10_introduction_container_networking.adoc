@@ -9,7 +9,7 @@ In the dropdown menu at the top of the Strigo webpage, click into `node-1`. See 
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker network ls
+[user@node-1 ~]$ docker network ls
 ----
 You should have entries for `host`, `none`, and `bridge`.
 
@@ -17,7 +17,7 @@ Find some metadata about the default `bridge` network:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker network inspect bridge
+[user@node-1 ~]$ docker network inspect bridge
 ----
 NOTE: Note especially the private subnet assigned by Docker's IPAM driver to this network. The first IP in this range is used as the network's gateway, and the rest will be assigned to containers as they join the network.
 
@@ -25,7 +25,7 @@ See similar info from common networking tools:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ ip addr
+[user@node-1 ~]$ ip addr
 ----
 NOTE: Note the `bridge` network's gateway corresponds to the IP of the `docker0` device in this list. `docker0` is the linux `bridge` itself, while bridge is the name of the default Docker network that uses that bridge.
 
@@ -33,7 +33,7 @@ Use `brctl` to see connections to the `docker0` bridge:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ brctl show docker0
+[user@node-1 ~]$ brctl show docker0
 
 bridge name bridge id       STP enabled interfaces
 docker0     8000.02427f12c30b   no
@@ -46,8 +46,8 @@ Start a container and reexamine the network; the container is listed as connecte
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container run --name u1 -dt centos:7
-[centos@node-1 ~]$ docker network inspect bridge
+[user@node-1 ~]$ docker container run --name u1 -d alpine:3.20 sleep infinity
+[user@node-1 ~]$ docker network inspect bridge
 
 ...
     "Containers": {
@@ -65,7 +65,7 @@ Inspect the network interfaces with `ip` and `brctl` again, now that you have a 
 
 [source,shell]
 ----
-[centos@node-1 ~]$ ip addr
+[user@node-1 ~]$ ip addr
 
 ...
 5: veth6f244c3@if4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue 
@@ -74,18 +74,18 @@ Inspect the network interfaces with `ip` and `brctl` again, now that you have a 
     inet6 fe80::a871:82ff:fe6c:f388/64 scope link 
        valid_lft forever preferred_lft forever
 
-[centos@node-1 ~]$ brctl show docker0
+[user@node-1 ~]$ brctl show docker0
 bridge name bridge id       STP enabled interfaces
 docker0     8000.02427f12c30b   no      veth6f244c3
 ----
 `ip addr` indicates a veth endpoint has been created and plugged into the `docker0` bridge, as indicated by `master docker0`, and that it is connected to device index 4 in this case (indicated by the `@if4` suffix to the veth device name above). Similarly, `brctl` now shows this veth connection on `docker0` (notice that the ID for the veth connection matches in both utilities).
 
-Launch a bash shell in your container, and look for the `eth0` device therein:
+Launch a shell in your container, install iproute2, and look for the `eth0` device therein:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container exec -it u1 bash
-[root@11da9b7db065 /]# yum install -y iproute
+[user@node-1 ~]$ docker container exec -it u1 sh
+/ # apk add --no-cache iproute2
 [root@11da9b7db065 /]# ip addr
 
 ...
@@ -104,19 +104,19 @@ Create a bridge network by using the `bridge` driver with `docker network create
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker network create --driver bridge my_bridge
+[user@node-1 ~]$ docker network create --driver bridge my_bridge
 ----
 Launch a container connected to your new network via the `--network` flag:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container run --name=u2 --network=my_bridge -dt centos:7
+[user@node-1 ~]$ docker container run --name=u2 --network=my_bridge -d alpine:3.20 sleep infinity
 ----
 Use the `inspect` command to investigate the network settings of this container:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container inspect u2
+[user@node-1 ~]$ docker container inspect u2
 ----
 `my_bridge` should be listed under the `Networks` key.
 
@@ -124,7 +124,7 @@ Launch another container, this time interactively:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container run --name=u3 --network=my_bridge -it centos:7
+[user@node-1 ~]$ docker container run --name=u3 --network=my_bridge -it alpine:3.20 sh
 ----
 From inside container `u3`, ping `u2` by name: `ping u2`. The ping succeeds, since Docker is able to resolve container names when they are attached to a custom network.
 
@@ -132,7 +132,7 @@ Try starting a container on the default network, and pinging `u1` by name:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container run centos:7 ping u1
+[user@node-1 ~]$ docker container run --rm alpine:3.20 ping -c 1 u1
 
 ping: u1: Name or service not known
 ----
@@ -142,7 +142,7 @@ Finally, try pinging `u1` by IP, this time from container `u2`:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container exec u2 ping <u1 IP>
+[user@node-1 ~]$ docker container exec u2 ping <u1 IP>
 ----
 The ping fails, since the containers reside on different networks; all Docker networks are firewalled from each other by default.
 
@@ -150,12 +150,13 @@ Clean up your containers and networks:
 
 [source,shell]
 ----
-[centos@node-1 ~]$ docker container rm -f $(docker container ls -aq)
-[centos@node-1 ~]$ docker network rm my_bridge
+[user@node-1 ~]$ ids="$(docker container ls -aq)"
+[user@node-1 ~]$ if [ -n "$ids" ]; then docker container rm -f $ids; fi
+[user@node-1 ~]$ docker network rm my_bridge
 ----
 
 === Conclusion
-In this exercise, you explored the fundamentals of container networking. The key take away is that containers on separate networks are firewalled from each other by default. This should be leveraged as much as possible to harden your applications; if two containers don't need to talk to each other, put them on separate networks.
+In this exercise, you explored the fundamentals of container networking. The key takeaway is that containers on separate networks are firewalled from each other by default. This should be leveraged as much as possible to harden your applications; if two containers do not need to talk to each other, put them on separate networks.
 
 You also explored a number of API objects:
 

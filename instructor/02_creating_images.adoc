@@ -1,23 +1,23 @@
 == Creating Images
-In this demo, we'll illustrate:
+By the end of this exercise, you should be able to:
 
-* How to read each step of the image build output
-* How intermediate image layers behave in the cache and as independent images
-* What the meanings of 'dangling' and `<missing>`` image layers are
+* Explain each step of Docker image build output
+* Inspect and reason about intermediate image layers and cache behavior
+* Distinguish between dangling layers and `<missing>` entries in image history
 
 === Understanding Image Build Output
-Make a folder `demo`` for our image demo:
+Make a folder `demo` for our image demo:
 
-[source,Dockerfile]
+[source,shell]
 ----
 [user@node ~]$ mkdir demo ; cd demo
 And create a Dockerfile therein with the following content:
 
-FROM centos:7
-RUN yum update -y
-RUN yum install -y which
-RUN yum install -y wget
-RUN yum install -y vim
+FROM alpine:3.20
+RUN apk update
+RUN apk add --no-cache which
+RUN apk add --no-cache wget
+RUN apk add --no-cache vim
 ----
 Build your image from your Dockerfile, just like we did in the last exercise:
 
@@ -37,8 +37,8 @@ The next lines look like:
 
 [source,shell]
 ----
-Step 1/5 : FROM centos:7
- ---> 49f7960eb7e4
+Step 1/5 : FROM alpine:3.20
+ ---> e34f9f...
 ----
 Do an image ls:
 
@@ -46,21 +46,21 @@ Do an image ls:
 ----
 [user@node demo]$ docker image ls
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-demo                latest              59e595750dd5        10 seconds ago      645MB
-centos              7                   49f7960eb7e4        2 months ago        200MB
+demo                latest              59e595750dd5        10 seconds ago      46MB
+alpine              3.20                e34f9f...           2 days ago          8MB
 ----
-Notice the Image ID for `centos:7` matches that second line in the build output. The build starts from the base image defined in the `FROM`` command.
+Notice the image ID for `alpine:3.20` matches that second line in the build output. The build starts from the base image defined in the `FROM` command.
 
 The next few lines look like:
 
 [source,shell]
 ----
-Step 2/5 : RUN yum update -y
+Step 2/5 : RUN apk update
  ---> Running in 8734b14cf011
-Loaded plugins: fastestmirror, ovl
+fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/APKINDEX.tar.gz
 ...
 ----
-This is the output of the `RUN` command, `yum update -y`. The line `Running in 8734b14cf011` specifies a container that this command is running in, which is spun up based on all previous image layers (just the centos:7 base at the moment). Scroll down a bit and you should see something like:
+This is the output of the `RUN` command, `apk update`. The line `Running in 8734b14cf011` specifies a container that this command is running in, which is spun up based on all previous image layers (just the `alpine:3.20` base at the moment). Scroll down a bit and you should see something like:
 
 [source,shell]
 ----
@@ -76,17 +76,16 @@ Look at the history of your image:
 [user@node demo]$ docker image history demo
 
 IMAGE          CREATED         CREATED BY                                      SIZE  
-59e595750dd5   2 minutes ago   /bin/sh -c yum install -y vim                   142MB               
-bba17f8df167   2 minutes ago   /bin/sh -c yum install -y wget                  87MB                
-b9f2efa616de   2 minutes ago   /bin/sh -c yum install -y which                 86.6MB              
-433e56d735f6   2 minutes ago   /bin/sh -c yum update -y                        129MB               
-49f7960eb7e4   2 months ago    /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B                  
-<missing>      2 months ago    /bin/sh -c #(nop)  LABEL org.label-schema....   0B                  
-<missing>      2 months ago    /bin/sh -c #(nop) ADD file:8f4b3be0c1427b1...   200MB    
+59e595750dd5   2 minutes ago   /bin/sh -c apk add --no-cache vim               35MB
+bba17f8df167   2 minutes ago   /bin/sh -c apk add --no-cache wget              2MB
+b9f2efa616de   2 minutes ago   /bin/sh -c apk add --no-cache which             1MB
+433e56d735f6   2 minutes ago   /bin/sh -c apk update                           0B
+e34f9f...      2 days ago      /bin/sh -c #(nop)  CMD ["/bin/sh"]              0B
+<missing>      2 days ago      /bin/sh -c #(nop) ADD file:... in /            8MB
 ----
 As you can see, the different layers of `demo` correspond to a separate line in the Dockerfile and the layers have their own ID. You can see the image layer `433e56d735f6` committed in the second build step in the list of layers for this image.
 
-Look through your build output for where steps 3/5 (installing `which`), 4/5 (installing `wget`), and 5/5 (installing `vim`) occur - the same behavior of starting a temporary container based on the previous image layers, running the `RUN` command, saving the container as a new image layer visible in your `docker iamge history` output, and deleting the temporary container is visible.
+Look through your build output for where steps 3/5 (installing `which`), 4/5 (installing `wget`), and 5/5 (installing `vim`) occur - the same behavior of starting a temporary container based on the previous image layers, running the `RUN` command, saving the container as a new image layer visible in your `docker image history` output, and deleting the temporary container is visible.
 
 Every layer can be used as you would use any image, which means we can inspect a single layer. Let's inspect the wget layer, which in my case is bba17f8df167 (yours will be different, look at your `docker image history` output):
 
@@ -101,13 +100,13 @@ Let's look for the command associated with this image layer by using `--format`:
 [user@node demo]$ docker image inspect \
     --format='{{.ContainerConfig.Cmd}}' bba17f8df167
 
-[/bin/sh -c yum install -y wget]
+[/bin/sh -c apk add --no-cache wget]
 ----
 We can even start containers based on intermediate image layers; start an interactive container based on the `wget` layer, and look for whether `wget` and `vim` are installed:
 
 [source,shell]
 ----
-[user@node demo]$ docker container run -it bba17f8df167 bash 
+[user@node demo]$ docker container run -it bba17f8df167 sh
 
 [root@a766a3d616b7 /]# which wget
 
@@ -125,11 +124,11 @@ Change the last line in the Dockerfile from the last section to install `nano` i
 
 [source,Dockerfile]
 ----
-FROM centos:7
-RUN yum update -y
-RUN yum install -y which
-RUN yum install -y wget
-RUN yum install -y nano
+FROM alpine:3.20
+RUN apk update
+RUN apk add --no-cache which
+RUN apk add --no-cache wget
+RUN apk add --no-cache nano
 ----
 Rebuild your image, and list your images again:
 
@@ -139,9 +138,9 @@ Rebuild your image, and list your images again:
 [user@node demo]$ docker image ls
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-demo                latest              5a6aedc1feab        8 seconds ago       590MB
-<none>              <none>              59e595750dd5        23 minutes ago      645MB
-centos              7                   49f7960eb7e4        2 months ago        200MB
+demo                latest              5a6aedc1feab        8 seconds ago       34MB
+<none>              <none>              59e595750dd5        23 minutes ago      46MB
+alpine              3.20                e34f9f...           2 days ago          8MB
 ----
 What is that image named `<none>`? Notice the image ID is the same as the old image ID for `demo:latest` (see your history output above). The name and tag of an image is just a pointer to the stack of layers that make it up; reuse a name and tag, and you are effectively moving that pointer to a new stack of layers, leaving the old one (the one containing the `vim` install in this case) as an untagged or 'dangling' image.
 
@@ -149,9 +148,9 @@ Rewrite your Dockerfile one more time, to combine some of those install steps:
 
 [source,Dockerfile]
 ----
-FROM centos:7
-RUN yum update -y
-RUN yum install -y which wget nano
+FROM alpine:3.20
+RUN apk update
+RUN apk add --no-cache which wget nano
 ----
 Rebuild using a `new` tag this time, and list your images one more time:
 
@@ -162,12 +161,12 @@ Rebuild using a `new` tag this time, and list your images one more time:
 [user@node demo]$ docker image ls
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-demo                new                 568b29a0dce9        20 seconds ago      416MB
-demo                latest              5a6aedc1feab        5 minutes ago       590MB
-<none>              <none>              59e595750dd5        28 minutes ago      645MB
-centos              7                   49f7960eb7e4        2 months ago        200MB    
+demo                new                 568b29a0dce9        20 seconds ago      24MB
+demo                latest              5a6aedc1feab        5 minutes ago       34MB
+<none>              <none>              59e595750dd5        28 minutes ago      46MB
+alpine              3.20                e34f9f...           2 days ago          8MB
 ----
 Image `demo:new` is much smaller in size than `demo:latest`, even though it contains the exact same software - why?
 
 === Conclusion
-In this demo, we explored the layered structure of images; each layer is built as a distinct image and can be treated as such, on the host where it was built. This information is preserved on the build host for use in the build cache; build another image based on the same lower layers, and they will be reused to speed up the build process. Notice that the same is not true of downloaded images like `centos:7`; intermediate image caches are not downloaded, but rather only the final complete image.
+In this exercise, you explored how layered images are built and reused. Each Dockerfile step creates a layer that can be cached locally to accelerate subsequent builds, while pulled images like `alpine:3.20` provide only the final image state and not your local intermediate build cache.

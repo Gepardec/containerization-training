@@ -1,21 +1,21 @@
 == Process Isolation
-In this demo, we'll illustrate:
+By the end of this exercise, you should be able to:
 
-* What containerized process IDs look like inside versus outside of a kernel namespace
-* How to impose control group limitations on CPU and memory consumption of a containerized process.
+* Compare containerized process IDs inside and outside of a kernel namespace
+* Apply control group limits for CPU and memory consumption in a container
 
 === Exploring the PID Kernel Namespace
 Start a simple container we can explore:
 
 [source,shell]
 ----
-[user@node ~]$ docker container run -d --name pinger centos:7 ping 8.8.8.8
+[user@node ~]$ docker container run -d --name pinger alpine:3.20 ping 8.8.8.8
 ----
 Use `docker container exec` to launch a child process inside the container's namespaces:
 
 [source,shell]
 ----
-[user@node ~]$ docker container exec pinger ps -aux
+[user@node ~]$ docker container exec pinger ps -a
 
 USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
 root         1  0.1  0.0  24860  1884 ?        Ss   02:20   0:00 ping 8.8.8.8
@@ -40,7 +40,7 @@ List your containers to show this ping container is still running:
 [user@node ~]$ docker container ls
 
 CONTAINER ID  IMAGE     COMMAND         ...  STATUS        ...  NAMES
-bb3a3b1cbb78  centos:7  "ping 8.8.8.8"  ...  Up 6 minutes       pinger
+bb3a3b1cbb78  alpine:3.20  "ping 8.8.8.8"  ...  Up 6 minutes       pinger
 ----
 Kill the ping process by host PID, and show the container has stopped:
 
@@ -181,4 +181,4 @@ Inspect the metadata for this container, and look for the `OOMKilled` key:
 When the containerized process tried to exceed its memory limitation, it gets killed with an Out Of Memory exception.
 
 === Conclusion
-In this demo, we explored some of the most important technologies that make containerization possible: kernel namespaces and control groups. The core message here is that containerized processes are just processes running on their host, isolated and constrained by these technologies. All the tools and management strategies you would use for conventional processes apply just as well for containerized processes.
+In this exercise, you explored two core technologies behind containerization: kernel namespaces and control groups. The key takeaway is that containerized workloads are normal host processes with isolation and resource boundaries applied by the kernel.

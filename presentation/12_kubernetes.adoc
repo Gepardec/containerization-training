@@ -1,0 +1,157 @@
+== Introduction to Kubernetes
+
+=== Learning objectives
+
+By the end of this module, trainees will be able to
+
+* Explain what Kubernetes is and when to use it
+* Distinguish between Pods, Deployments, Services, and Secrets
+* Read and apply a basic Kubernetes manifest
+* Deploy and verify a simple application on Kubernetes
+
+=== Why Kubernetes?
+
+* Docker Compose is excellent for multi-container apps on one host
+* Kubernetes is for orchestrating containers across a cluster of nodes
+* It adds scheduling, self-healing, service discovery, and rolling updates
+
+[.notes]
+--
+* Compose solves single-node orchestration very well.
+* Kubernetes extends this to clustered environments and production-scale operations.
+--
+
+=== Kubernetes basics
+
+* A [.keyword]#cluster# consists of control-plane and worker nodes
+* The [.keyword]#API server# is the central interface
+* Desired state is defined in YAML manifests
+* Controllers continuously reconcile actual state to desired state
+
+=== Core object: Pod
+
+* Smallest deployable unit in Kubernetes
+* Usually one main container per Pod
+* All containers in a Pod share network namespace and volumes
+
+[.notes]
+--
+* Treat Pods as ephemeral runtime units.
+* Deployments, not individual Pods, should be your default workload abstraction.
+--
+
+=== Core object: Deployment
+
+* Manages a ReplicaSet of Pods
+* Defines image, replicas, and rollout strategy
+* Supports rolling updates and easy rollbacks
+* Recreates Pods automatically if they fail
+
+=== Core object: Service
+
+* Stable virtual endpoint for a dynamic Pod set
+* Selects Pods by labels
+* Common types:
+** `ClusterIP` for internal traffic
+** `NodePort` for quick external access
+** `LoadBalancer` for cloud-managed ingress
+
+=== Core object: Secret
+
+* Stores sensitive values (passwords, tokens, keys)
+* Inject into Pods via environment variables or mounted files
+* Should not be hard-coded in images or plain manifests
+
+[.notes]
+--
+* Secrets are base64-encoded in manifests by default, so combine with RBAC and external secret management where possible.
+--
+
+=== Demo architecture
+
+image::10_compose/service-discovery.svg[width=35%]
+
+Demo resources:
+
+* Namespace: `k8s-demo`
+* Secret: `hello-config`
+* Deployment: `hello-web` (2 replicas)
+* Service: `hello-web` (ClusterIP)
+
+=== Demo manifest
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: k8s-demo
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hello-config
+  namespace: k8s-demo
+type: Opaque
+stringData:
+  WELCOME_MESSAGE: "Hello from Kubernetes"
+----
+
+[.notes]
+--
+* Full demo manifest is in `resources/kubernetes-demo/simple-app.yaml`.
+--
+
+[.dark_background.demo.background]
+=== icon:task[role=moby_icon] Instructor demo: Kubernetes app deployment
+
+See the demo
+
+* Kubernetes basics
+
+in the instructor demo book.
+
+[.dark_background.exercise.background]
+=== icon:task[role=moby_icon] Exercise: Deploy a simple app
+
+Work through
+
+* Apply the manifest
+* Verify Deployment, Pods, and Service
+* Port-forward and test the app
+* Rotate Secret value and redeploy
+
+++++
+<h2 id="exercise_kubernetes_app" class="timer"></h2>
+++++
+
+=== Demo commands
+
+[source,shell]
+----
+# Apply all resources
+kubectl apply -f resources/kubernetes-demo/simple-app.yaml
+
+# Check status
+kubectl -n k8s-demo get deployment,pods,svc,secrets
+
+# Access locally
+kubectl -n k8s-demo port-forward service/hello-web 8080:80
+
+# Cleanup
+kubectl delete namespace k8s-demo
+----
+
+=== Kubernetes takeaways
+
+* Pods run containers; Deployments manage Pod lifecycle
+* Services provide stable connectivity to changing Pod sets
+* Secrets keep sensitive config out of images
+* Kubernetes works best with declarative, versioned YAML
+
+=== Further reading
+
+* Kubernetes concepts: link:https://kubernetes.io/docs/concepts/[https://kubernetes.io/docs/concepts/]
+* Deployments: link:https://kubernetes.io/docs/concepts/workloads/controllers/deployment/[https://kubernetes.io/docs/concepts/workloads/controllers/deployment/]
+* Services: link:https://kubernetes.io/docs/concepts/services-networking/service/[https://kubernetes.io/docs/concepts/services-networking/service/]
+* Secrets: link:https://kubernetes.io/docs/concepts/configuration/secret/[https://kubernetes.io/docs/concepts/configuration/secret/]

@@ -1,8 +1,8 @@
 == Docker Compose
-In this demo, we'll illustrate:
+By the end of this exercise, you should be able to:
 
-* Starting an app defined in a docker compose file
-* Inter-service communication using DNS resolution of service names
+* Start an application defined in a Compose file
+* Verify inter-service communication using DNS service names
 
 === Exploring the Compose File
 Please download the DockerCoins app from Github and change directory to ~/orchestration-workshop/dockercoins.
@@ -60,7 +60,7 @@ When we start the app, we will see the service images getting downloaded one at 
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker-compose up -d
+[user@node dockercoins]$ docker compose up -d
 ----
 After starting, the images required for this app have been downloaded:
 
@@ -72,10 +72,10 @@ Make sure the services are up and running, as is the dedicated network:
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker-compose ps
+[user@node dockercoins]$ docker compose ps
 [user@node dockercoins]$ docker network ls
 ----
-If everyting is up, visit your app at `<node-0 public IP>:8000` to see Dockercoins in action.
+If everything is up, visit your app at `<node-0 public IP>:8000` to see Dockercoins in action.
 
 === Communicating Between Containers
 In this section, we'll demonstrate that containers created as part of a service in a Compose file are able to communicate with containers belonging to other services using just their service names. Let's start by listing our DockerCoins containers:
@@ -88,7 +88,7 @@ Now, connect into one container; let's pick `webui`:
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker container exec -it <Container ID> bash
+[user@node dockercoins]$ docker container exec -it <Container ID> sh
 ----
 From within the container, ping `rng` by name:
 
@@ -148,15 +148,15 @@ def hash_bytes(data):
     hex_hash = r.text
     return hex_hash
 ----
-As we can see in the last two stanzas, we can direct traffic to a service via a DNS name that exactly matches the service name defined in the docker compose file.
+As we can see in the last two stanzas, we can direct traffic to a service via a DNS name that exactly matches the service name defined in the Docker Compose file.
 
 Shut down Dockercoins and clean up its resources:
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker-compose down
+[user@node dockercoins]$ docker compose down
 ----
 
 === Conclusion
-In this exercise, we stood up an application using Docker Compose. The most important new idea here is the notion of Docker Services, which are collections of identically configured containers. Docker Service names are resolvable by DNS, so that we can write application logic designed to communicate service to service; all service discovery and load balancing between your application's services is abstracted away and handled by Docker.
+In this exercise, you started an application with Docker Compose and validated service-to-service communication through built-in DNS. The key concept is that Compose service names provide stable endpoints so application components can discover each other without custom service discovery logic.
 

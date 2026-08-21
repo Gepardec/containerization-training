@@ -10,6 +10,8 @@ Marko Gattringer <marko.gattringer@gepardec.com>;
 :toclevels: 1
 :stylesheet: ./assets/css/exercises-modern.css
 
+NOTE: Command examples use a unified host prompt style: `[user@node-<n> ...]$`.
+
 include::01_running_inspecting_containers.adoc[]
 
 include::02_interactive_containers.adoc[]

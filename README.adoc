@@ -1,13 +1,19 @@
 = Training
 This training is based on Docker, but since Docker has defined the initial specification of containerization, it is applicable to containerization itself, no matter what runtime is used.
 
+Current training baseline:
+
+* Base image examples use `alpine:3.20`
+* Docker Compose commands use the V2 CLI syntax: `docker compose`
+* Compose manifest examples may use either `compose.yaml` or `docker-compose.yml`
+
 The training covers the following containerization topics:
 
 . Introduction to Containerization  
 We compare containerization to virtualization and discuss the advantages of containerization compared to virtualization.
 
 . Containerization Basics  
-We discuss the Linux technologies such as namespaces, which are used by containerization and that a container is nothing but a isolated process on the host.
+We discuss Linux technologies such as namespaces, which are used by containerization, and that a container is nothing but an isolated process on the host.
 
 . Creating Images  
 We discuss what container images are, how they are set up, and how to build container images efficiently.
@@ -21,10 +27,10 @@ We discuss the system commands Docker provides, for instance for housekeeping.
 . Container Networking  
 We discuss the container networking model, the different types of networks, and how to use container networks properly.
 
-. Docker-Compose  
-We discuss composing multiple service with Docker-Compose.
+. Docker Compose  
+We discuss composing multiple services with Docker Compose.
 
-The objective of this training is that trainees understand containerization with Docker and can use containerization in there daily work.
+The objective of this training is that trainees understand containerization with Docker and can use containerization in their daily work.
 
 == Training resources
 
@@ -33,13 +39,13 @@ We provide the following resource for this training which can be downloaded from
 The release archive contains the following resources.
 
 * `presentation` +
-A asciidoc/revealjs based HMTL presentation
+A asciidoc/revealjs based HTML presentation
 * `exercises` +
 Asciidoc based HTML with the exercises
 * `instructor` +
 Asciidoc based HTML with the instructor demos
 * `resources` +
-Additional resources for the training such as exmaple applictions
+Additional resources for the training such as example applications
 
 == Training environment
 
@@ -54,13 +60,13 @@ ssh ubuntu@<PROVIDED_AWS_URI> -i <PROVIDED_PUBLIC_KEY>
 .Copy a directory to the environment.
 [source,bash]
 ----
-scp -r <LOCAL_DIR_PATH> buntu@<PROVIDED_AWS_URI>:<REMOTE_PATH> -i <PROVIDED_PUBLIC_KEY>
+scp -r <LOCAL_DIR_PATH> ubuntu@<PROVIDED_AWS_URI>:<REMOTE_PATH> -i <PROVIDED_PUBLIC_KEY>
 ----
 
 .Copy a directory from the environment.
 [source,bash]
 ----
-scp -r buntu@<PROVIDED_AWS_URI>:<REMOTE_PATH> <LOCAL_DIR_PATH> -i <PROVIDED_PUBLIC_KEY>
+scp -r ubuntu@<PROVIDED_AWS_URI>:<REMOTE_PATH> <LOCAL_DIR_PATH> -i <PROVIDED_PUBLIC_KEY>
 ----
 
 == Trainer 
@@ -132,17 +138,17 @@ node_modules/http-server/bin/http-server
 2. Open in Chrome/Chromium browser `http://localhost:8080/presentation?print-pdf` or `http://localhost:8080/exercises?print-pdf`
 3. Open Chrome browser print dialog and save as pdf.
 
-== Provision an training environment in AWS
+== Provision a training environment in AWS
 
 We use AWS to provision a training environment, which is based on this link:https://github.com/Gepardec/train[git repository] which provides  
 a link:https://github.com/Gepardec/train/pkgs/container/train[container image] which uses Terraform to provision the training environment.
 These link:https://gepardec.github.io/train/[Github Pages] provide the documentation how our provisioning in AWS works.
 
-You need Docker, an active AWS account and a set up AWS CLI on the host you want to provision the environment from.
+You need Docker, an active AWS account, and a set-up AWS CLI on the host you want to provision the environment from.
 
 NOTE: All of the following commands must be executed in the `/aws` directory.
 
-.Provision an training environment
+.Provision a training environment
 [source,bash]
 ----
 docker run --rm -it \

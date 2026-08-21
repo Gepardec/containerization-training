@@ -30,15 +30,14 @@ Now let's Dockerize our hello world application. Add a `Dockerfile` to the multi
 
 [source,Dockerfile]
 ----
-FROM alpine:3.5
-RUN apk update && \
-    apk add --update alpine-sdk
+FROM alpine:3.20
+RUN apk add --no-cache build-base
 RUN mkdir /app
 WORKDIR /app
 COPY hello.c /app
 RUN mkdir bin
 RUN gcc -Wall hello.c -o bin/hello
-CMD /app/bin/hello
+CMD ["/app/bin/hello"]
 ----
 Build the image and note its size:
 
@@ -56,24 +55,23 @@ Test the image to confirm it was built successfully:
 ----
 [user@node multi]$ docker container run my-app-large
 ----
-It should print`hello world`" in the console.
+It should print `Hello, world!` in the console.
 
 Update your `Dockerfile` to use an AS clause on the first line, and add a second stanza describing a second build stage:
 
 [source,Dockerfile]
 ----
-FROM alpine:3.5 AS build
-RUN apk update && \
-    apk add --update alpine-sdk
+FROM alpine:3.20 AS build
+RUN apk add --no-cache build-base
 RUN mkdir /app
 WORKDIR /app
 COPY hello.c /app
 RUN mkdir bin
 RUN gcc -Wall hello.c -o bin/hello
 
-FROM alpine:3.5
+FROM alpine:3.20
 COPY --from=build /app/bin/hello /app/hello
-CMD /app/hello
+CMD ["/app/hello"]
 ----
 Build the image again and compare the size with the previous version:
 
@@ -90,7 +88,7 @@ As expected, the size of the multi-stage build is much smaller than the large on
 
 Finally, make sure the app works:
 
-[source,Dockerfile]
+[source,shell]
 ----
 [user@node multi]$ docker container run --rm my-app-small
 ----
@@ -136,9 +134,8 @@ Create a file named `Dockerfile` to build this sleep program in a build stage, a
 
 [source,Dockerfile]
 ----
-FROM alpine:3.8 AS build
-RUN ["apk", "update"]
-RUN ["apk", "add", "--update", "alpine-sdk"]
+FROM alpine:3.20 AS build
+RUN ["apk", "add", "--no-cache", "build-base"]
 COPY sleep.c /
 RUN ["gcc", "-static", "sleep.c", "-o", "sleep"]
 
@@ -167,7 +164,7 @@ sleep       scratch   1b68b20a85a8   9 minutes ago   128kB
 ----
 This image is only `128 kB`, as tiny as possible.
 
-Run your image, and check out its filesystem; we can't list directly inside the container, since ls isn't installed in this ultra-minimal image, so we have to find where this container's filesystem is mounted on the host. Start by finding the PID of your sleep process after its running:
+Run your image, and check out its filesystem; we cannot list directly inside the container, since ls is not installed in this ultra-minimal image, so we have to find where this container filesystem is mounted on the host. Start by finding the PID of your sleep process after it is running:
 
 [source,shell]
 ----
@@ -187,7 +184,7 @@ List your container's filesystem from the host using this PID:
 
 dev  etc  proc  sleep  sys
 ----
-We see not only our binary sleep but a bunch of other folders and files. Where does these come from? runC, the tool for spawning and running containers, requires a json config of the container and a root file system. At runtime, Docker Engine adds these minimum requirements to form the most minimal container filesystem possible.
+We see not only our binary sleep but also a few other folders and files. Where do these come from? runC, the tool for spawning and running containers, requires a JSON config of the container and a root filesystem. At runtime, Docker Engine adds these minimum requirements to form the most minimal container filesystem possible.
 
 Clean up by deleting your container:
 
@@ -197,7 +194,7 @@ Clean up by deleting your container:
 ----
 
 === Optional: Enabling BuildKit
-In addition to the default builder, `BuildKit` can be enabled to take advantages of some optimizations of the build process.
+In addition to the default builder, `BuildKit` can be enabled to take advantage of build-process optimizations.
 
 Back in the `~/multi` directory, turn on `BuildKit`:
 
@@ -211,10 +208,9 @@ Add an AS label to the final stage of your Dockerfile (this is not strictly nece
 ----
 ...
 
-FROM alpine:3.5 AS prod
-RUN apk update
+FROM alpine:3.20 AS prod
 COPY --from=build /app/bin/hello /app/hello
-CMD /app/hello
+CMD ["/app/hello"]
 ----
 Re-build my-app-small, without the cache:
 
@@ -227,13 +223,12 @@ Re-build my-app-small, without the cache:
  => => transferring dockerfile: 97B
  => [internal] load .dockerignore
  => => transferring context: 2B
- => [internal] load metadata for docker.io/library/alpine:3.5
- => CACHED [prod 1/3] FROM docker.io/library/alpine:3.5
+ => [internal] load metadata for docker.io/library/alpine:3.20
+ => CACHED [prod 1/3] FROM docker.io/library/alpine:3.20
  => [internal] load build context
  => => transferring context: 87B
  => CACHED [internal] helper image for file operations
- => [build 2/6] RUN apk update &&     apk add --update alpine-sdk
- => [prod 2/3] RUN apk update
+ => [build 2/6] RUN apk add --no-cache build-base
  => [build 3/6] RUN mkdir /app
  => [build 4/6] COPY hello.c /app
  => [build 5/6] RUN mkdir bin

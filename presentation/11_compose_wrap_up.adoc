@@ -27,6 +27,7 @@ Check that SonarQube is really using your PostgreSQL database:
 * *Hint*: PostgreSQL tips at link:http://www.unixwitch.de/de/sysadmin/tools/postgres[http://www.unixwitch.de/de/sysadmin/tools/postgres]
 --
 
+[.fit-solution-code]
 === Solution
 
 [source,yaml]

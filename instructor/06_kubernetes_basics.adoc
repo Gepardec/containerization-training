@@ -1,0 +1,100 @@
+== Kubernetes basics
+By the end of this exercise, you should be able to:
+
+* Explain the role of Pods, Deployments, Services, and Secrets
+* Apply declarative manifests with `kubectl`
+* Verify and access a simple Kubernetes application
+
+=== Prerequisites
+
+You need access to a Kubernetes cluster and `kubectl` configured for it.
+
+Check your connection:
+
+[source,shell]
+----
+[user@node-1 ~]$ kubectl config current-context
+[user@node-1 ~]$ kubectl get nodes
+----
+
+=== Applying the Demo App
+
+The demo manifest is located at `resources/kubernetes-demo/simple-app.yaml` and contains:
+
+* Namespace: `k8s-demo`
+* Secret: `hello-config`
+* Deployment: `hello-web` (2 replicas)
+* Service: `hello-web` (ClusterIP)
+
+Apply the manifest:
+
+[source,shell]
+----
+[user@node-1 ~]$ kubectl apply -f resources/kubernetes-demo/simple-app.yaml
+----
+
+Verify resources:
+
+[source,shell]
+----
+[user@node-1 ~]$ kubectl -n k8s-demo get deployment,pods,svc,secrets
+[user@node-1 ~]$ kubectl -n k8s-demo rollout status deployment/hello-web
+----
+
+=== Explaining Kubernetes Objects in the Demo
+
+* Pod: runtime unit for one or more containers
+* Deployment: desired state and rollout controller for Pods
+* Service: stable virtual endpoint in front of the Pods
+* Secret: sensitive value injected into container environment
+
+Inspect the Secret and Deployment wiring:
+
+[source,shell]
+----
+[user@node-1 ~]$ kubectl -n k8s-demo describe secret hello-config
+[user@node-1 ~]$ kubectl -n k8s-demo describe deployment hello-web
+----
+
+=== Accessing the Application
+
+Since `hello-web` is a ClusterIP service, forward it to your local machine:
+
+[source,shell]
+----
+[user@node-1 ~]$ kubectl -n k8s-demo port-forward service/hello-web 8080:80
+----
+
+Open `http://localhost:8080` and refresh multiple times to see different Pod hostnames.
+
+=== Rotating a Secret and Restarting Pods
+
+Update the Secret value:
+
+[source,shell]
+----
+[user@node-1 ~]$ kubectl -n k8s-demo create secret generic hello-config \
+    --from-literal=WELCOME_MESSAGE='Hello after secret rotation' \
+    -o yaml --dry-run=client | kubectl apply -f -
+----
+
+Restart the Deployment so Pods pick up the updated environment value:
+
+[source,shell]
+----
+[user@node-1 ~]$ kubectl -n k8s-demo rollout restart deployment/hello-web
+[user@node-1 ~]$ kubectl -n k8s-demo rollout status deployment/hello-web
+----
+
+Refresh `http://localhost:8080` to verify the updated message.
+
+=== Cleaning Up
+
+[source,shell]
+----
+[user@node-1 ~]$ kubectl delete namespace k8s-demo
+----
+
+=== Conclusion
+
+In this exercise, you deployed a simple Kubernetes application and validated the core workflow: declare desired state in YAML, apply it with `kubectl`, verify rollout and service routing, and manage sensitive configuration through Secrets.

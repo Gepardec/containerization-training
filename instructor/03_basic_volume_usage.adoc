@@ -1,9 +1,9 @@
 == Basic Volume Usage
-In this demo, we'll illustrate:
+By the end of this exercise, you should be able to:
 
-* Creating, updating, destroying, and mounting docker named volumes
-* How volumes interact with a container's layered filesystem
-* Usecases for mounting host directories into a container
+* Create, inspect, mount, and remove Docker named volumes
+* Explain how volumes differ from the container layered filesystem
+* Use host path mounts for local development workflows
 
 === Using Named Volumes
 Create a volume, and inspect its metadata:
@@ -31,7 +31,7 @@ Run a container that mounts this volume, and list the filesystem therein:
 
 [source,shell]
 ----
-[user@node ~]$ docker container run -it -v demovol:/demo centos:7 bash
+[user@node ~]$ docker container run -it -v demovol:/demo alpine:3.20 sh
 [root@f4aca1b60965 /]# ls
 anaconda-post.log  bin  demo  dev  etc  home ...
 ----
@@ -64,12 +64,12 @@ You'll see your `mydata.dat` file present at this point in the host's filesystem
 ----
 The volume and its contents will still be present on the host.
 
-Start a new container mounting the same volume, attach a bash shell to it, and show that the old data is present in your new container:
+Start a new container mounting the same volume, attach a shell to it, and show that the old data is present in your new container:
 
 [source,shell]
 ----
-[user@node ~]$ docker container run -d -v demovol:/demo centos:7 ping 8.8.8.8
-[user@node ~]$ docker container exec -it <container ID> bash
+[user@node ~]$ docker container run -d -v demovol:/demo alpine:3.20 ping 8.8.8.8
+[user@node ~]$ docker container exec -it <container ID> sh
 [root@11117d3de672 /]# cat /demo/mydata.dat
 ----
 Exit this container, and inspect its mount metadata:
@@ -98,7 +98,7 @@ Build a new image out of this container using `docker container commit`, and sta
 [source,shell]
 ----
 [user@node ~]$ docker container commit <container ID> demo:snapshot
-[user@node ~]$ docker container run -it demo:snapshot bash
+[user@node ~]$ docker container run -it demo:snapshot sh
 [root@ad62f304ba18 /]# cat /demo/mydata.dat 
 cat: /demo/mydata.dat: No such file or directory
 ----
@@ -135,5 +135,5 @@ Visit your website at the public IP of this node, port 8000.
 Fix the spelling of 'world' in your HTML, and refresh the webpage; the content served by nginx gets updated without having to restart or replace the nginx container.
 
 === Conclusion
-In this demo, we saw two key points about volumes: they exist outside the container's layered filesystem, meaning that not only are they not captured on image creation, they don't participate in the usual copy on write procedure when manipulating files in the writable container layer. Second, we saw that manipulating files on the host that have been mounted into a container immediately propagates those changes to the running container; this is a popular technique for developers who containerize their running environment, and mount in their in-development code so they can edit their code using the tools on their host machine that they are familiar with, and have those changes immediately available inside a running container without having to restart or rebuild anything.
+In this exercise, you verified that volumes live outside a container's layered filesystem, so their data is not captured by image commits and is managed independently of copy-on-write layers. You also saw how host path mounts enable rapid local iteration by making host-side file edits immediately visible in running containers.
 

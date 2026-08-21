@@ -280,3 +280,36 @@ a:active,
 a:hover {
   color: var(--gp-yellow) !important;
 }
+
+/* Slide-specific column balancing for image/text layout. */
+.reveal .slides section .columns.image-text-balance .column.image-text {
+  flex: 0 0 62% !important;
+  max-width: 62% !important;
+  width: 62% !important;
+}
+
+.reveal .slides section .columns.image-text-balance .column.image-visual {
+  flex: 0 0 38% !important;
+  max-width: 38% !important;
+  width: 38% !important;
+}
+
+/* Compact code rendering for long solution snippets on a single slide. */
+.reveal .slides section.fit-solution-code .listingblock {
+  margin: 10px auto !important;
+}
+
+.reveal .slides section.fit-solution-code .listingblock .content::before {
+  height: 24px;
+}
+
+.reveal .slides section.fit-solution-code .listingblock .content > pre,
+.reveal .slides section.fit-solution-code pre.highlight,
+.reveal .slides section.fit-solution-code pre.highlightjs {
+  font-size: 0.36em !important;
+  line-height: 1.25 !important;
+}
+
+.reveal .slides section.fit-solution-code .listingblock .content > pre > code.hljs {
+  padding: 10px 14px 12px 14px !important;
+}

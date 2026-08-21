@@ -9,17 +9,17 @@ By the end of this exercise, you should be able to:
 
 === Interactive Containers
 
-Create and start a new CentOS 7 container running ping to `8.8.8.8`. Docker will downlaod the CentOS 7 image since you do not have it available locally.
+Create and start a new Alpine container running ping to `8.8.8.8`. Docker will download the `alpine:3.20` image if you do not have it available locally.
 
 [source,shell]
 ----
-[user@node ~]$ docker container run centos:7 ping 8.8.8.8
+[user@node ~]$ docker container run --pull=always alpine:3.20 ping 8.8.8.8
 
-Unable to find image 'centos:7' locally
-7: Pulling from library/centos
-a02a4930cb5d: Pull complete 
-Digest: sha256:184e5f35598e333bfa7de10d8fb1cebb5ee4df5bc0f970bf2b1e7c7345136426
-Status: Downloaded newer image for centos:7
+Unable to find image 'alpine:3.20' locally
+3.20: Pulling from library/alpine
+cc2447e1835a: Pull complete
+Digest: sha256:<digest>
+Status: Downloaded newer image for alpine:3.20
 PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
 64 bytes from 8.8.8.8: icmp_seq=1 ttl=108 time=7.07 ms
 64 bytes from 8.8.8.8: icmp_seq=2 ttl=108 time=7.11 ms
@@ -41,12 +41,12 @@ This first container sent its STDOUT to your terminal. Create a second container
 
 [source,shell]
 ----
-[user@node ~]$ docker container run --detach centos:7 ping 8.8.4.4
+[user@node ~]$ docker container run --detach alpine:3.20 ping 8.8.4.4
 
 8aef3d0d411c7b02532292ec3267a54f9258eaafb71d3d73a8ad41e702bd35a2
 ----
 
-Instead of seeing the executed command (`ping 8.8.4.4`), Docker engine displays a long hexidecimal number, which is the full container ID of your new container. The container is running detached, which means the container is running as a background process, rather than printing its STDOUT to your terminal.
+Instead of seeing the executed command (`ping 8.8.4.4`), the Docker engine displays a long hexadecimal number, which is the full container ID of your new container. The container is running detached, which means the container is running as a background process, rather than printing its STDOUT to your terminal.
 
 === Listing running Containers
 
@@ -57,7 +57,7 @@ List the running Docker containers using the `docker container ls` container com
 [user@node ~]$ docker container ls
 
 CONTAINER ID IMAGE    COMMAND        CREATED       STATUS        PORTS  NAMES
-8aef3d0d411c centos:7 "ping 8.8.4.4" 3 minutes ago Up 3 minutes         zen_jang
+8aef3d0d411c alpine:3.20 "ping 8.8.4.4" 3 minutes ago Up 3 minutes         zen_jang
 ----
 
 === Listing all Containers
@@ -68,8 +68,8 @@ Now you know that the `docker container ls` command only shows running container
 [user@node ~]$ docker container ls --all 
 
 CONTAINER ID  IMAGE     COMMAND         CREATED        STATUS         NAMES
-8aef3d0d411c  centos:7  "ping 8.8.4.4"  2 minutes ago  Up 2 minutes   zen_jang
-00f763b9308d  centos:7  "ping 8.8.8.8"  4 minutes ago  Exited (0)...  inspiring_cheb
+8aef3d0d411c  alpine:3.20  "ping 8.8.4.4"  2 minutes ago  Up 2 minutes   zen_jang
+00f763b9308d  alpine:3.20  "ping 8.8.8.8"  4 minutes ago  Exited (0)...  inspiring_cheb
 ----
 Where did those names come from? All containers have names, which in most Docker CLI commands can be substituted for the container ID as we'll see in later exercises. By default, containers get a randomly generated name of the form `<adjective>_<scientist / technologist>`, but you can choose a name explicitly with the `--name` flag in `docker container run`.
 
@@ -79,7 +79,7 @@ Start up another detached container, this time giving it a name "opendnsping".
 [source,shell]
 ----
 [user@node ~]$ docker container run --detach --name opendnsping \
-                   centos:7 ping 208.67.222.222
+                   alpine:3.20 ping 208.67.222.222
 
 3bdc61a95e76fdfe2597ef18aa00321a53dcdc9c36b2db97fbe738f8a623ecad
 ----
@@ -90,9 +90,9 @@ List all your containers again. You can see all of the containers, including you
 [user@node ~]$ docker container ls --all
 
 CONTAINER ID IMAGE    COMMAND               CREATED        STATUS         NAMES
-3bdc61a95e76 centos:7 "ping 208.67.222.222" 23 seconds ago Up 22 seconds  opendnsping
-8aef3d0d411c centos:7 "ping 8.8.4.4"        4 minutes ago  Up 14 minutes  zen_jang
-00f763b9308d centos:7 "ping 8.8.8.8"        9 minutes ago  Exited (0)...  inspirin...
+3bdc61a95e76 alpine:3.20 "ping 208.67.222.222" 23 seconds ago Up 22 seconds  opendnsping
+8aef3d0d411c alpine:3.20 "ping 8.8.4.4"        4 minutes ago  Up 14 minutes  zen_jang
+00f763b9308d alpine:3.20 "ping 8.8.8.8"        9 minutes ago  Exited (0)...  inspirin...
 ----
 
 === Remove exited Containers
@@ -132,7 +132,7 @@ Options:
  -l, --link      Remove the specified link
  -v, --volumes   Remove the volumes associated with the container
 ----
-NOTE: *Help works with all Docker commands* Not only can you use `--help` with `docker container rm`, but it works on all levels of docker commands. For example, `docker --help` provides you will all available docker commands, and `docker container --help` provides you with all available container commands.
+NOTE: *Help works with all Docker commands* Not only can you use `--help` with `docker container rm`, but it works on all levels of Docker commands. For example, `docker --help` provides all available Docker commands, and `docker container --help` provides all available container commands.
 
 Now, run a force remove on the running container you tried to remove in the two previous steps. This time it works.
 
@@ -147,7 +147,7 @@ Start another detached container pinging `8.8.8.8`, with the name `pinggoogledns
 [source,shell]
 ----
 [user@node ~]$ docker container run --detach --name pinggoogledns \
-                   centos:7 ping 8.8.8.8
+                   alpine:3.20 ping 8.8.8.8
 
 38e121e629611daa0726a21d634bc5189400377d82882cc6fd8a3870dc9943a0
 ----
@@ -183,16 +183,22 @@ To get only the container IDs, use the `--quiet` option. If you want to use only
 3bdc61a95e76     
 38e121e62961
 ----
-Since we are done running pings on the public DNS servers, kill the containers. To do this, use the syntax `docker container rm --force <containerID>`. However, this only kills one container at a time. We want to kill all the containers, no matter what state the containers are in. To get this information, you will need to use the output from docker container ls `--quiet` `--all`. To capture this output within the command, use `$(...)` to nest the listing command inside the docker container rm command.
+Since we are done running pings on the public DNS servers, remove the containers. To do this, use the syntax `docker container rm --force <containerID>`. However, this only removes one container at a time. We want to remove all containers, no matter what state they are in.
+
+Use this robust cleanup snippet so rerunning the exercise does not fail when there are no containers:
 
 [source,shell]
 ----
-[user@node ~]$ docker container rm --force \
-    $(docker container ls --quiet --all)
+[user@node ~]$ ids="$(docker container ls --quiet --all)"
+[user@node ~]$ if [ -n "$ids" ]; then
+> docker container rm --force $ids
+> else
+> echo "No containers to remove"
+> fi
 
 3bdc61a95e76     
 38e121e62961
 ----
 
 === Conclusion
-This exercise taught you how to start, list, and kill containers. In this exercise you ran your first containers using `docker container run`, and how they are running commands inside the containers. You also learned to how to list your containers, and how to kill the containers using the command `docker container rm`. If you run into trouble, you've learned that the `--help` option can provide you with information that could help get you answers.
+This exercise taught you how to start, list, and remove containers. In this exercise you ran your first containers using `docker container run`, and saw how containers run commands. You also learned how to list containers and remove them using `docker container rm`. If you run into trouble, the `--help` option can provide useful guidance.
