@@ -17,7 +17,7 @@ RUN apk add --no-cache wget
 ----
 This serves as a recipe for an image based on `alpine:3.20`, with `wget` installed.
 
-Build your image with the `build` command. Don't miss the `.` at the end; that's the path to your `Dockerfile`. Since we're currently in the directory my-image which contains it, the path is just `.` (here).
+Build your image with the `build` command. Don't miss the `.` at the end; that's the path to your `Dockerfile`. Since we're currently in the `my-image` directory, which contains that file, the path is simply `.`.
 
 [source,shell]
 ----
@@ -56,7 +56,7 @@ FROM alpine:3.20
 RUN apk add --no-cache wget
 RUN apk add --no-cache vim
 ----
-Build the image again as before; which steps is the cache used for?
+Build the image again as before; which steps use the cache?
 
 Build the image again; which steps use the cache this time?
 

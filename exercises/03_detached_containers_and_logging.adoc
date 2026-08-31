@@ -1,4 +1,4 @@
-== Detached containers and Logging
+== Detached Containers and Logging
 By the end of this exercise, you should be able to:
 
 * Run a container detached from the terminal
@@ -45,8 +45,8 @@ We can attach a terminal to a container's `PID 1` output with the attach command
 ----
 [user@node ~]$ docker container attach <container ID>
 ----
-We can leave attached mode by then pressing `CTRL+C`. 
-After doing so, list your running containers; you should see that the container you attached to has been killed, since the `CTRL+C` issued killed `PID 1` in the container, and therefore the container itself.
+We can leave attached mode by pressing `CTRL+C`.
+After doing so, list your running containers; you should see that the container you attached to has been stopped, since `CTRL+C` was sent to `PID 1` in the container.
 
 Try running the same thing in detached interactive mode:
 
@@ -54,12 +54,12 @@ Try running the same thing in detached interactive mode:
 ----
 [user@node ~]$ docker container run -d -it alpine:3.20 ping 127.0.0.1
 ----
-Attach to this container like you did the first one, but this time detach with `CTRL+P CTRL+Q` (sequential, not simultaneous), and list your running containers. 
+Attach to this container like you did the first one, but this time detach with `CTRL+P CTRL+Q` (sequential, not simultaneous), and list your running containers.
 In this case, the container should still be happily running in the background after detaching from it.
 
 === Using Logging Options
-We saw previously how to read the entire log of a container's `PID 1`; 
-we can also use a couple of flags to control what logs are displayed. `--tail` n limits the display to the last n lines; 
+We saw previously how to read the entire log of a container's `PID 1`.
+We can also use a couple of flags to control which logs are displayed. `--tail n` limits the display to the last `n` lines;
 try it with the container that should be running from the last step:
 
 [source,shell]

@@ -1,8 +1,8 @@
 == Starting a Compose App
 By the end of this exercise, you should be able to:
 
-* Read a basic docker compose yaml file and understand what components it is declaring
-* Start, stop, and inspect the logs of an application defined by a docker compose file
+* Read a basic Docker Compose YAML file and understand which components it declares
+* Start, stop, and inspect the logs of an application defined by a Docker Compose file
 
 === Inspecting a Compose App
 Download the Dockercoins app from GitHub:
@@ -15,8 +15,7 @@ Download the Dockercoins app from GitHub:
 ----
 This app consists of 5 services: a random number generator `rng`, a `hasher`, a backend `worker`, a `redis` queue, and a `web` frontend; the code you just downloaded has the source code for each process and a Dockerfile to containerize each of them.
 
-Have a brief look at the source for each component of your application. Each folder under `~/orchestration-workshop/ dockercoins` contains the application logic for the component, and a Dockerfile for building that logic into a Docker image. We've pre-built these images as `training/dockercoins-rng:1.0`, `training/dockercoins-worker:1.0` et cetera, so no need to build them yourself.
-Have a brief look at the source for each component of your application. Each folder under `~/orchestration-workshop/dockercoins` contains the application logic for the component, and a Dockerfile for building that logic into a Docker image. We've pre-built these images as `training/dockercoins-rng:1.0`, `training/dockercoins-worker:1.0`, and so on, so there is no need to build them yourself.
+Have a brief look at the source for each component of your application. Each folder under `~/orchestration-workshop/dockercoins` contains the application logic for that component, and a Dockerfile for building it into a Docker image. We've pre-built these images as `training/dockercoins-rng:1.0`, `training/dockercoins-worker:1.0`, and so on, so there is no need to build them yourself.
 
 Have a look in `docker-compose.yml`; especially notice the `services` section. Each block defines a different Docker service. Each service has one image that its containers are started from, as well as other configuration details like network connections and port exposures. Full syntax for Docker Compose files can be found here: link::https://dockr.ly/2iHUpeX[Docker Compose Specification].
 
@@ -64,7 +63,7 @@ The logging API in Compose follows the main Docker logging API closely. For exam
 ----
 [user@node dockercoins]$ docker compose logs --tail 10 --follow
 ----
-Note that when following a log, `CTRL+S` and `CTRL+Q` pauses and resumes live following; `CTRL+C` exits follow mode as usual.
+Note that while following logs, `CTRL+S` and `CTRL+Q` pause and resume live streaming, and `CTRL+C` exits follow mode as usual.
 
 === Conclusion
-In this exercise, you saw how to start a pre-defined Compose app, and how to inspect its logs. Application logic was defined in each of the five images we used to create containers for the app, but the manner in which those containers were created was defined in the `docker-compose.yml` file; all runtime configuration for each container is captured in this manifest. Finally, the different elements of Dockercoins communicated with each other via service name; the Docker daemon's internal DNS was able to resolve traffic destined for a service, into the IP or MAC address of the corresponding container.
+In this exercise, you saw how to start a pre-defined Compose app and inspect its logs. Application logic was defined in each of the five images we used to create containers for the app, while the way those containers were created was defined in `docker-compose.yml`; all runtime configuration for each container is captured in this manifest. Finally, the different elements of Dockercoins communicated with each other via service name; the Docker daemon's internal DNS resolved traffic for a service to the IP or MAC address of the corresponding container.

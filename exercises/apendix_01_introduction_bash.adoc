@@ -1,5 +1,5 @@
 === A Brief Introduction to Bash
-If you're not familiar with the common Linux commands (`cd`, `ls`, `ps`, `sudo`, etc.), this exercise is designed to lead you through the common linux commands that we use in the Docker training.
+If you're not familiar with common Linux commands (`cd`, `ls`, `ps`, `sudo`, etc.), this exercise is designed to guide you through the commands we use in the Docker training.
 
 By the end of this exercise, you should be able to:
 * Manage files and folders using Linux commands
@@ -15,7 +15,7 @@ In this first part we will walk through common commands for creating and manipul
 
 Open a terminal.
 
-Terminals work by accepting text-based commands, and retuning text-based responses. Ask the terminal what directory you are currently in; in all our instructions, `$` represents the terminal prompt, and you should enter what you see after the prompt. Yours might look a bit different; in any case, type `pwd`:
+Terminals work by accepting text-based commands and returning text-based responses. Ask the terminal what directory you are currently in; in all our instructions, `$` represents the terminal prompt, and you should enter what you see after the prompt. Yours might look a bit different; in any case, type `pwd`:
 
 [source,shell]
 ----
@@ -46,7 +46,7 @@ Change directory with `cd`:
 ----
 $ cd Desktop
 ----
-Again, your directories might be named differently - that's ok. Try to navigate to a directory you recognize the names of; `Desktop` or `Downloads` are common.
+Again, your directories might be named differently - that's okay. Try to navigate to a directory with a recognizable name; `Desktop` or `Downloads` are common.
 
 Use `ls` again to see what's in this directory. Compare what you see in your `Desktop` directory to what you actually see on your machine's desktop; the contents are identical. The terminal is just another way to browse the contents of your machine, based on programmatic text rather than visual analogies.
 
@@ -69,7 +69,7 @@ You're taken to `nano` 's text-based interface for creating a plain-text file. T
 
 Add any text you want to your file, just by typing something.
 
-Save your file by pressing `CMD+O`, and pressing return when asked for a filename. Exit by typing `CMD+X`.
+Save your file by pressing `CTRL+O`, and press Enter when asked for a filename. Exit by typing `CTRL+X`.
 
 Dump the contents of your file to the screen:
 
@@ -123,11 +123,12 @@ $ rm -r demo-dir
 In this section we will see the basic usage of different command line tools we'll see again when working with Docker.
 
 ===== Inspecting Processes
-In the next steps we will use `ps` and `top`. Check whether these tools are existing in our system:
+In the next steps we will use `ps` and `top`. Check whether these tools exist on your system:
 
 [source,shell]
 ----
-$ which pwd
+$ which ps
+$ which top
 ----
 `which` is a quick way to identify the location of executables and should return something similar to the following:
 
@@ -147,7 +148,7 @@ A long list of processes is returned.
 
 We will see later how to filter this output to extract only the information we need.
 
-There different other tools to inspect processes. Try for example showing the list of processes with usage details (cpu usage, memory, etc.):
+There are different tools to inspect processes. For example, try showing the list of processes with usage details (CPU usage, memory, etc.):
 
 [source,shell]
 ----
@@ -182,7 +183,7 @@ $ cat /etc/passwd
 ----
 You should see the user `myName` in the bottom of the list.
 
-===== Pinging of an address
+===== Pinging an Address
 `ping` is a tool used to test the reachability of a network address.
 
 Send a ping to your `localhost`:
@@ -199,7 +200,7 @@ Try pinging an unreachable address:
 ----
 $ ping -c 3 192.168.1.1
 ----
-The flag `-c` stands for the count of the sent packets. If no device is plugged to your machine and has this address, the request should timeout after 3 packets with `100% packet loss`.
+The flag `-c` stands for the number of packets to send. If no device connected to your machine has this address, the request should time out after 3 packets with `100% packet loss`.
 
 ===== Making HTTP Requests
 Use the `curl` command to issue HTTP requests across the network.
@@ -215,7 +216,7 @@ You'll get some HTML corresponding to a dummy webpage, downloaded directly to yo
 ===== Working with Commands
 
 ====== Command piping
-So far, every command we've used as accepted text as input, and returned text as output. We can send the text output from one command into the text input of another command using a pipe, `|`.
+So far, every command we've used has accepted text as input and returned text as output. We can send the text output from one command into the text input of another command using a pipe, `|`.
 
 Earlier we saw the `ps` command, to write a large table of all the processes running on our machine. We can send that table to grep, which is a text search tool that will pick out lines containing something we're interested in:
 
@@ -231,10 +232,10 @@ Another common grep usage is with `cat`, to find a string in a file. Search your
 ----
 $ cat /etc/passwd | grep root
 ----
-Instead of getting every user on the system, only lines with the string `root` are printed out, making it easier to findwhat you're looking for.
+Instead of getting every user on the system, only lines with the string `root` are printed, making it easier to find what you're looking for.
 
 ====== Successive Commands
-We can run several commands in a one liner using semicolon `;` or double-ampersand `&&`.
+We can run several commands in a one-liner using semicolon `;` or double-ampersand `&&`.
 
 Create a new directory:
 
@@ -242,22 +243,22 @@ Create a new directory:
 ----
 $ mkdir newDir
 ----
-We know that to remove a directory we need to use `rm -r`. Let's simulate a error by forgetting the `-r` flag, and immediately after removing we'll create a new directory with the same name:
+We know that to remove a directory we need to use `rm -r`. Let's simulate an error by forgetting the `-r` flag, and then immediately try to create a new directory with the same name:
 
 [source,shell]
 ----
 $ rm newDir ; mkdir newDir
 ----
-This should returns:
+This should return:
 
 [source,shell]
 ----
 rm: cannot remove ‘newDir’: Is a directory
 mkdir: cannot create directory ‘newDir’: File exists
 ----
-The semicolon `;` runs the second command even when the first command wasn't successful.
+The semicolon `;` runs the second command even when the first command was not successful.
 
-Combining commands with the double-ampersand `&&` insures that the second command will run only if the first command was successful. Try the following:
+Combining commands with the double-ampersand `&&` ensures that the second command runs only if the first command was successful. Try the following:
 
 [source,shell]
 ----
@@ -281,7 +282,7 @@ $ mkdir aDirectoryWithAVeryLongName ;  \
     echo "this is a test file" > myTestFile ; \
     cat myTestFile ; cd ..
 ----
-This one liner will create a directory, cd into it, create a file, cat the content of the file, and finally change directory a level up.
+This one-liner creates a directory, enters it, creates a file, prints the file content, and finally changes back up one directory level.
 
 ==== Conclusion
 We saw most of the Linux commands that we will use in the actual Docker training. Feel free to discover more commands in the following cheat sheet: link::https://www.git-tower.com/blog/command-line-cheat-sheet/[Command Line Cheat Sheet]

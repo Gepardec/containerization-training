@@ -1,8 +1,8 @@
 == Inspection Commands
 By the end of this exercise, you should be able to:
 
-* Gather system level info from the docker engine
-* Consume and format the docker engine's event stream for monitoring purposes
+* Gather system-level info from the Docker engine
+* Consume and format the Docker engine's event stream for monitoring purposes
 
 === Inspecting System Information
 We can find the `info` command under `system`. Execute:
@@ -84,4 +84,4 @@ This should give us, for the first event in the series after re-running our Alpi
 ----
 
 === Conclusion
-In this exercise we have learned how to inspect system wide properties of our Docker host by using the `docker system info` command; this is one of the first places to look for general config information to include in a bug report. We also saw a simple example of `docker system events`; the events stream is one of the primary sources of information that should be logged and monitored when running Docker in production. Many commercial as well as open source products (such as Elastic Stack) exist to facilitate aggregating and mining these streams at scale.
+In this exercise, we learned how to inspect system-wide properties of our Docker host by using the `docker system info` command; this is one of the first places to look for general config information to include in a bug report. We also saw a simple example of `docker system events`; the events stream is one of the primary sources of information that should be logged and monitored when running Docker in production. Many commercial as well as open-source products (such as Elastic Stack) exist to facilitate aggregating and mining these streams at scale.

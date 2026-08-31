@@ -4,7 +4,7 @@ By the end of this exercise, you should be able to:
 * Write a `Dockerfile` that describes multiple images, which can copy files from one image to the next.
 * Enable `BuildKit` for faster build times
 
-=== Defining a multi-stage build
+=== Defining a Multi-Stage Build
 Make a new folder named 'multi' to do this exercise in, and cd into it.
 
 Add a file `hello.c` to the multi folder containing Hello World in C:
@@ -26,7 +26,7 @@ Try compiling and running this right on the host OS:
 [user@node multi]$ gcc -Wall hello.c -o hello
 [user@node multi]$ ./hello
 ----
-Now let's Dockerize our hello world application. Add a `Dockerfile` to the multi folder with this content:
+Now let's Dockerize our Hello World application. Add a `Dockerfile` to the `multi` folder with this content:
 
 [source,Dockerfile]
 ----
@@ -92,7 +92,7 @@ Finally, make sure the app works:
 ----
 [user@node multi]$ docker container run --rm my-app-small
 ----
-You should get the expected `Hello, World!` output from the container with just the required executable.
+You should get the expected `Hello, world!` output from the container with just the required executable.
 
 === Building Intermediate Images
 In the previous step, we took our compiled executable from the first build stage, but that image wasn't tagged as a regular image we can use to start containers with; only the final `FROM` statement generated a tagged image. In this step, we'll see how to persist whichever build stage we like.
@@ -184,7 +184,7 @@ List your container's filesystem from the host using this PID:
 
 dev  etc  proc  sleep  sys
 ----
-We see not only our binary sleep but also a few other folders and files. Where do these come from? runC, the tool for spawning and running containers, requires a JSON config of the container and a root filesystem. At runtime, Docker Engine adds these minimum requirements to form the most minimal container filesystem possible.
+We see not only our binary sleep but also a few other folders and files. Where do these come from? `runc`, the tool for spawning and running containers, requires a JSON config for the container and a root filesystem. At runtime, Docker Engine adds these minimum requirements to form the smallest viable container filesystem.
 
 Clean up by deleting your container:
 

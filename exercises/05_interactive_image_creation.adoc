@@ -12,7 +12,7 @@ Start a shell in an Alpine container:
 ----
 [user@node ~]$ docker container run -it --pull=always alpine:3.20 sh
 ----
-Install a couple of packages in this container - there is nothing special about these packages, any filesystem changes will do. Afterwards, exit the container:
+Install a couple of packages in this container. There is nothing special about these packages; any filesystem changes will do. Afterwards, exit the container:
 
 [source,shell]
 ----
@@ -33,7 +33,7 @@ C /usr/bin
 A /usr/bin/curl
 ...
 ----
-Those `C` 's at the beginning of each line stand for files Changed, and `A` for Added; lines that start with `D` indicate Deletions.
+Those `C`s at the beginning of each line stand for files changed, and `A` stands for added; lines that start with `D` indicate deletions.
 
 === Capturing Container State as an Image
 Installing curl and jq in the last step wrote information to the container's read/write layer; now let's save that read/write layer as a new read-only image layer in order to create a new image that reflects our additions, via `docker container commit`:
@@ -63,5 +63,5 @@ Create a container running `sh` using your new image, and check that curl and jq
 The `which` commands should show the path to each executable, indicating they have been installed in the image. Exit your container when done by typing `exit`.
 
 === Conclusion
-In this exercise, you saw how to inspect the contents of a container's read / write layer with `docker container diff`, and commit those changes to a new image layer with `docker container commit`. 
+In this exercise, you saw how to inspect the contents of a container's read/write layer with `docker container diff`, and commit those changes to a new image layer with `docker container commit`.
 Committing a container as an image in this fashion can be useful when developing an environment inside a container, when you want to capture that environment for reproduction elsewhere.

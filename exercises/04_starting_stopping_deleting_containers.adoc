@@ -81,7 +81,7 @@ For example, to find the Cmd value we tried to grep for above, instead try:
 
 [ping 8.8.8.8]
 ----
-This time, we get a the value of the Config.Cmd key from the inspect JSON.
+This time, we get the value of the `Config.Cmd` key from the inspect JSON.
 
 Keys nested in the JSON returned by docker container inspect can be chained together in this fashion. Try modifying this example to return the IP address you grepped for previously.
 
@@ -125,6 +125,6 @@ When done, clean up any containers you may still have:
 === Conclusion
 In this exercise, you explored the lifecycle of a container, particularly in terms of stopping and restarting containers. 
 Keep in mind the behavior of `docker container stop`, which sends a `SIGTERM`, waits a grace period, and then sends a `SIGKILL` before forcing a container to stop; 
-this two step process is designed to give your containers a chance to shut down 'nicely': dump their state to a log, finish a database transaction, or do whatever your application needs them to do in order to exit without causing additional problems. Make sure you bear this in mind when designing containerized software.
+this two-step process is designed to give your containers a chance to shut down cleanly: dump their state to a log, finish a database transaction, or do whatever your application needs to exit without causing additional problems. Make sure you bear this in mind when designing containerized software.
 
 Also keep in mind the `docker container inspect` command we saw, for examining container metadata, state and config; this is often the first place to look when trying to troubleshoot a failed container.

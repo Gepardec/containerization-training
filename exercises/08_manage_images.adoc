@@ -6,7 +6,7 @@ By the end of this exercise, you should be able to:
 * Delete image tags and image layers, and understand the difference between the two operations
 
 === Making an Account on Docker's Hosted Registry
-If you don't have one already, head over to link::https://hub.docker.com[https://hub.docker.com] and make an account.
+If you don't have one already, head over to link::https://hub.docker.com[https://hub.docker.com] and create an account.
 
 For the rest of this workshop, `<Docker ID>` refers to the username you chose for this account.
 

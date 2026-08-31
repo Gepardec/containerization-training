@@ -1,7 +1,7 @@
 == Container Port Mapping
 By the end of this exercise, you should be able to:
 
-* Forward traffic from a port on the docker host to a port inside a container's network namespace
+* Forward traffic from a port on the Docker host to a port inside a container's network namespace
 * Define ports to automatically expose in a Dockerfile
 
 === Port Mapping at Runtime
@@ -11,7 +11,7 @@ Run an nginx container with no special port mappings:
 ----
 [user@node-1 ~]$ docker container run -d --pull=always nginx
 ----
-nginx stands up a landing page at `<ip>:80`. If you try to visit this at your host or container IP it will not be visible; no external traffic can make it past the Linux bridge firewall to the nginx container.
+nginx stands up a landing page at `<ip>:80`. If you try to visit this at your host or container IP, it will not be visible; no external traffic can make it past the Linux bridge firewall to the nginx container.
 
 Now run an nginx container and map port 80 on the container to port 5000 on your host using the `-p` flag:
 
@@ -40,17 +40,17 @@ FROM nginx
 
 EXPOSE 80
 ----
-Build your image as `my_nginx`:
+Build your image as `my-nginx`:
 
 [source,shell]
 ----
-[user@node-1 port]$ docker image build -t my_nginx .
+[user@node-1 port]$ docker image build -t my-nginx .
 ----
 Use the `-P` flag when running to map all ports mentioned in the `EXPOSE` directive:
 
 [source,shell]
 ----
-[user@node-1 port]$ docker container run -d -P my_nginx
+[user@node-1 port]$ docker container run -d -P my-nginx
 ----
 Use `docker container ls` or `docker container port` to find out which host ports were used, then visit your nginx landing page in a browser at `<node-1 public IP>:<port>`.
 

@@ -1,7 +1,7 @@
 == Database Volumes
 By the end of this exercise, you should be able to:
 
-* Provide a docker volume as a database backing to Postgres
+* Provide a Docker volume as persistent storage for Postgres
 * Recover a Postgres database from volume contents after destroying the original Postgres container
 
 === Launching Postgres
@@ -32,10 +32,13 @@ Set up a running instance of this postgres container:
 Notice the explicit volume mount, `-v db_backing:/var/lib/postgresql/data`; if we hadn't done this, a randomly named volume would have been mounted to the container's `/var/lib/postgresql/data`. Naming the volume explicitly is a best practice that will become useful when we start mounting this volume in multiple containers.
 
 === Writing to the Database
-The `psql` command line interface to postgres comes packaged with the postgres image; spawn it as a child process in your postgres container interactively, to create a postgres terminal:
+The `psql` command-line interface for Postgres comes packaged with the Postgres image. Spawn it as a child process in your Postgres container interactively to open a Postgres terminal:
 
+[source,shell]
+----
 [user@node ~]$ docker container exec \
     -it some-postgres psql -U postgres
+----
 Create an arbitrary table in the database:
 
 [source,shell]
@@ -44,7 +47,7 @@ postgres=# CREATE TABLE PRODUCTS(PRICE FLOAT, NAME TEXT);
 postgres=# INSERT INTO PRODUCTS VALUES('18.95', 'widget');
 postgres=# INSERT INTO PRODUCTS VALUES('1.45', 'sprocket');
 ----
-Double check you created the table you expected, and then quit this container:
+Double-check that you created the table you expected, and then quit `psql`:
 
 [source,shell]
 ----

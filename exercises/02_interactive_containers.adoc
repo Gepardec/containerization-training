@@ -1,4 +1,4 @@
-== Interactive containers
+== Interactive Containers
 By the end of this exercise, you should be able to:
 
 * Launch an interactive shell in a new or existing container
@@ -6,13 +6,13 @@ By the end of this exercise, you should be able to:
 * List containers using more options and filters
 
 === Writing to Containers
-Create a container using the `alpine:3.20` image. Connect to its shell in interactive mode using the `-i` flag and request a TTY connection using the `-t` flag:
+Create a container using the `alpine:3.20` image. Connect to its shell in interactive mode using the   `-i` flag and request a TTY connection using the `-t` flag:
 
 [source, shell]
 ----
 [user@node ~]$ docker container run -it --pull=always alpine:3.20 sh
 ----
-Explore your container's filesystem with ls, and then create a new file. Use `ls` again to confirm you have successfully created your file. Use the `-l` option with `ls` to list the files and directories in long list format.
+Explore your container's filesystem with `ls`, and then create a new file. Use `ls` again to confirm you have successfully created your file. Use the `-l` option with `ls` to list files and directories in long format.
 
 [source, shell]
 ----
@@ -56,7 +56,7 @@ We can restart a container via the container ID listed in the first column. Use 
 CONTAINER ID  IMAGE     COMMAND  CREATED         STATUS         ...
 2b8de2ffdf85  alpine:3.20  "sh"     5 minutes ago   Up 21 seconds  ...
 ----
-Your container status has changed from Exited to Up, via docker container start.
+Your container status has changed from Exited to Up via `docker container start`.
 
 Run `ps -ef` inside the container you just restarted using Docker's exec command (exec runs the specified process as a child of the PID 1 process inside the container):
 
@@ -70,24 +70,24 @@ What process is PID 1 inside the container? Find the PID of that process on the 
 ----
 [user@node ~]$ docker container top <container ID>
 ----
-Launch a shell in your running container with docker container exec:
+Launch a shell in your running container with `docker container exec`:
 
 [source, shell]
 ----
 [user@node ~]$ docker container exec -it <container ID> sh
 ----
-List the contents of the container's filesystem with ls -l; your test.txt should be where you left it. Exit the container again by typing exit.
+List the contents of the container's filesystem with `ls -l`; your `test.txt` file should be where you left it. Exit the container again by typing `exit`.
 
 === Using Container Listing Options
-In the last step, we saw how to get the short container ID of all our containers using docker container `ls -a`. Try adding the `--no-trunc` flag to see the entire container ID:
+In the last step, we saw how to get the short container ID of all our containers using `docker container ls -a`. Try adding the `--no-trunc` flag to see the entire container ID:
 
 [source, shell]
 ----
 [user@node ~]$ docker container ls -a --no-trunc
 ----
-This long ID is the same as the string that is returned after starting a container with docker container run.
+This long ID is the same string returned after starting a container with `docker container run`.
 
-List only the container ID using the -q flag:
+List only the container ID using the `-q` flag:
 
 [source, shell]
 ----
@@ -101,7 +101,10 @@ List the last container to have been created using the `-l` flag:
 ----
 Finally, you can also filter results with the `--filter` flag; for example, try filtering by exit code:
 
+[source, shell]
+----
 [user@node ~]$ docker container ls -a --filter "exited=0"
+----
 The output of this command will list the containers that have exited successfully.
 
 Clean up with:
@@ -112,4 +115,4 @@ Clean up with:
 ----
 
 === Conclusion
-In this demo, you saw that files added to a container's filesystem do not get added to all containers created from the same image. Changes to a container's filesystem are local to itself, and exist only in that particular container. You also learned how to restart a stopped Docker container using `docker container start`, how to run a command in a running container using `docker container exec`, and also saw some more options for listing containers via `docker container ls`.
+In this exercise, you saw that files added to a container's filesystem do not get added to all containers created from the same image. Changes to a container's filesystem are local to that specific container. You also learned how to restart a stopped Docker container using `docker container start`, how to run a command in a running container using `docker container exec`, and more options for listing containers via `docker container ls`.

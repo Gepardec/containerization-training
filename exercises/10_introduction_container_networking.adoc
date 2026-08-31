@@ -2,7 +2,7 @@
 By the end of this exercise, you should be able to:
 
 * Create docker bridge networks and attach containers to them
-* Design networks of containers that can successfully resolve each other via DNS and reach each other across a Docker software defined network.
+* Design container networks that can resolve each other via DNS and communicate across a Docker software-defined network.
 
 === Inspecting the Default Bridge
 In the dropdown menu at the top of the Strigo webpage, click into `node-1`. See what networks are present on your host:
@@ -27,7 +27,7 @@ See similar info from common networking tools:
 ----
 [user@node-1 ~]$ ip addr
 ----
-NOTE: Note the `bridge` network's gateway corresponds to the IP of the `docker0` device in this list. `docker0` is the linux `bridge` itself, while bridge is the name of the default Docker network that uses that bridge.
+NOTE: Note that the `bridge` network's gateway corresponds to the IP of the `docker0` device in this list. `docker0` is the Linux bridge itself, while `bridge` is the name of the default Docker network that uses it.
 
 Use `brctl` to see connections to the `docker0` bridge:
 
@@ -136,7 +136,7 @@ Try starting a container on the default network, and pinging `u1` by name:
 
 ping: u1: Name or service not known
 ----
-The ping fails; even though the containers are both attached to the `bridge` network, Docker does not provide name lookup on this default network. Try the same command again, but using `u1` 's IP instead of name, and you should be successful.
+The ping fails; even though the containers are both attached to the `bridge` network, Docker does not provide name lookup on this default network. Try the same command again using `u1`'s IP instead of its name, and you should be successful.
 
 Finally, try pinging `u1` by IP, this time from container `u2`:
 
@@ -162,6 +162,6 @@ You also explored a number of API objects:
 
 * `docker network ls` lists all networks on the host
 * `docker network inspect <network name>` gives more detailed info about the named network
-* `docker network create --driver <driver> <network name>` creates a new network using the specified driver; so far, we've only seen the bridge driver, for creating a linux bridge based network.
+* `docker network create --driver <driver> <network name>` creates a new network using the specified driver; so far, we've only seen the bridge driver for creating a Linux bridge-based network.
 * `docker network connect <network name> <container name or id>` connects the specified container to the specified network after the container is running; the `--network` flag in `docker container run` achieves the same result at container launch.
 * `docker container inspect <container name or id>` yields, among other things, information about the networks the specified container is connected to.

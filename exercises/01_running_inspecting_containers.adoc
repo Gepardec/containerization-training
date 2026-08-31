@@ -191,10 +191,10 @@ Use this robust cleanup snippet so rerunning the exercise does not fail when the
 ----
 [user@node ~]$ ids="$(docker container ls --quiet --all)"
 [user@node ~]$ if [ -n "$ids" ]; then
-> docker container rm --force $ids
-> else
-> echo "No containers to remove"
-> fi
+ docker container rm --force $ids
+ else
+ echo "No containers to remove"
+ fi
 
 3bdc61a95e76     
 38e121e62961
