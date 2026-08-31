@@ -4,21 +4,20 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
-<meta name="author" content="Thomas Herzog, Clemens Kaserer">
+<meta name="generator" content="Asciidoctor 2.0.23">
+<meta name="author" content="Marko Gattringer">
 <title>Instructor demos</title>
-<link rel="stylesheet" href="./assets/css/asciidoctor.css">
-<link rel="stylesheet" href="./assets/highlight/styles/base16/ia-light.min.css">
+<link rel="stylesheet" href="./assets/css/instructor-modern.css">
+<link rel="stylesheet" href="./assets/highlight/styles/base16/ia-dark.min.css">
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
 <h1>Instructor demos</h1>
 <div class="details">
-<span id="author" class="author">Thomas Herzog</span><br>
-<span id="email" class="email"><a href="mailto:thomas.herzog@gepardec.com">thomas.herzog@gepardec.com</a></span><br>
-<span id="author2" class="author">Clemens Kaserer</span><br>
+<span id="author" class="author">Marko Gattringer</span><br>
+<span id="email" class="email"><a href="mailto:marko.gattringer@gepardec.com">marko.gattringer@gepardec.com</a></span><br>
 <span id="revnumber">version local,</span>
-<span id="revdate">2/24/2023</span>
+<span id="revdate">8/31/2026</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -28,23 +27,40 @@
 <li><a href="#_basic_volume_usage">3. Basic Volume Usage</a></li>
 <li><a href="#_single_host_networks">4. Single Host Networks</a></li>
 <li><a href="#_docker_compose">5. Docker Compose</a></li>
+<li><a href="#_kubernetes_basics">6. Kubernetes basics</a></li>
 </ul>
 </div>
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Command examples use a unified host prompt style: <code>[user@node-&lt;n&gt; &#8230;&#8203;]$</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="_process_isolation">1. Process Isolation</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this demo, we&#8217;ll illustrate:</p>
+<p>By the end of this exercise, you should be able to:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>What containerized process IDs look like inside versus outside of a kernel namespace</p>
+<p>Compare containerized process IDs inside and outside of a kernel namespace</p>
 </li>
 <li>
-<p>How to impose control group limitations on CPU and memory consumption of a containerized process.</p>
+<p>Apply control group limits for CPU and memory consumption in a container</p>
 </li>
 </ul>
 </div>
@@ -55,7 +71,7 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run -d --name pinger centos:7 ping 8.8.8.8</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run -d --name pinger alpine:3.20 ping 8.8.8.8</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -63,7 +79,7 @@
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container exec pinger ps -aux
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container exec pinger ps -a
 
 USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
 root         1  0.1  0.0  24860  1884 ?        Ss   02:20   0:00 ping 8.8.8.8
@@ -93,7 +109,7 @@ centos  11839  0.0  0.0 112656  2132 pts/0   S+   02:23   0:00 grep --color=auto
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container ls
 
 CONTAINER ID  IMAGE     COMMAND         ...  STATUS        ...  NAMES
-bb3a3b1cbb78  centos:7  "ping 8.8.8.8"  ...  Up 6 minutes       pinger</code></pre>
+bb3a3b1cbb78  alpine:3.20  "ping 8.8.8.8"  ...  Up 6 minutes       pinger</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -271,7 +287,7 @@ CONTAINER ID        IMAGE                 ...  STATUS
 <div class="sect2">
 <h3 id="_conclusion">Conclusion</h3>
 <div class="paragraph">
-<p>In this demo, we explored some of the most important technologies that make containerization possible: kernel namespaces and control groups. The core message here is that containerized processes are just processes running on their host, isolated and constrained by these technologies. All the tools and management strategies you would use for conventional processes apply just as well for containerized processes.</p>
+<p>In this exercise, you explored two core technologies behind containerization: kernel namespaces and control groups. The key takeaway is that containerized workloads are normal host processes with isolation and resource boundaries applied by the kernel.</p>
 </div>
 </div>
 </div>
@@ -280,36 +296,36 @@ CONTAINER ID        IMAGE                 ...  STATUS
 <h2 id="_creating_images">2. Creating Images</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this demo, we&#8217;ll illustrate:</p>
+<p>By the end of this exercise, you should be able to:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>How to read each step of the image build output</p>
+<p>Explain each step of Docker image build output</p>
 </li>
 <li>
-<p>How intermediate image layers behave in the cache and as independent images</p>
+<p>Inspect and reason about intermediate image layers and cache behavior</p>
 </li>
 <li>
-<p>What the meanings of 'dangling' and <code>&lt;missing&gt;`</code> image layers are</p>
+<p>Distinguish between dangling layers and <code>&lt;missing&gt;</code> entries in image history</p>
 </li>
 </ul>
 </div>
 <div class="sect2">
 <h3 id="_understanding_image_build_output">Understanding Image Build Output</h3>
 <div class="paragraph">
-<p>Make a folder <code>demo`</code> for our image demo:</p>
+<p>Make a folder <code>demo</code> for our image demo:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">[user@node ~]$ mkdir demo ; cd demo
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ mkdir demo ; cd demo
 And create a Dockerfile therein with the following content:
 
-FROM centos:7
-RUN yum update -y
-RUN yum install -y which
-RUN yum install -y wget
-RUN yum install -y vim</code></pre>
+FROM alpine:3.20
+RUN apk update
+RUN apk add --no-cache which
+RUN apk add --no-cache wget
+RUN apk add --no-cache vim</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -336,8 +352,8 @@ RUN yum install -y vim</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Step 1/5 : FROM centos:7
- ---&gt; 49f7960eb7e4</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Step 1/5 : FROM alpine:3.20
+ ---&gt; e34f9f...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -347,26 +363,26 @@ RUN yum install -y vim</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node demo]$ docker image ls
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-demo                latest              59e595750dd5        10 seconds ago      645MB
-centos              7                   49f7960eb7e4        2 months ago        200MB</code></pre>
+demo                latest              59e595750dd5        10 seconds ago      46MB
+alpine              3.20                e34f9f...           2 days ago          8MB</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Notice the Image ID for <code>centos:7</code> matches that second line in the build output. The build starts from the base image defined in the <code>FROM`</code> command.</p>
+<p>Notice the image ID for <code>alpine:3.20</code> matches that second line in the build output. The build starts from the base image defined in the <code>FROM</code> command.</p>
 </div>
 <div class="paragraph">
 <p>The next few lines look like:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Step 2/5 : RUN yum update -y
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Step 2/5 : RUN apk update
  ---&gt; Running in 8734b14cf011
-Loaded plugins: fastestmirror, ovl
+fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/APKINDEX.tar.gz
 ...</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This is the output of the <code>RUN</code> command, <code>yum update -y</code>. The line <code>Running in 8734b14cf011</code> specifies a container that this command is running in, which is spun up based on all previous image layers (just the centos:7 base at the moment). Scroll down a bit and you should see something like:</p>
+<p>This is the output of the <code>RUN</code> command, <code>apk update</code>. The line <code>Running in 8734b14cf011</code> specifies a container that this command is running in, which is spun up based on all previous image layers (just the <code>alpine:3.20</code> base at the moment). Scroll down a bit and you should see something like:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -385,20 +401,19 @@ Removing intermediate container 8734b14cf011</code></pre>
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node demo]$ docker image history demo
 
 IMAGE          CREATED         CREATED BY                                      SIZE
-59e595750dd5   2 minutes ago   /bin/sh -c yum install -y vim                   142MB
-bba17f8df167   2 minutes ago   /bin/sh -c yum install -y wget                  87MB
-b9f2efa616de   2 minutes ago   /bin/sh -c yum install -y which                 86.6MB
-433e56d735f6   2 minutes ago   /bin/sh -c yum update -y                        129MB
-49f7960eb7e4   2 months ago    /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B
-&lt;missing&gt;      2 months ago    /bin/sh -c #(nop)  LABEL org.label-schema....   0B
-&lt;missing&gt;      2 months ago    /bin/sh -c #(nop) ADD file:8f4b3be0c1427b1...   200MB</code></pre>
+59e595750dd5   2 minutes ago   /bin/sh -c apk add --no-cache vim               35MB
+bba17f8df167   2 minutes ago   /bin/sh -c apk add --no-cache wget              2MB
+b9f2efa616de   2 minutes ago   /bin/sh -c apk add --no-cache which             1MB
+433e56d735f6   2 minutes ago   /bin/sh -c apk update                           0B
+e34f9f...      2 days ago      /bin/sh -c #(nop)  CMD ["/bin/sh"]              0B
+&lt;missing&gt;      2 days ago      /bin/sh -c #(nop) ADD file:... in /            8MB</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>As you can see, the different layers of <code>demo</code> correspond to a separate line in the Dockerfile and the layers have their own ID. You can see the image layer <code>433e56d735f6</code> committed in the second build step in the list of layers for this image.</p>
 </div>
 <div class="paragraph">
-<p>Look through your build output for where steps 3/5 (installing <code>which</code>), 4/5 (installing <code>wget</code>), and 5/5 (installing <code>vim</code>) occur - the same behavior of starting a temporary container based on the previous image layers, running the <code>RUN</code> command, saving the container as a new image layer visible in your <code>docker iamge history</code> output, and deleting the temporary container is visible.</p>
+<p>Look through your build output for where steps 3/5 (installing <code>which</code>), 4/5 (installing <code>wget</code>), and 5/5 (installing <code>vim</code>) occur - the same behavior of starting a temporary container based on the previous image layers, running the <code>RUN</code> command, saving the container as a new image layer visible in your <code>docker image history</code> output, and deleting the temporary container is visible.</p>
 </div>
 <div class="paragraph">
 <p>Every layer can be used as you would use any image, which means we can inspect a single layer. Let&#8217;s inspect the wget layer, which in my case is bba17f8df167 (yours will be different, look at your <code>docker image history</code> output):</p>
@@ -416,7 +431,7 @@ b9f2efa616de   2 minutes ago   /bin/sh -c yum install -y which                 8
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node demo]$ docker image inspect \
     --format='{{.ContainerConfig.Cmd}}' bba17f8df167
 
-[/bin/sh -c yum install -y wget]</code></pre>
+[/bin/sh -c apk add --no-cache wget]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -424,7 +439,7 @@ b9f2efa616de   2 minutes ago   /bin/sh -c yum install -y which                 8
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node demo]$ docker container run -it bba17f8df167 bash
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node demo]$ docker container run -it bba17f8df167 sh
 
 [root@a766a3d616b7 /]# which wget
 
@@ -447,11 +462,11 @@ b9f2efa616de   2 minutes ago   /bin/sh -c yum install -y which                 8
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM centos:7
-RUN yum update -y
-RUN yum install -y which
-RUN yum install -y wget
-RUN yum install -y nano</code></pre>
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM alpine:3.20
+RUN apk update
+RUN apk add --no-cache which
+RUN apk add --no-cache wget
+RUN apk add --no-cache nano</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -463,9 +478,9 @@ RUN yum install -y nano</code></pre>
 [user@node demo]$ docker image ls
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-demo                latest              5a6aedc1feab        8 seconds ago       590MB
-&lt;none&gt;              &lt;none&gt;              59e595750dd5        23 minutes ago      645MB
-centos              7                   49f7960eb7e4        2 months ago        200MB</code></pre>
+demo                latest              5a6aedc1feab        8 seconds ago       34MB
+&lt;none&gt;              &lt;none&gt;              59e595750dd5        23 minutes ago      46MB
+alpine              3.20                e34f9f...           2 days ago          8MB</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -476,9 +491,9 @@ centos              7                   49f7960eb7e4        2 months ago        
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM centos:7
-RUN yum update -y
-RUN yum install -y which wget nano</code></pre>
+<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">FROM alpine:3.20
+RUN apk update
+RUN apk add --no-cache which wget nano</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -491,10 +506,10 @@ RUN yum install -y which wget nano</code></pre>
 [user@node demo]$ docker image ls
 
 REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
-demo                new                 568b29a0dce9        20 seconds ago      416MB
-demo                latest              5a6aedc1feab        5 minutes ago       590MB
-&lt;none&gt;              &lt;none&gt;              59e595750dd5        28 minutes ago      645MB
-centos              7                   49f7960eb7e4        2 months ago        200MB</code></pre>
+demo                new                 568b29a0dce9        20 seconds ago      24MB
+demo                latest              5a6aedc1feab        5 minutes ago       34MB
+&lt;none&gt;              &lt;none&gt;              59e595750dd5        28 minutes ago      46MB
+alpine              3.20                e34f9f...           2 days ago          8MB</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -504,7 +519,7 @@ centos              7                   49f7960eb7e4        2 months ago        
 <div class="sect2">
 <h3 id="_conclusion_2">Conclusion</h3>
 <div class="paragraph">
-<p>In this demo, we explored the layered structure of images; each layer is built as a distinct image and can be treated as such, on the host where it was built. This information is preserved on the build host for use in the build cache; build another image based on the same lower layers, and they will be reused to speed up the build process. Notice that the same is not true of downloaded images like <code>centos:7</code>; intermediate image caches are not downloaded, but rather only the final complete image.</p>
+<p>In this exercise, you explored how layered images are built and reused. Each Dockerfile step creates a layer that can be cached locally to accelerate subsequent builds, while pulled images like <code>alpine:3.20</code> provide only the final image state and not your local intermediate build cache.</p>
 </div>
 </div>
 </div>
@@ -513,18 +528,18 @@ centos              7                   49f7960eb7e4        2 months ago        
 <h2 id="_basic_volume_usage">3. Basic Volume Usage</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this demo, we&#8217;ll illustrate:</p>
+<p>By the end of this exercise, you should be able to:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Creating, updating, destroying, and mounting docker named volumes</p>
+<p>Create, inspect, mount, and remove Docker named volumes</p>
 </li>
 <li>
-<p>How volumes interact with a container&#8217;s layered filesystem</p>
+<p>Explain how volumes differ from the container layered filesystem</p>
 </li>
 <li>
-<p>Usecases for mounting host directories into a container</p>
+<p>Use host path mounts for local development workflows</p>
 </li>
 </ul>
 </div>
@@ -559,7 +574,7 @@ centos              7                   49f7960eb7e4        2 months ago        
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run -it -v demovol:/demo centos:7 bash
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run -it -v demovol:/demo alpine:3.20 sh
 [root@f4aca1b60965 /]# ls
 anaconda-post.log  bin  demo  dev  etc  home ...</code></pre>
 </div>
@@ -603,12 +618,12 @@ anaconda-post.log  bin  demo  dev  etc  home ...</code></pre>
 <p>The volume and its contents will still be present on the host.</p>
 </div>
 <div class="paragraph">
-<p>Start a new container mounting the same volume, attach a bash shell to it, and show that the old data is present in your new container:</p>
+<p>Start a new container mounting the same volume, attach a shell to it, and show that the old data is present in your new container:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run -d -v demovol:/demo centos:7 ping 8.8.8.8
-[user@node ~]$ docker container exec -it &lt;container ID&gt; bash
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container run -d -v demovol:/demo alpine:3.20 ping 8.8.8.8
+[user@node ~]$ docker container exec -it &lt;container ID&gt; sh
 [root@11117d3de672 /]# cat /demo/mydata.dat</code></pre>
 </div>
 </div>
@@ -642,7 +657,7 @@ anaconda-post.log  bin  demo  dev  etc  home ...</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker container commit &lt;container ID&gt; demo:snapshot
-[user@node ~]$ docker container run -it demo:snapshot bash
+[user@node ~]$ docker container run -it demo:snapshot sh
 [root@ad62f304ba18 /]# cat /demo/mydata.dat
 cat: /demo/mydata.dat: No such file or directory</code></pre>
 </div>
@@ -695,7 +710,7 @@ Remove the offending container first, then remove the volume again.</p>
 <div class="sect2">
 <h3 id="_conclusion_3">Conclusion</h3>
 <div class="paragraph">
-<p>In this demo, we saw two key points about volumes: they exist outside the container&#8217;s layered filesystem, meaning that not only are they not captured on image creation, they don&#8217;t participate in the usual copy on write procedure when manipulating files in the writable container layer. Second, we saw that manipulating files on the host that have been mounted into a container immediately propagates those changes to the running container; this is a popular technique for developers who containerize their running environment, and mount in their in-development code so they can edit their code using the tools on their host machine that they are familiar with, and have those changes immediately available inside a running container without having to restart or rebuild anything.</p>
+<p>In this exercise, you verified that volumes live outside a container&#8217;s layered filesystem, so their data is not captured by image commits and is managed independently of copy-on-write layers. You also saw how host path mounts enable rapid local iteration by making host-side file edits immediately visible in running containers.</p>
 </div>
 </div>
 </div>
@@ -704,27 +719,24 @@ Remove the offending container first, then remove the volume again.</p>
 <h2 id="_single_host_networks">4. Single Host Networks</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this demo, we&#8217;ll illustrate:</p>
+<p>By the end of this exercise, you should be able to:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Creating docker bridge networks</p>
+<p>Create and inspect Docker bridge networks</p>
 </li>
 <li>
-<p>Attaching containers to docker networks</p>
+<p>Attach containers to networks and validate service reachability</p>
 </li>
 <li>
-<p>Inspecting networking metadata from docker networks and containers</p>
+<p>Read network metadata from containers and network objects</p>
 </li>
 <li>
-<p>How network interfaces appear in different network namespaces</p>
+<p>Explain veth pairs and namespace-scoped interfaces</p>
 </li>
 <li>
-<p>What network interfaces are created on the host by docker networking</p>
-</li>
-<li>
-<p>What iptables rules are created by docker to isolate docker software-defined networks and forward network traffic to containers</p>
+<p>Identify host-side interfaces and iptables rules created by Docker</p>
 </li>
 </ul>
 </div>
@@ -735,7 +747,7 @@ Remove the offending container first, then remove the volume again.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network ls
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker network ls
 
 NETWORK ID          NAME                DRIVER              SCOPE
 7c4e63830cbf        bridge              bridge              local
@@ -748,7 +760,7 @@ c87d2a849036        host                host                local
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network inspect bridge</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker network inspect bridge</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -787,7 +799,7 @@ c87d2a849036        host                host                local
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ ip addr
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ ip addr
 
 1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -815,8 +827,8 @@ c87d2a849036        host                host                local
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run -d centos:7 ping 8.8.8.8
-[centos@node-1 ~]$ docker network inspect bridge
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker container run -d alpine:3.20 ping 8.8.8.8
+[user@node-1 ~]$ docker network inspect bridge
 
 ...
 "Containers": {
@@ -839,7 +851,7 @@ c87d2a849036        host                host                local
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ ip addr
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ ip addr
 
 1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
@@ -885,8 +897,8 @@ c87d2a849036        host                host                local
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec -it &lt;container ID&gt; bash
-[root@f4e8f3f1b918 /]# yum install -y iproute
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker container exec -it &lt;container ID&gt; sh
+[root@f4e8f3f1b918 /]# apk add --no-cache iproute2
 ...
 [root@f4e8f3f1b918 /]# ip addr
 
@@ -913,8 +925,8 @@ c87d2a849036        host                host                local
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network create my_bridge
-[centos@node-1 ~]$ docker network ls
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker network create my_bridge
+[user@node-1 ~]$ docker network ls
 
 NETWORK ID          NAME                DRIVER              SCOPE
 7c4e63830cbf        bridge              bridge              local
@@ -931,10 +943,10 @@ a04d46bb85b1        my_bridge           bridge              local
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run \
-    --name c2 --network my_bridge -d centos:7 ping 8.8.8.8
-[centos@node-1 ~]$ docker container run \
-    --name c3 --network my_bridge -d centos:7 ping 8.8.8.8</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker container run \
+    --name c2 --network my_bridge -d alpine:3.20 ping 8.8.8.8
+[user@node-1 ~]$ docker container run \
+    --name c3 --network my_bridge -d alpine:3.20 ping 8.8.8.8</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -942,7 +954,7 @@ a04d46bb85b1        my_bridge           bridge              local
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network inspect my_bridge
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker network inspect my_bridge
 
 ...
 "IPAM": {
@@ -983,7 +995,7 @@ a04d46bb85b1        my_bridge           bridge              local
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec c2 ping c3</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker container exec c2 ping c3</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -994,14 +1006,14 @@ a04d46bb85b1        my_bridge           bridge              local
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run --network my_bridge -d centos:7 ping 8.8.8.8
-[centos@node-1 ~]$ docker container ls
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker container run --network my_bridge -d alpine:3.20 ping 8.8.8.8
+[user@node-1 ~]$ docker container ls
 
 CONTAINER ID        IMAGE     ... STATUS           PORTS   NAMES
-625cb95b922d        centos:7  ... Up 2 seconds             competent_leavitt
-084caf415784        centos:7  ... Up 5 minutes             c3
-23d2e307325e        centos:7  ... Up 5 minutes             c2
-f4e8f3f1b918        centos:7  ... Up 21 minutes            zealous_kirch</code></pre>
+625cb95b922d        alpine:3.20  ... Up 2 seconds             competent_leavitt
+084caf415784        alpine:3.20  ... Up 5 minutes             c3
+23d2e307325e        alpine:3.20  ... Up 5 minutes             c2
+f4e8f3f1b918        alpine:3.20  ... Up 21 minutes            zealous_kirch</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1009,7 +1021,7 @@ f4e8f3f1b918        centos:7  ... Up 21 minutes            zealous_kirch</code><
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec c2 ping competent_leavitt
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker container exec c2 ping competent_leavitt
 
 ping: competent_leavitt: Name or service not known</code></pre>
 </div>
@@ -1022,7 +1034,7 @@ ping: competent_leavitt: Name or service not known</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker network inspect my_bridge
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker network inspect my_bridge
 
 ...
 "625cb95b922d2502fd016c6517c51652e84f902f69632d5d399dc38f3f7b2711": {
@@ -1034,7 +1046,7 @@ ping: competent_leavitt: Name or service not known</code></pre>
 }
 ...
 
-[centos@node-1 ~]$ docker container exec c2 ping 172.18.0.4
+[user@node-1 ~]$ docker container exec c2 ping 172.18.0.4
 
 PING 172.18.0.4 (172.18.0.4) 56(84) bytes of data.
 64 bytes from 172.18.0.4: icmp_seq=1 ttl=64 time=0.083 ms
@@ -1049,7 +1061,7 @@ PING 172.18.0.4 (172.18.0.4) 56(84) bytes of data.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run --name c1 -d centos:7 ping 8.8.8.8</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker container run --name c1 -d alpine:3.20 ping 8.8.8.8</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1057,7 +1069,7 @@ PING 172.18.0.4 (172.18.0.4) 56(84) bytes of data.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec c2 ping c1
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker container exec c2 ping c1
 ping: c1: Name or service not known</code></pre>
 </div>
 </div>
@@ -1066,7 +1078,7 @@ ping: c1: Name or service not known</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container exec c2 ping 172.17.0.3</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker container exec c2 ping 172.17.0.3</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1074,7 +1086,7 @@ ping: c1: Name or service not known</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ sudo iptables-save
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ sudo iptables-save
 
 ...
 -A DOCKER-ISOLATION-STAGE-1 -i br-dfda80f70ea5
@@ -1098,7 +1110,7 @@ ping: c1: Name or service not known</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container run -d -p 8000:80 nginx</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ docker container run -d -p 8000:80 nginx</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1109,7 +1121,7 @@ ping: c1: Name or service not known</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ sudo iptables-save | grep 8000
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ sudo iptables-save | grep 8000
 
 -A DOCKER ! -i docker0 -p tcp -m tcp --dport 8000
     -j DNAT --to-destination 172.17.0.4:80</code></pre>
@@ -1123,15 +1135,16 @@ ping: c1: Name or service not known</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[centos@node-1 ~]$ docker container rm -f $(docker container ls -aq)
-[centos@node-1 ~]$ docker network rm my_bridge</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ ids="$(docker container ls -aq)"
+[user@node-1 ~]$ if [ -n "$ids" ]; then docker container rm -f $ids; fi
+[user@node-1 ~]$ docker network rm my_bridge</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_conclusion_4">Conclusion</h3>
 <div class="paragraph">
-<p>In this demo, we stepped through the basic behavior of docker software defined bridge networks, and looked at the technology underpinning them such as linux bridges, veth connections, and iptables rules. From a practical standpoint, in order for containers to communicate they must be attached to the same docker software defined network (otherwise they&#8217;ll be firewalled from each other by the cross-network iptables rules we saw), and in order for containers to resolve each other&#8217;s name by DNS, they must also be explicitly named upon creation.</p>
+<p>In this exercise, you stepped through Docker bridge networking from both operational and kernel-level perspectives, including Linux bridges, veth links, and iptables forwarding/isolation rules. In practice, containers need to share the same user-defined network to communicate directly, and explicit container names are required for predictable DNS-based service discovery.</p>
 </div>
 </div>
 </div>
@@ -1140,15 +1153,15 @@ ping: c1: Name or service not known</code></pre>
 <h2 id="_docker_compose">5. Docker Compose</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this demo, we&#8217;ll illustrate:</p>
+<p>By the end of this exercise, you should be able to:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Starting an app defined in a docker compose file</p>
+<p>Start an application defined in a Compose file</p>
 </li>
 <li>
-<p>Inter-service communication using DNS resolution of service names</p>
+<p>Verify inter-service communication using DNS service names</p>
 </li>
 </ul>
 </div>
@@ -1215,7 +1228,7 @@ networks:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose up -d</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker compose up -d</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1231,12 +1244,12 @@ networks:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose ps
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker compose ps
 [user@node dockercoins]$ docker network ls</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If everyting is up, visit your app at <code>&lt;node-0 public IP&gt;:8000</code> to see Dockercoins in action.</p>
+<p>If everything is up, visit your app at <code>&lt;node-0 public IP&gt;:8000</code> to see Dockercoins in action.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1254,7 +1267,7 @@ networks:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker container exec -it &lt;Container ID&gt; bash</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker container exec -it &lt;Container ID&gt; sh</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1323,21 +1336,177 @@ def hash_bytes(data):
 </div>
 </div>
 <div class="paragraph">
-<p>As we can see in the last two stanzas, we can direct traffic to a service via a DNS name that exactly matches the service name defined in the docker compose file.</p>
+<p>As we can see in the last two stanzas, we can direct traffic to a service via a DNS name that exactly matches the service name defined in the Docker Compose file.</p>
 </div>
 <div class="paragraph">
 <p>Shut down Dockercoins and clean up its resources:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose down</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker compose down</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_conclusion_5">Conclusion</h3>
 <div class="paragraph">
-<p>In this exercise, we stood up an application using Docker Compose. The most important new idea here is the notion of Docker Services, which are collections of identically configured containers. Docker Service names are resolvable by DNS, so that we can write application logic designed to communicate service to service; all service discovery and load balancing between your application&#8217;s services is abstracted away and handled by Docker.</p>
+<p>In this exercise, you started an application with Docker Compose and validated service-to-service communication through built-in DNS. The key concept is that Compose service names provide stable endpoints so application components can discover each other without custom service discovery logic.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_kubernetes_basics">6. Kubernetes basics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Explain the role of Pods, Deployments, Services, and Secrets</p>
+</li>
+<li>
+<p>Apply declarative manifests with <code>kubectl</code></p>
+</li>
+<li>
+<p>Verify and access a simple Kubernetes application</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_prerequisites">Prerequisites</h3>
+<div class="paragraph">
+<p>You need access to a Kubernetes cluster and <code>kubectl</code> configured for it.</p>
+</div>
+<div class="paragraph">
+<p>Check your connection:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ kubectl config current-context
+[user@node-1 ~]$ kubectl get nodes</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_applying_the_demo_app">Applying the Demo App</h3>
+<div class="paragraph">
+<p>The demo manifest is located at <code>resources/kubernetes-demo/simple-app.yaml</code> and contains:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Namespace: <code>k8s-demo</code></p>
+</li>
+<li>
+<p>Secret: <code>hello-config</code></p>
+</li>
+<li>
+<p>Deployment: <code>hello-web</code> (2 replicas)</p>
+</li>
+<li>
+<p>Service: <code>hello-web</code> (ClusterIP)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Apply the manifest:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ kubectl apply -f resources/kubernetes-demo/simple-app.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify resources:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ kubectl -n k8s-demo get deployment,pods,svc,secrets
+[user@node-1 ~]$ kubectl -n k8s-demo rollout status deployment/hello-web</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_explaining_kubernetes_objects_in_the_demo">Explaining Kubernetes Objects in the Demo</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Pod: runtime unit for one or more containers</p>
+</li>
+<li>
+<p>Deployment: desired state and rollout controller for Pods</p>
+</li>
+<li>
+<p>Service: stable virtual endpoint in front of the Pods</p>
+</li>
+<li>
+<p>Secret: sensitive value injected into container environment</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Inspect the Secret and Deployment wiring:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ kubectl -n k8s-demo describe secret hello-config
+[user@node-1 ~]$ kubectl -n k8s-demo describe deployment hello-web</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_accessing_the_application">Accessing the Application</h3>
+<div class="paragraph">
+<p>Since <code>hello-web</code> is a ClusterIP service, forward it to your local machine:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ kubectl -n k8s-demo port-forward service/hello-web 8080:80</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Open <code><a href="http://localhost:8080" class="bare">http://localhost:8080</a></code> and refresh multiple times to see different Pod hostnames.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rotating_a_secret_and_restarting_pods">Rotating a Secret and Restarting Pods</h3>
+<div class="paragraph">
+<p>Update the Secret value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ kubectl -n k8s-demo create secret generic hello-config \
+    --from-literal=WELCOME_MESSAGE='Hello after secret rotation' \
+    -o yaml --dry-run=client | kubectl apply -f -</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Restart the Deployment so Pods pick up the updated environment value:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ kubectl -n k8s-demo rollout restart deployment/hello-web
+[user@node-1 ~]$ kubectl -n k8s-demo rollout status deployment/hello-web</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Refresh <code><a href="http://localhost:8080" class="bare">http://localhost:8080</a></code> to verify the updated message.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cleaning_up">Cleaning Up</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ kubectl delete namespace k8s-demo</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_6">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, you deployed a simple Kubernetes application and validated the core workflow: declare desired state in YAML, apply it with <code>kubectl</code>, verify rollout and service routing, and manage sensitive configuration through Secrets.</p>
 </div>
 </div>
 </div>
@@ -1346,7 +1515,7 @@ def hash_bytes(data):
 <div id="footer">
 <div id="footer-text">
 Version local<br>
-Last updated 2023-02-24 10:32:48 UTC
+Last updated 2026-08-31 05:18:58 UTC
 </div>
 </div>
 <script src="./assets/highlight/highlight.min.js"></script>
@@ -1358,7 +1527,7 @@ Last updated 2023-02-24 10:32:48 UTC
 <script>
 if (!hljs.initHighlighting.called) {
   hljs.initHighlighting.called = true
-  ;[].slice.call(document.querySelectorAll('pre.highlight > code')).forEach(function (el) { hljs.highlightBlock(el) })
+  ;[].slice.call(document.querySelectorAll('pre.highlight > code[data-lang]')).forEach(function (el) { hljs.highlightBlock(el) })
 }
 </script>
 </body>
