@@ -100,7 +100,7 @@
       become: yes
       become_user: "{{ linux_user }}"
       ansible.builtin.command:
-        cmd: "helm repo add headlamp https://headlamp-k8s.github.io/headlamp/"
+        cmd: "helm repo add headlamp https://kubernetes-sigs.github.io/headlamp/"
       register: headlamp_repo
       changed_when: "'has been added' in headlamp_repo.stdout"
 
