@@ -118,8 +118,8 @@ Make a directory with some source code in it for your new website:
 
 [source,shell]
 ----
-[user@node ~]$ mkdir /home/centos/myweb
-[user@node ~]$ cd /home/centos/myweb
+[user@node ~]$ mkdir /home/ubuntu/myweb
+[user@node ~]$ cd /home/ubuntu/myweb
 [user@node myweb]$ echo "<h1>Hello Wrld</h1>" > index.html
 ----
 Start up an nginx container that mounts this as a static website:
@@ -127,7 +127,7 @@ Start up an nginx container that mounts this as a static website:
 [source,shell]
 ----
 [user@node myweb]$ docker container run -d \
-    -v /home/centos/myweb:/usr/share/nginx/html \
+    -v /home/ubuntu/myweb:/usr/share/nginx/html \
     -p 8000:80 nginx
 ----
 Visit your website at the public IP of this node, port 8000.

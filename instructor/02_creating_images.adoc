@@ -97,8 +97,7 @@ Let's look for the command associated with this image layer by using `--format`:
 
 [source,shell]
 ----
-[user@node demo]$ docker image inspect \
-    --format='{{.ContainerConfig.Cmd}}' bba17f8df167
+[user@node demo]$ docker image inspect bba17f8df167
 
 [/bin/sh -c apk add --no-cache wget]
 ----

@@ -35,7 +35,8 @@ Open a second connection to `node-3` and execute the following command:
 ----
 
 and observe the generated output in the first terminal. It should look similar to this:
-
+[source,shell]
+----
 2017-01-25T16:57:48.553596179-06:00 container create 30eb63 ...
 2017-01-25T16:57:48.556718161-06:00 container attach 30eb63 ...
 2017-01-25T16:57:48.698190608-06:00 network connect de1b2b ...

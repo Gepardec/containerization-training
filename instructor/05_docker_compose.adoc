@@ -60,7 +60,7 @@ When we start the app, we will see the service images getting downloaded one at 
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker compose up -d
+[user@node dockercoins]$ docker-compose up -d
 ----
 After starting, the images required for this app have been downloaded:
 
@@ -72,7 +72,7 @@ Make sure the services are up and running, as is the dedicated network:
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker compose ps
+[user@node dockercoins]$ docker-compose ps
 [user@node dockercoins]$ docker network ls
 ----
 If everything is up, visit your app at `<node-0 public IP>:8000` to see Dockercoins in action.
@@ -154,7 +154,7 @@ Shut down Dockercoins and clean up its resources:
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker compose down
+[user@node dockercoins]$ docker-compose down
 ----
 
 === Conclusion

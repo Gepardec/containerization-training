@@ -24,7 +24,7 @@ Stand up the app:
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker compose up
+[user@node dockercoins]$ docker-compose up
 ----
 After a moment, your app should be running; visit `<node 0 public IP>:8000` to see the web frontend visualizing your rate of Dockercoin mining.
 
@@ -32,13 +32,13 @@ Logs from all the running services are sent to `STDOUT`. Let's send this to the 
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker compose up -d
+[user@node dockercoins]$ docker-compose up -d
 ----
 Check out which containers are running thanks to Compose:
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker compose ps
+[user@node dockercoins]$ docker-compose ps
 
         Name                      Command               State          Ports         
 ------------------------------------------------------------------------------------
@@ -55,13 +55,13 @@ See logs from a Compose-managed app via:
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker compose logs
+[user@node dockercoins]$ docker-compose logs
 ----
 The logging API in Compose follows the main Docker logging API closely. For example, try following the tail of the logs just like you would for regular container logs:
 
 [source,shell]
 ----
-[user@node dockercoins]$ docker compose logs --tail 10 --follow
+[user@node dockercoins]$ docker-compose logs --tail 10 --follow
 ----
 Note that while following logs, `CTRL+S` and `CTRL+Q` pause and resume live streaming, and `CTRL+C` exits follow mode as usual.
 

@@ -6,6 +6,10 @@
       linux_user: ubuntu
       kind_version: "v0.32.0"
       kind_arch: "amd64"
+      kubectl_version: "v1.33.0"
+      helm_version: "v3.18.4"
+      kind_cluster_name: "training"
+      kubeconfig: "/home/{{ linux_user }}/.kube/config"
   tasks:
     - name: "Install Packages"
       become: yes
@@ -21,12 +25,44 @@
         - zip
         - unzip
         - tar
+        - httping
 
     - name: Download kind binary
+      become: yes
       ansible.builtin.get_url:
         url: "https://kind.sigs.k8s.io/dl/{{ kind_version }}/kind-linux-{{ kind_arch }}"
         dest: /usr/local/bin/kind
         mode: "0755"
+
+    - name: Download kubectl binary
+      become: yes
+      ansible.builtin.get_url:
+        url: "https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/{{ kind_arch }}/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: "0755"
+
+    - name: Download Helm archive
+      become: yes
+      ansible.builtin.get_url:
+        url: "https://get.helm.sh/helm-{{ helm_version }}-linux-{{ kind_arch }}.tar.gz"
+        dest: "/tmp/helm-{{ helm_version }}.tar.gz"
+        mode: "0644"
+
+    - name: Extract Helm archive
+      become: yes
+      ansible.builtin.unarchive:
+        src: "/tmp/helm-{{ helm_version }}.tar.gz"
+        dest: /tmp
+        remote_src: yes
+        creates: "/tmp/linux-{{ kind_arch }}/helm"
+
+    - name: Install Helm binary
+      become: yes
+      ansible.builtin.copy:
+        src: "/tmp/linux-{{ kind_arch }}/helm"
+        dest: /usr/local/bin/helm
+        mode: "0755"
+        remote_src: yes
 
     - name: "Ensure group 'docker' exists"
       become: yes
@@ -45,3 +81,74 @@
       ansible.builtin.systemd:
         state: started
         name: docker
+
+    - name: Check whether the Kind cluster already exists
+      become: yes
+      become_user: "{{ linux_user }}"
+      ansible.builtin.command: "kind get clusters"
+      register: kind_clusters
+      changed_when: false
+
+    - name: Create Kind cluster
+      become: yes
+      become_user: "{{ linux_user }}"
+      ansible.builtin.command:
+        cmd: "kind create cluster --name {{ kind_cluster_name }} --kubeconfig {{ kubeconfig }}"
+      when: kind_cluster_name not in kind_clusters.stdout_lines
+
+    - name: Add the Headlamp Helm repository
+      become: yes
+      become_user: "{{ linux_user }}"
+      ansible.builtin.command:
+        cmd: "helm repo add headlamp https://headlamp-k8s.github.io/headlamp/"
+      register: headlamp_repo
+      changed_when: "'has been added' in headlamp_repo.stdout"
+
+    - name: Update Helm repositories
+      become: yes
+      become_user: "{{ linux_user }}"
+      ansible.builtin.command: helm repo update
+      changed_when: false
+
+    - name: Deploy Headlamp
+      become: yes
+      become_user: "{{ linux_user }}"
+      ansible.builtin.command:
+        cmd: >-
+          helm upgrade --install headlamp headlamp/headlamp
+          --namespace headlamp --create-namespace
+          --kubeconfig {{ kubeconfig }}
+
+    - name: Check whether the Headlamp cluster-admin binding exists
+      become: yes
+      become_user: "{{ linux_user }}"
+      ansible.builtin.command:
+        cmd: "kubectl --kubeconfig {{ kubeconfig }} get clusterrolebinding headlamp"
+      register: headlamp_binding
+      changed_when: false
+      failed_when: false
+
+    - name: Grant Headlamp access to the training cluster
+      become: yes
+      become_user: "{{ linux_user }}"
+      ansible.builtin.command:
+        cmd: >-
+          kubectl --kubeconfig {{ kubeconfig }} create clusterrolebinding headlamp
+          --clusterrole=cluster-admin --serviceaccount=headlamp:headlamp
+      when: headlamp_binding.rc != 0
+
+    - name: Wait for Headlamp to become ready
+      become: yes
+      become_user: "{{ linux_user }}"
+      ansible.builtin.command:
+        cmd: >-
+          kubectl --kubeconfig {{ kubeconfig }} -n headlamp
+          rollout status deployment/headlamp --timeout=180s
+      changed_when: false
+
+    - name: Print Headlamp access instructions
+      ansible.builtin.debug:
+        msg:
+          - "Headlamp is deployed in the '{{ kind_cluster_name }}' Kind cluster."
+          - "Start the UI with: kubectl --kubeconfig {{ kubeconfig }} -n headlamp port-forward service/headlamp 8080:80"
+          - "Create a login token with: kubectl --kubeconfig {{ kubeconfig }} -n headlamp create token headlamp"
