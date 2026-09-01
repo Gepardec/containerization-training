@@ -17,7 +17,7 @@
 <span id="author" class="author">Marko Gattringer</span><br>
 <span id="email" class="email"><a href="mailto:marko.gattringer@gepardec.com">marko.gattringer@gepardec.com</a></span><br>
 <span id="revnumber">version local,</span>
-<span id="revdate">8/31/2026</span>
+<span id="revdate">9/1/2026</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -38,7 +38,7 @@
 <li><a href="#_scaling_a_compose_app">14. Scaling a Compose App</a></li>
 <li><a href="#_cleaning_up_docker_resources">15. Cleaning up Docker Resources</a></li>
 <li><a href="#_inspection_commands">16. Inspection Commands</a></li>
-<li><a href="#_pwd">17. $ pwd</a></li>
+<li><a href="#_appendix">17. Appendix</a></li>
 </ul>
 </div>
 </div>
@@ -2285,7 +2285,7 @@ EXPOSE 80</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker compose up</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose up</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2296,7 +2296,7 @@ EXPOSE 80</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker compose up -d</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose up -d</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2304,7 +2304,7 @@ EXPOSE 80</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker compose ps
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose ps
 
         Name                      Command               State          Ports
 ------------------------------------------------------------------------------------
@@ -2326,7 +2326,7 @@ dockercoins_worker_1   python worker.py                 Up</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker compose logs</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose logs</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2334,7 +2334,7 @@ dockercoins_worker_1   python worker.py                 Up</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker compose logs --tail 10 --follow</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose logs --tail 10 --follow</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2598,49 +2598,46 @@ dockercoins_worker_2    python worker.py                 Up</code></pre>
 <div class="paragraph">
 <p>and observe the generated output in the first terminal. It should look similar to this:</p>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">2017-01-25T16:57:48.553596179-06:00 container create 30eb63 ...
+2017-01-25T16:57:48.556718161-06:00 container attach 30eb63 ...
+2017-01-25T16:57:48.698190608-06:00 network connect de1b2b ...
+2017-01-25T16:57:49.062631155-06:00 container start 30eb63 ...
+2017-01-25T16:57:49.065552570-06:00 container resize 30eb63 ...
+2017-01-25T16:57:49.164526268-06:00 container die 30eb63 ...
+2017-01-25T16:57:49.613422740-06:00 network disconnect de1b2b ...
+2017-01-25T16:57:49.815845051-06:00 container destroy 30eb63 ...</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p>2017-01-25T16:57:48.553596179-06:00 container create 30eb63 &#8230;&#8203;
-2017-01-25T16:57:48.556718161-06:00 container attach 30eb63 &#8230;&#8203;
-2017-01-25T16:57:48.698190608-06:00 network connect de1b2b &#8230;&#8203;
-2017-01-25T16:57:49.062631155-06:00 container start 30eb63 &#8230;&#8203;
-2017-01-25T16:57:49.065552570-06:00 container resize 30eb63 &#8230;&#8203;
-2017-01-25T16:57:49.164526268-06:00 container die 30eb63 &#8230;&#8203;
-2017-01-25T16:57:49.613422740-06:00 network disconnect de1b2b &#8230;&#8203;
-2017-01-25T16:57:49.815845051-06:00 container destroy 30eb63 &#8230;&#8203;</p>
+<p>Granular information about every action taken by the Docker engine is presented in the events stream.</p>
+</div>
+<div class="paragraph">
+<p>If you don&#8217;t like the format of the output then we can use the <code>--format</code> parameter to define our own format in the form of a link::https://golang.org/pkg/text/template/[Go template]. Stop the events watch on your first terminal with <code>CTRL+C</code>, and try this:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>Granular information about every action taken by the Docker engine is presented in the events stream.
-
-If you don't like the format of the output then we can use the `--format` parameter to define our own format in the form of a link::https://golang.org/pkg/text/template/[Go template]. Stop the events watch on your first terminal with `CTRL+C`, and try this:
-
-[source,shell]</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-3 ~]$ docker system events --format '--&gt; {{.Type}}-{{.Action}}'</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>[user@node-3 ~]$ docker system events --format '-&#8594; {{.Type}}-{{.Action}}'</p>
+<p>Now the output looks a little less cluttered when we run our Alpine container on the second terminal as above.</p>
+</div>
+<div class="paragraph">
+<p>Finally, we can find out what the event structure looks like by outputting the events in <code>json</code> format (once again after stopping the events watcher on the first terminal and restarting it with):</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>Now the output looks a little less cluttered when we run our Alpine container on the second terminal as above.
-
-Finally, we can find out what the event structure looks like by outputting the events in `json` format (once again after stopping the events watcher on the first terminal and restarting it with):
-
-[source,shell]</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-3 ~]$ docker system events --format '{{json .}}' | jq</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>[user@node-3 ~]$ docker system events --format '{{json .}}' | jq</p>
+<p>This should give us, for the first event in the series after re-running our Alpine container on the other connection to <code>node-3</code>, something like this (note: the output has been prettified for readability):</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>This should give us, for the first event in the series after re-running our Alpine container on the other connection to `node-3`, something like this (note: the output has been prettified for readability):
-
-[source,json]</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>{
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
    "status":"create",
    "id":"95ddb6ed4c87d67fa98c3e63397e573a23786046e00c2c68a5bcb9df4c17635c",
    "from":"alpine",
@@ -2655,43 +2652,58 @@ Finally, we can find out what the event structure looks like by outputting the e
    },
    "time":1485385702,
    "timeNano":1485385702748011034
-}</p>
+}</code></pre>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre>=== Conclusion
-In this exercise, we learned how to inspect system-wide properties of our Docker host by using the `docker system info` command; this is one of the first places to look for general config information to include in a bug report. We also saw a simple example of `docker system events`; the events stream is one of the primary sources of information that should be logged and monitored when running Docker in production. Many commercial as well as open-source products (such as Elastic Stack) exist to facilitate aggregating and mining these streams at scale.
-
-== Appendix
-
-=== A Brief Introduction to Bash
-If you're not familiar with common Linux commands (`cd`, `ls`, `ps`, `sudo`, etc.), this exercise is designed to guide you through the commands we use in the Docker training.
-
-By the end of this exercise, you should be able to:
-* Manage files and folders using Linux commands
-* Inspect processes running on your machine and use some discovery tools.
-
-Pre-requisites:
-
-* A Linux machine.
-
-
-=== Managing Files and Folders
-In this first part we will walk through common commands for creating and manipulating files and folders from the command line.
-
-Open a terminal.
-
-Terminals work by accepting text-based commands and returning text-based responses. Ask the terminal what directory you are currently in; in all our instructions, `$` represents the terminal prompt, and you should enter what you see after the prompt. Yours might look a bit different; in any case, type `pwd`:
-
-[source,shell]</pre>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_conclusion_16">Conclusion</h3>
+<div class="paragraph">
+<p>In this exercise, we learned how to inspect system-wide properties of our Docker host by using the <code>docker system info</code> command; this is one of the first places to look for general config information to include in a bug report. We also saw a simple example of <code>docker system events</code>; the events stream is one of the primary sources of information that should be logged and monitored when running Docker in production. Many commercial as well as open-source products (such as Elastic Stack) exist to facilitate aggregating and mining these streams at scale.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_pwd">17. $ pwd</h2>
+<h2 id="_appendix">17. Appendix</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_a_brief_introduction_to_bash">A Brief Introduction to Bash</h3>
+<div class="paragraph">
+<p>If you&#8217;re not familiar with common Linux commands (<code>cd</code>, <code>ls</code>, <code>ps</code>, <code>sudo</code>, etc.), this exercise is designed to guide you through the commands we use in the Docker training.</p>
+</div>
+<div class="paragraph">
+<p>By the end of this exercise, you should be able to:
+* Manage files and folders using Linux commands
+* Inspect processes running on your machine and use some discovery tools.</p>
+</div>
+<div class="paragraph">
+<p>Pre-requisites:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A Linux machine.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_managing_files_and_folders">Managing Files and Folders</h3>
+<div class="paragraph">
+<p>In this first part we will walk through common commands for creating and manipulating files and folders from the command line.</p>
+</div>
+<div class="paragraph">
+<p>Open a terminal.</p>
+</div>
+<div class="paragraph">
+<p>Terminals work by accepting text-based commands and returning text-based responses. Ask the terminal what directory you are currently in; in all our instructions, <code>$</code> represents the terminal prompt, and you should enter what you see after the prompt. Yours might look a bit different; in any case, type <code>pwd</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ pwd</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p><code>pwd</code> stands for Print Working Directory. You should see something like:</p>
 </div>
@@ -3053,9 +3065,10 @@ mkdir: cannot create directory ‘newDir’: File exists</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_conclusion_16">Conclusion</h4>
+<h4 id="_conclusion_17">Conclusion</h4>
 <div class="paragraph">
 <p>We saw most of the Linux commands that we will use in the actual Docker training. Feel free to discover more commands in the following cheat sheet: link::https://www.git-tower.com/blog/command-line-cheat-sheet/[Command Line Cheat Sheet]</p>
+</div>
 </div>
 </div>
 </div>
@@ -3064,7 +3077,7 @@ mkdir: cannot create directory ‘newDir’: File exists</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version local<br>
-Last updated 2026-08-31 05:48:48 UTC
+Last updated 2026-09-01 07:17:26 UTC
 </div>
 </div>
 <script src="./assets/highlight/highlight.min.js"></script>

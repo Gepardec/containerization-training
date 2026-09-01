@@ -17,7 +17,7 @@
 <span id="author" class="author">Marko Gattringer</span><br>
 <span id="email" class="email"><a href="mailto:marko.gattringer@gepardec.com">marko.gattringer@gepardec.com</a></span><br>
 <span id="revnumber">version local,</span>
-<span id="revdate">8/31/2026</span>
+<span id="revdate">9/1/2026</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -208,19 +208,34 @@ centos    6327  0.0  0.0   ...   grep --color=auto 5828</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ cat /proc/&lt;host PID of containerized process&gt;/cgroup
 
-12:memory:/docker/31d03...
-11:freezer:/docker/31d03...
-10:hugetlb:/docker/31d03...
-9:perf_event:/docker/31d03...
-8:net_cls,net_prio:/docker/31d03...
-7:cpuset:/docker/31d03...
-6:pids:/docker/31d03...
-5:blkio:/docker/31d03...
-4:rdma:/
-3:devices:/docker/31d03...
-2:cpu,cpuacct:/docker/31d03...
-1:name=systemd:/docker/31d03...</code></pre>
+0::/system.slice/docker-...</code></pre>
 </div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ ls /sys/fs/cgroup/system.slice/docker-...
+cgroup.controllers      cgroup.type      cpuset.cpus.effective            hugetlb.2MB.events.local  memory.events.local  memory.swap.events      pids.current
+cgroup.events           cpu.idle         cpuset.cpus.exclusive            hugetlb.2MB.max           memory.high          memory.swap.high        pids.events
+cgroup.freeze           cpu.max          cpuset.cpus.exclusive.effective  hugetlb.2MB.numa_stat     memory.low           memory.swap.max         pids.events.local
+cgroup.kill             cpu.max.burst    cpuset.cpus.partition            hugetlb.2MB.rsvd.current  memory.max           memory.swap.peak        pids.max
+cgroup.max.depth        cpu.pressure     cpuset.mems                      hugetlb.2MB.rsvd.max      memory.min           memory.zswap.current    pids.peak
+cgroup.max.descendants  cpu.stat         cpuset.mems.effective            io.max                    memory.numa_stat     memory.zswap.max        rdma.current
+cgroup.pressure         cpu.stat.local   dmem.current                     io.pressure               memory.oom.group     memory.zswap.writeback  rdma.max
+cgroup.procs            cpu.uclamp.max   dmem.low                         io.prio.class             memory.peak          misc.current
+cgroup.stat             cpu.uclamp.min   dmem.max                         io.stat                   memory.pressure      misc.events
+cgroup.stat.local       cpu.weight       dmem.min                         io.weight                 memory.reclaim       misc.events.local
+cgroup.subtree_control  cpu.weight.nice  hugetlb.2MB.current              memory.current            memory.stat          misc.max
+cgroup.threads          cpuset.cpus      hugetlb.2MB.events               memory.events             memory.swap.current  misc.peak</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ cat /sys/fs/cgroup/system.slice/docker-a8559051e3503c2142a882423f551b9ab707de9c3ee20d3677e03d56dfa5dcf1.scope/cpu.max
+100000 100000</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>200000 100000 means the cgroup can consume 200000 µs of CPU time per 100000 µs period—effectively 2 CPUs worth of CPU time.</p>
 </div>
 <div class="paragraph">
 <p>Get a summary of resources consumed by processes in a control group via <code>systemd-cgtop</code>:</p>
@@ -428,8 +443,7 @@ e34f9f...      2 days ago      /bin/sh -c #(nop)  CMD ["/bin/sh"]              0
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node demo]$ docker image inspect \
-    --format='{{.ContainerConfig.Cmd}}' bba17f8df167
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node demo]$ docker image inspect bba17f8df167
 
 [/bin/sh -c apk add --no-cache wget]</code></pre>
 </div>
@@ -685,8 +699,8 @@ Remove the offending container first, then remove the volume again.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ mkdir /home/centos/myweb
-[user@node ~]$ cd /home/centos/myweb
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ mkdir /home/ubuntu/myweb
+[user@node ~]$ cd /home/ubuntu/myweb
 [user@node myweb]$ echo "&lt;h1&gt;Hello Wrld&lt;/h1&gt;" &gt; index.html</code></pre>
 </div>
 </div>
@@ -696,7 +710,7 @@ Remove the offending container first, then remove the volume again.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node myweb]$ docker container run -d \
-    -v /home/centos/myweb:/usr/share/nginx/html \
+    -v /home/ubuntu/myweb:/usr/share/nginx/html \
     -p 8000:80 nginx</code></pre>
 </div>
 </div>
@@ -1228,7 +1242,7 @@ networks:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker compose up -d</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose up -d</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1244,7 +1258,7 @@ networks:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker compose ps
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose ps
 [user@node dockercoins]$ docker network ls</code></pre>
 </div>
 </div>
@@ -1343,7 +1357,7 @@ def hash_bytes(data):
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker compose down</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node dockercoins]$ docker-compose down</code></pre>
 </div>
 </div>
 </div>
@@ -1515,7 +1529,7 @@ def hash_bytes(data):
 <div id="footer">
 <div id="footer-text">
 Version local<br>
-Last updated 2026-08-31 05:48:48 UTC
+Last updated 2026-09-01 07:17:26 UTC
 </div>
 </div>
 <script src="./assets/highlight/highlight.min.js"></script>
