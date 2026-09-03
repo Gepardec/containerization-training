@@ -17,7 +17,7 @@
 <span id="author" class="author">Marko Gattringer</span><br>
 <span id="email" class="email"><a href="mailto:marko.gattringer@gepardec.com">marko.gattringer@gepardec.com</a></span><br>
 <span id="revnumber">version local,</span>
-<span id="revdate">9/1/2026</span>
+<span id="revdate">9/3/2026</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -1516,75 +1516,6 @@ dev  etc  proc  sleep  sys</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_optional_enabling_buildkit">Optional: Enabling BuildKit</h3>
-<div class="paragraph">
-<p>In addition to the default builder, <code>BuildKit</code> can be enabled to take advantage of build-process optimizations.</p>
-</div>
-<div class="paragraph">
-<p>Back in the <code>~/multi</code> directory, turn on <code>BuildKit</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ export DOCKER_BUILDKIT=1</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Add an AS label to the final stage of your Dockerfile (this is not strictly necessary, but will make the output in the next step easier to understand):</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-Dockerfile hljs" data-lang="Dockerfile">...
-
-FROM alpine:3.20 AS prod
-COPY --from=build /app/bin/hello /app/hello
-CMD ["/app/hello"]</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Re-build my-app-small, without the cache:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ docker image build --no-cache -t my-app-small-bk .
-
-[+] Building 15.5s (14/14) FINISHED
- =&gt; [internal] load Dockerfile
- =&gt; =&gt; transferring dockerfile: 97B
- =&gt; [internal] load .dockerignore
- =&gt; =&gt; transferring context: 2B
- =&gt; [internal] load metadata for docker.io/library/alpine:3.20
- =&gt; CACHED [prod 1/3] FROM docker.io/library/alpine:3.20
- =&gt; [internal] load build context
- =&gt; =&gt; transferring context: 87B
- =&gt; CACHED [internal] helper image for file operations
- =&gt; [build 2/6] RUN apk add --no-cache build-base
- =&gt; [build 3/6] RUN mkdir /app
- =&gt; [build 4/6] COPY hello.c /app
- =&gt; [build 5/6] RUN mkdir bin
- =&gt; [build 6/6] RUN gcc -Wall hello.c -o bin/hello
- =&gt; [prod 3/3] COPY --from=build /app/bin/hello /app/hello
- =&gt; exporting to image
- =&gt; =&gt; exporting layers
- =&gt; =&gt; writing image sha256:22de288...
- =&gt; =&gt; naming to docker.io/library/my-app-small-bk</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Notice the lines marked like <code>[prod 2/3]</code> and <code>[build 4/6]</code>: prod and build in this context are the AS labels you applied to the <code>FROM</code> lines in each stage of your build in the <code>Dockerfile</code>; from the above output, you can see that the build stages were built in parallel. Every step of the final image was completed while the build environment image was being created; the prod environment image creation was only blocked at the <code>COPY</code> instruction since it required a file from the completed build image.</p>
-</div>
-<div class="paragraph">
-<p>Comment out the <code>COPY</code> instruction in the prod image definition in your <code>Dockerfile</code>, and rebuild; the build image is skipped. <code>BuildKit</code> recognized that the build stage was not necessary for the image being built, and skipped it.</p>
-</div>
-<div class="paragraph">
-<p>Turn off BuildKit:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node multi]$ export DOCKER_BUILDKIT=0</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
 <h3 id="_conclusion_8">Conclusion</h3>
 <div class="paragraph">
 <p>In this exercise, you created a <code>Dockerfile</code> defining multiple build stages. Being able to take artifacts like compiled binaries from one image and insert them into another allows you to create very lightweight images that do not include developer tools or other unnecessary components in your production-ready images, just like how you currently probably have separate build and run environments for your software. This will result in containers that start faster, and are less vulnerable to attack.</p>
@@ -1610,15 +1541,6 @@ CMD ["/app/hello"]</code></pre>
 <p>Delete image tags and image layers, and understand the difference between the two operations</p>
 </li>
 </ul>
-</div>
-<div class="sect2">
-<h3 id="_making_an_account_on_dockers_hosted_registry">Making an Account on Docker&#8217;s Hosted Registry</h3>
-<div class="paragraph">
-<p>If you don&#8217;t have one already, head over to link::https://hub.docker.com[<a href="https://hub.docker.com" class="bare">https://hub.docker.com</a>] and create an account.</p>
-</div>
-<div class="paragraph">
-<p>For the rest of this workshop, <code>&lt;Docker ID&gt;</code> refers to the username you chose for this account.</p>
-</div>
 </div>
 <div class="sect2">
 <h3 id="_tagging_and_listing_images">Tagging and Listing Images</h3>
@@ -1663,9 +1585,21 @@ No new image has been created; <code>my-alpine:dev</code> is just a pointer to t
 </div>
 </div>
 <div class="sect2">
-<h3 id="_sharing_images_on_docker_hub">Sharing Images on Docker Hub</h3>
+<h3 id="_making_an_account_on_dockers_hosted_registry">Making an Account on Docker&#8217;s Hosted Registry</h3>
 <div class="paragraph">
-<p>Push your image to Docker Hub:</p>
+<p>GitHub includes a free Container Registry that anyone with a GitHub account can use.</p>
+</div>
+<div class="paragraph">
+<p>All you need is a Personal Access Token (PAT), which can be created here: <a href="https://github.com/settings/tokens" class="bare">https://github.com/settings/tokens</a></p>
+</div>
+<div class="paragraph">
+<p>Required permission: write:packages</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sharing_images">Sharing Images</h3>
+<div class="paragraph">
+<p>Push your image:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1676,33 +1610,43 @@ No new image has been created; <code>my-alpine:dev</code> is just a pointer to t
 <p>You should get a denied: requested access to the resource is denied error.</p>
 </div>
 <div class="paragraph">
-<p>Login by doing <code>docker login</code>, and try pushing again. The push fails again because we haven&#8217;t namespaced our image correctly for distribution on Docker Hub; all images you want to share on Docker Hub must be named like <code>&lt;Docker ID&gt;/&lt;repo name&gt;[:&lt;optional tag&gt;]</code>.</p>
+<p>Login by doing <code>docker login</code>, and try pushing again.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ PAT_CR=&lt;YOUR_PERSONAL_ACCESS_TOKEN&gt;
+[user@node ~]$ echo $PAT_CR | docker login ghcr.io -u [GITHUB_USERNAME] --password-stdin
+[user@node ~]$ docker image push my-alpine:dev</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The push fails again because we haven&#8217;t namespaced our image correctly; we also have to specify the registry when not pushing to Dockerhub: <code>ghcr.io/&lt;GITHUB_USERNAME&gt;/&lt;IMAGE_NAME&gt;[:&lt;optional tag&gt;]</code>.</p>
 </div>
 <div class="paragraph">
 <p>Retag your image to be namespaced properly, and push again:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image tag my-alpine:dev &lt;Docker ID&gt;/my-alpine:dev
-[user@node ~]$ docker image push &lt;Docker ID&gt;/my-alpine:dev</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image tag my-alpine:dev ghcr.io/[GITHUB_USERNAME]/my-alpine:dev
+[user@node ~]$ docker image push ghcr.io/[GITHUB_USERNAME]/my-alpine:dev</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Search Docker Hub for your new <code>&lt;Docker ID&gt;/my-alpine</code> repo, and confirm that you can see the <code>:dev</code> tag there.</p>
+<p>Go to your GitHub Packages page. You should see our image my-alpine listed there. Click on it to view the details. Go to the package settings and change the default visibility to public.</p>
 </div>
 <div class="paragraph">
-<p>Next, write a <code>Dockerfile</code> that uses <code>&lt;Docker ID&gt;/my-alpine:dev</code> as its base image, and installs any application you like on top of that. Build the image, and simultaneously tag it as <code>:1.0</code>:</p>
+<p>Next, write a <code>Dockerfile</code> that uses <code>ghcr.io/[GITHUB_USERNAME]/my-alpine:dev</code> as its base image, and installs any application you like on top of that. Build the image, and simultaneously tag it as <code>:1.0</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image build -t &lt;Docker ID&gt;/my-alpine:1.0 .</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node ~]$ docker image build -t ghcr.io/[GITHUB_USERNAME]/my-alpine:1.0 .</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Push your <code>:1.0</code> tag to Docker Hub, and confirm you can see it in the appropriate repository.</p>
+<p>Push your <code>:1.0</code> tag to ghcr.io, and confirm you can see it in the appropriate repository.</p>
 </div>
 <div class="paragraph">
-<p>Finally, list the images currently on your node with docker image ls. You should still have the version of your image that wasn&#8217;t namespaced with your Docker Hub user name; delete this using <code>docker image rm</code>:</p>
+<p>Finally, list the images currently on your node with docker image ls. You should still have the version of your image that wasn&#8217;t namespaced with your Github user name; delete this using <code>docker image rm</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1716,7 +1660,7 @@ No new image has been created; <code>my-alpine:dev</code> is just a pointer to t
 <div class="sect2">
 <h3 id="_conclusion_9">Conclusion</h3>
 <div class="paragraph">
-<p>In this exercise, we practiced tagging images and exchanging them on the public registry. The namespacing rules for images on registries are mandatory: user-generated images to be exchanged on the public registry must be named like <code>&lt;Docker ID&gt;/&lt;repo name&gt;[:&lt;optional tag&gt;]</code>; official images in the Docker registry just have the repo name and tag.</p>
+<p>In this exercise, we practiced tagging images and exchanging them on the public registry. The namespacing rules for images on registries are mandatory: user-generated images to be exchanged on the public registry must be named like <code>ghcr.io/&lt;GITHUB_USERNAME&gt;/&lt;IMAGE_NAME&gt;[:&lt;optional tag&gt;]</code>; official images in the Docker registry just have the repo name and tag.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3077,7 +3021,7 @@ mkdir: cannot create directory ‘newDir’: File exists</code></pre>
 <div id="footer">
 <div id="footer-text">
 Version local<br>
-Last updated 2026-09-01 07:36:47 UTC
+Last updated 2026-09-03 05:36:52 UTC
 </div>
 </div>
 <script src="./assets/highlight/highlight.min.js"></script>

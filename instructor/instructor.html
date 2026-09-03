@@ -17,7 +17,7 @@
 <span id="author" class="author">Marko Gattringer</span><br>
 <span id="email" class="email"><a href="mailto:marko.gattringer@gepardec.com">marko.gattringer@gepardec.com</a></span><br>
 <span id="revnumber">version local,</span>
-<span id="revdate">9/1/2026</span>
+<span id="revdate">9/3/2026</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -1398,7 +1398,10 @@ def hash_bytes(data):
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ kubectl config current-context
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[user@node-1 ~]$ ssh -L 8080:127.0.0.1:8080 ubuntu@3.123.32.101 -i containerization-training/0/access
+[user@node-1 ~]$ kubectl --kubeconfig /home/ubuntu/.kube/config -n headlamp port-forward --address 0.0.0.0 service/headlamp 8080:80
+[user@node-1 ~]$ kubectl -n headlamp create token headlamp
+[user@node-1 ~]$ kubectl config current-context
 [user@node-1 ~]$ kubectl get nodes</code></pre>
 </div>
 </div>
@@ -1529,7 +1532,7 @@ def hash_bytes(data):
 <div id="footer">
 <div id="footer-text">
 Version local<br>
-Last updated 2026-09-01 07:36:47 UTC
+Last updated 2026-09-03 05:36:52 UTC
 </div>
 </div>
 <script src="./assets/highlight/highlight.min.js"></script>
