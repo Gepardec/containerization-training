@@ -24,12 +24,11 @@ Sample Containerfile
 
 [source,dockerfile]
 ----
-FROM anapsix/alpine-java
-LABEL MAINTAINER=thomas.herzo@gepardec.com
+FROM alpine/java
 WORKDIR /data
 EXPOSE 8080
-COPY build/libs/hello-world-<version>-runner.jar hello-world-<version>-runner.jar
-CMD ["-jar", "hello-world-<version>-runner.jar"]
+COPY build/libs/hello-world-runner.jar hello-world-runner.jar
+CMD ["-jar", "hello-world-runner.jar"]
 ENTRYPOINT ["java"]
 ----
 
