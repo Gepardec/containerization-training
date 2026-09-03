@@ -65,8 +65,6 @@ Containers can be removed and replaced with a minimum of impact on their neighbo
 
 image::02_virtualization_vs_containerization/component-migration.svg[]
 
-Containers carry their environment and dependencies with them, simplifying and minimizing requirements on the hosts that run them.
-
 [.notes]
 --
 * From the DevOps point of view, aggressive encapsulation equals smooth migrations; since containers carry everything they need with them, they impose relatively few requirements on the host that runs them. Hosts need only provide a compatible kernel and architecture, and a container engine; no application specific dependencies or environment configurations need be maintained across environments.
