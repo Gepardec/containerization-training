@@ -28,7 +28,7 @@ List your images:
 ----
 You should have `alpine:3.20` and `my-alpine:dev` both listed, and they should have the same image ID since they are the same image.
 
-=== Making an Account on Docker's Hosted Registry
+=== GitHub Container Registry (ghcr.io)
 GitHub includes a free Container Registry that anyone with a GitHub account can use.
 
 All you need is a Personal Access Token (PAT), which can be created here: https://github.com/settings/tokens

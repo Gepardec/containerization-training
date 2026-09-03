@@ -10,7 +10,6 @@
       helm_version: "v3.18.4"
       kind_cluster_name: "training"
       kubeconfig: "/home/{{ linux_user }}/.kube/config"
-      kind_stop_after_install: true
   tasks:
     - name: "Install Packages"
       become: yes
@@ -90,23 +89,6 @@
       register: kind_clusters
       changed_when: false
 
-    - name: Find stopped Kind node containers
-      become: yes
-      become_user: "{{ linux_user }}"
-      ansible.builtin.command:
-        cmd: >-
-          docker ps -aq --filter label=io.x-k8s.kind.cluster={{ kind_cluster_name }}
-          --filter status=exited
-      register: stopped_kind_nodes
-      changed_when: false
-
-    - name: Start stopped Kind node containers
-      become: yes
-      become_user: "{{ linux_user }}"
-      ansible.builtin.command: "docker start {{ item }}"
-      loop: "{{ stopped_kind_nodes.stdout_lines }}"
-      when: stopped_kind_nodes.stdout_lines | length > 0
-
     - name: Create Kind cluster
       become: yes
       become_user: "{{ linux_user }}"
@@ -164,26 +146,9 @@
           rollout status deployment/headlamp --timeout=180s
       changed_when: false
 
-    - name: Find all Kind node containers
-      become: yes
-      become_user: "{{ linux_user }}"
-      ansible.builtin.command:
-        cmd: "docker ps -aq --filter label=io.x-k8s.kind.cluster={{ kind_cluster_name }}"
-      register: kind_nodes
-      changed_when: false
-
     - name: Print Headlamp access instructions
       ansible.builtin.debug:
         msg:
           - "Headlamp is deployed in the '{{ kind_cluster_name }}' Kind cluster."
           - "Start the UI with: kubectl --kubeconfig {{ kubeconfig }} -n headlamp port-forward --address 0.0.0.0 service/headlamp 8080:80"
           - "Create a login token with: kubectl --kubeconfig {{ kubeconfig }} -n headlamp create token headlamp"
-
-    - name: Stop Kind node containers by default
-      become: yes
-      become_user: "{{ linux_user }}"
-      ansible.builtin.command: "docker stop {{ item }}"
-      loop: "{{ kind_nodes.stdout_lines }}"
-      when:
-        - kind_stop_after_install | bool
-        - kind_nodes.stdout_lines | length > 0
