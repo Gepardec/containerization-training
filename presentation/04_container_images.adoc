@@ -200,6 +200,20 @@ Recommended pattern:
 * This preserves signal handling and predictable overrides
 --
 
+=== SAMPLE
+[source,Dockerfile]
+----
+FROM alpine:3.22
+RUN apk add --no-cache yq
+ENTRYPOINT ["yq"]
+----
+
+[.notes]
+--
+docker build -t yq resources/yq
+alias yq='docker run --rm -i yq'
+cat resources/kubernetes-demo/simple-app.yaml | yq '.kind'
+--
 === Shell vs exec form
 
 [source,Dockerfile]
@@ -245,6 +259,18 @@ Use `ADD` only when you explicitly need:
 * Auto-extracting local tar archives
 * Fetching from URL sources (if policy allows)
 
+[source,Dockerfile]
+----
+# when app.tar.gz contains index.js and config.json
+# with
+ADD app.tar.gz /app/
+# result would be: /app/index.js and /app/config.json
+# with
+COPY app.tar.gz /app/
+# result would be: /app/app.tar.gz
+----
+
+
 [.notes]
 --
 * Prefer `COPY` for clarity and least surprise.
@@ -274,7 +300,7 @@ dist
 ----
 
 [.notes]
----
+--
 .dockerignore improves cache stability because it keeps noisy files out of the build context hash.
 
 When Docker evaluates cache for steps like COPY . ., it fingerprints the files that are sent as build context.
@@ -290,17 +316,7 @@ Simple example:
 Without .dockerignore: updating app.log can invalidate COPY . . and force dependency/install steps to rebuild.
 With .dockerignore containing *.log: changing app.log does not affect context hash, so cache can still be reused.
 So “cache stability” means: same meaningful inputs -> same cache result, with less random cache busting from unrelated files.
----
-
-=== Dockerfile command roundup
-
-* `FROM`: base image
-* `RUN`: execute build-time commands
-* `COPY`: copy files into image
-* `ADD`: specialized copy behavior
-* `ENTRYPOINT` and `CMD`: default runtime behavior
-* `USER`: set runtime user
-* `HEALTHCHECK`: define container health probe
+--
 
 === Advanced image construction goals
 
@@ -434,25 +450,6 @@ USER appuser
 CMD ["node", "server.js"]
 ----
 
-=== Build-time secrets with BuildKit
-
-Never pass secrets via `ARG` or `ENV` during build.
-
-[source,Dockerfile]
-----
-# syntax=docker/dockerfile:1.7
-FROM alpine:3.20
-RUN --mount=type=secret,id=npm_token \
-    sh -c 'echo "Using secret at /run/secrets/npm_token"'
-----
-
-[source,shell]
-----
-docker image build \
-  --secret id=npm_token,src=$HOME/.npm-token \
-  -t myapp:secure .
-----
-
 === HEALTHCHECK and operability
 
 `HEALTHCHECK` lets orchestrators detect unhealthy containers.
@@ -509,6 +506,16 @@ docker image build -t myorg/myapp:1.2.3 -t myorg/myapp:latest .
 # Pull immutable image by digest
 docker image pull myorg/myapp@sha256:abc123...
 ----
+
+=== Dockerfile command roundup
+
+* `FROM`: base image
+* `RUN`: execute build-time commands
+* `COPY`: copy files into image
+* `ADD`: specialized copy behavior
+* `ENTRYPOINT` and `CMD`: default runtime behavior
+* `USER`: set runtime user
+* `HEALTHCHECK`: define container health probe
 
 === Image namespaces
 

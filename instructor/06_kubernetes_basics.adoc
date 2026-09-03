@@ -13,6 +13,9 @@ Check your connection:
 
 [source,shell]
 ----
+[user@node-1 ~]$ ssh -L 8080:127.0.0.1:8080 ubuntu@3.123.32.101 -i containerization-training/0/access
+[user@node-1 ~]$ kubectl --kubeconfig /home/ubuntu/.kube/config -n headlamp port-forward --address 0.0.0.0 service/headlamp 8080:80
+[user@node-1 ~]$ kubectl -n headlamp create token headlamp
 [user@node-1 ~]$ kubectl config current-context
 [user@node-1 ~]$ kubectl get nodes
 ----

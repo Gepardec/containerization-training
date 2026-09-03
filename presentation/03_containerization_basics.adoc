@@ -24,13 +24,11 @@ By the end of this module, trainees will be able to
 * Kernel namespaces
 * Control groups
 * Root privilege and syscall restrictions (Linux)
-* Optional hypervisor-backed isolation modes (Windows)
 
 [.notes]
 --
 * Fundamentally, containers are just processes living on the host, isolated primarily by kernel namespaces, and control groups for resource isolation.
 * Linux containers can also be subject to restrictions on what root privileges and system calls they are allowed to make, by application of a Linux security module.
-* On the Windows side, containers enhance their isolation by running in ultra-light-weight VMs.
 --
 
 === Linux kernel namespaces
@@ -51,26 +49,6 @@ By the end of this module, trainees will be able to
 * By analogy: an un-namespaced system is like when airplanes used to have just one TV in the cabin everyone would look up at to watch the in-flight movie. Everyone shared the device, and everyone saw the same thing.
 * Introducing namespaces is like putting seatback TVs in front of every passenger. Now everyone has their own private devices and sees their own thing, which is hidden from their neighbors.
 * In the same way, a namespaced process has all their own resources - their own iptables rules and eth0 device, their own mount points, their own PID tree - and processes in other namespaces aren't allowed to touch or even see these resources.       
---
-
-=== Verifying namespace isolation
-
-[source,shell]
-----
-# Start a container with a long-running process
-docker container run -d --name ns-demo alpine:3.20 sleep 600
-
-# Process appears as PID 1 inside the container namespace
-docker container exec ns-demo ps -o pid,comm
-
-# Compare with host view and inspect the target PID
-docker container top ns-demo
-----
-
-[.notes]
---
-* `ps` inside the container and `docker container top` from the host show the same process through different namespace perspectives.
-* This gives trainees concrete evidence that a container is still a host process.
 --
 
 === Linux PID kernel namespace
@@ -100,25 +78,6 @@ image::03_containerization_basics/pid-tree.svg[width=50%]
 * All production deployments should take advantage of control groups, to limit how much memory and CPU a container can consume.
 * Root privileges and system calls are governed by allowlists, which can be configured per-container.
 * Linux security modules allow the creation of access control rules for filesystem paths and objects within the container.
---
-
-=== Resource limits with control groups
-
-[source,shell]
-----
-# Constrain memory and CPU for a test container
-docker container run -d --name limits-demo \
-	--memory=256m --cpus=0.5 \
-	nginx:stable
-
-# Observe runtime resource usage
-docker container stats limits-demo
-----
-
-[.notes]
---
-* Show that limits are declared at start time and enforced by cgroups.
-* Reinforce noisy-neighbor prevention on shared hosts.
 --
 
 [.dark_background.demo.background]
