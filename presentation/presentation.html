@@ -703,12 +703,11 @@ Swarm: active
 <div class="paragraph"><p>Considerations:</p></div>
 <div class="ulist"><ul><li><p>What container image is suitable?</p></li><li><p>Do you need <span class="keyword">CMD</span>, or <span class="keyword">ENTRYPOINT</span>, or maybe both?</p></li><li><p>If you run two containers, what do need to take care of?</p></li></ul></div>
 <h2 id="exercise_wrap_up_hello_world" class="timer"></h2></div></section><section id="_solution"><h2>Solution</h2><div class="slide-content"><div class="paragraph"><p>Sample Containerfile</p></div>
-<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-dockerfile hljs" data-noescape="true" data-lang="dockerfile">FROM anapsix/alpine-java
-LABEL MAINTAINER=thomas.herzo@gepardec.com
+<div class="listingblock"><div class="content"><pre class="highlightjs highlight"><code class="language-dockerfile hljs" data-noescape="true" data-lang="dockerfile">FROM alpine/java
 WORKDIR /data
 EXPOSE 8080
-COPY build/libs/hello-world-&lt;version&gt;-runner.jar hello-world-&lt;version&gt;-runner.jar
-CMD ["-jar", "hello-world-&lt;version&gt;-runner.jar"]
+COPY build/libs/hello-world-runner.jar hello-world-runner.jar
+CMD ["-jar", "hello-world-runner.jar"]
 ENTRYPOINT ["java"]</code></pre></div></div>
 <div class="paragraph"><p>Solution commands</p></div>
 <div class="ulist"><ul><li><p><code>docker build -t hello_world .</code></p></li><li><p><code>docker run -d -p 8080:8080 hello_world</code></p></li></ul></div></div></section></section>
