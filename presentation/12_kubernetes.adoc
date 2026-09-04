@@ -67,41 +67,6 @@ By the end of this module, trainees will be able to
 * Secrets are base64-encoded in manifests by default, so combine with RBAC and external secret management where possible.
 --
 
-=== Demo architecture
-
-image::10_compose/service-discovery.svg[width=35%]
-
-Demo resources:
-
-* Namespace: `k8s-demo`
-* Secret: `hello-config`
-* Deployment: `hello-web` (2 replicas)
-* Service: `hello-web` (ClusterIP)
-
-=== Demo manifest
-
-[source,yaml]
-----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: k8s-demo
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: hello-config
-  namespace: k8s-demo
-type: Opaque
-stringData:
-  WELCOME_MESSAGE: "Hello from Kubernetes"
-----
-
-[.notes]
---
-* Full demo manifest is in `resources/kubernetes-demo/simple-app.yaml`.
---
-
 [.dark_background.demo.background]
 === icon:task[role=moby_icon] Instructor demo: Kubernetes app deployment
 
@@ -110,44 +75,6 @@ See the demo
 * Kubernetes basics
 
 in the instructor demo book.
-
-[.dark_background.exercise.background]
-=== icon:task[role=moby_icon] Exercise: Deploy a simple app
-
-Work through
-
-* Apply the manifest
-* Verify Deployment, Pods, and Service
-* Port-forward and test the app
-* Rotate Secret value and redeploy
-
-++++
-<h2 id="exercise_kubernetes_app" class="timer"></h2>
-++++
-
-=== Demo commands
-
-[source,shell]
-----
-# Apply all resources
-kubectl apply -f resources/kubernetes-demo/simple-app.yaml
-
-# Check status
-kubectl -n k8s-demo get deployment,pods,svc,secrets
-
-# Access locally
-kubectl -n k8s-demo port-forward service/hello-web 8080:80
-
-# Cleanup
-kubectl delete namespace k8s-demo
-----
-
-=== Kubernetes takeaways
-
-* Pods run containers; Deployments manage Pod lifecycle
-* Services provide stable connectivity to changing Pod sets
-* Secrets keep sensitive config out of images
-* Kubernetes works best with declarative, versioned YAML
 
 === Further reading
 
